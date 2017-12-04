@@ -51,20 +51,21 @@ public class SurfHMPMain {
 			case SURFHMP_VOICE_READ_FILE:
 			{
 				SurfCommonLog.Log("################## voice_readfile ################");
-//				int i = 0;
-//				for(i = 0;i < 400;i ++)
+				int i = 0;
+				for(i = 0;i < 400;i ++)
 				{
 					func.func_voice_tool(tcpClient);
 					func.func_file_reader(tcpClient);
 					func.func_fileapp_start(tcpClient);
 					func.func_play(tcpClient);
-					Thread.sleep(50000);
+					Thread.sleep(100);
+//					Thread.sleep(50000);
 //					func.func_clear_all_tools(tcp_client);
-					func.func_remove(tcpClient);
-					Thread.sleep(1000);
-					func.func_clear_all_tools(tcpClient);
-					Thread.sleep(10000);
-					func.func_disconnect(tcpClient);
+//					func.func_remove(tcpClient);
+//					Thread.sleep(100);
+//					func.func_clear_all_tools(tcpClient);
+//					Thread.sleep(10000);
+//					func.func_disconnect(tcpClient);
 					func.id ++;
 				}
 				break;
