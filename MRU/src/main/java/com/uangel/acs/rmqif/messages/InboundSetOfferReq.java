@@ -1,34 +1,42 @@
 package com.uangel.acs.rmqif.messages;
 
+import com.google.gson.annotations.SerializedName;
+
 public class InboundSetOfferReq {
 
-    private String from_no;
-    private String to_no;
-    private String conference_id;
+    @SerializedName("from_no")
+    private String fromNo;
+    @SerializedName("to_no")
+    private String toNo;
+    @SerializedName("conference_id")
+    private String conferenceId;
+    @SerializedName("sdp")
     private String sdp;
+    @SerializedName("outbound")
+    private boolean outbound;
 
     public String getFromNo() {
-        return from_no;
+        return fromNo;
     }
 
-    public void setFromNo(String from_no) {
-        this.from_no = from_no;
+    public void setFromNo(String fromNo) {
+        this.fromNo = fromNo;
     }
 
     public String getToNo() {
-        return to_no;
+        return toNo;
     }
 
-    public void setToNo(String to_no) {
-        this.to_no = to_no;
+    public void setToNo(String toNo) {
+        this.toNo = toNo;
     }
 
     public String getConferenceId() {
-        return conference_id;
+        return conferenceId;
     }
 
-    public void setConferenceId(String conference_id) {
-        this.conference_id = conference_id;
+    public void setConferenceId(String conferenceId) {
+        this.conferenceId = conferenceId;
     }
 
     public String getSdp() {
@@ -39,13 +47,11 @@ public class InboundSetOfferReq {
         this.sdp = sdp;
     }
 
-    @Override
-    public String toString() {
-        return "InboundSetOfferReq{" +
-                "from_no='" + from_no + '\'' +
-                ", to_no='" + to_no + '\'' +
-                ", conference_id='" + conference_id + '\'' +
-                ", sdp='" + sdp + '\'' +
-                '}';
+    public boolean isOutbound() {
+        return outbound;
+    }
+
+    public void setOutbound(boolean outbound) {
+        this.outbound = outbound;
     }
 }

@@ -3,6 +3,7 @@ package com.uangel.acs.rmqif.module;
 import com.uangel.acs.AppInstance;
 import com.uangel.acs.common.StringValue;
 import com.uangel.acs.config.AmfConfig;
+import com.uangel.acs.rmqif.handler.RmqProcHangupReq;
 import com.uangel.acs.rmqif.handler.RmqProcInboundGetAnswerReq;
 import com.uangel.acs.rmqif.handler.RmqProcInboundSetOfferReq;
 import com.uangel.acs.rmqif.handler.RmqProcNegoDoneReq;
@@ -88,6 +89,8 @@ public class RmqServer {
             case RmqMessageType.RMQ_MSG_TYPE_OUTBOUND_SET_ANSWER_RES:
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_HANGUP_REQ:
+                RmqProcHangupReq hangupReq= new RmqProcHangupReq();
+                hangupReq.handle(msg);
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_HANGUP_RES:
                 break;

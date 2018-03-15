@@ -94,6 +94,19 @@ public class App
                     "   \"body\": {}\n" +
                     "}");
 
+            Thread.sleep(500);
+
+            sender.send("{\n" +
+                    "   \"header\": {\n" +
+                    "      \"type\": \"msfmp_hangup_req\",\n" +
+                    "      \"sessionId\": \"AAWFHQAABNkAABezAf_sJw--c4706@xener.com\",\n" +
+                    "      \"transactionId\": 585819438444,\n" +
+                    "      \"msgFrom\": \"mcu1_mcud\",\n" +
+                    "      \"trxType\": 0,\n" +
+                    "      \"reasonCode\": 0\n" +
+                    "   }\n" +
+                    "}\n");
+
             sender.close();
         } catch (Exception e) {
             e.printStackTrace();

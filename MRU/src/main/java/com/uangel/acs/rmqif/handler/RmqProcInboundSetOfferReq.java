@@ -27,7 +27,7 @@ public class RmqProcInboundSetOfferReq implements RmqIncomingMessageInterface {
             return false;
         }
 
-        logger.info("[{}] <- InboundSetOfferReq: from [{}] to [{}] cnfid [{}]",
+        logger.info("[{}] <- InboundSetOfferReq: from [{}] to [{}] cnfid [{}]", msg.getHeader().getSessionId(),
                 req.getFromNo(), req.getToNo(), req.getConferenceId());
 
         SdpParser sdpParser = new SdpParser();
