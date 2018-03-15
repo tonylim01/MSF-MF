@@ -16,12 +16,16 @@ public class AmfConfig extends DefaultConfig {
     private String rmqMcud;
     private String rmqUser, rmqPass;
 
+    private SdpConfig sdpConfig;
+
     public AmfConfig() {
 
         super(CONFIG_FILE);
 
         boolean result = load();
         logger.info("Load config [{}] ... [{}]", CONFIG_FILE, StringValue.getOkFail(result));
+
+        sdpConfig = new SdpConfig();
 
         if (result == true) {
             loadConfig();
@@ -57,6 +61,21 @@ public class AmfConfig extends DefaultConfig {
                 rmqPass = decoded;
             }
 
+            String localHost = getStrValue("SDP_LOCAL_HOST", null);
+            String localIp = getStrValue("SDP_LOCAL_IP", null);
+
+            sdpConfig.setLocalHost(localHost);
+            sdpConfig.setLocalIpAddress(localIp);
+
+            for (int i = 0; ; i++) {
+                String key = String.format("SDP_LOCAL_ATTR_%d", i);
+                String attr = getStrValue(key, null);
+                if (attr == null) {
+                    break;
+                }
+                sdpConfig.addAttribute(attr);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -76,5 +95,9 @@ public class AmfConfig extends DefaultConfig {
 
     public String getRmqPass() {
         return rmqPass;
+    }
+
+    public SdpConfig getSdpConfig() {
+        return sdpConfig;
     }
 }

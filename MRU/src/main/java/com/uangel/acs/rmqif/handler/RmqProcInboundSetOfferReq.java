@@ -1,5 +1,6 @@
 package com.uangel.acs.rmqif.handler;
 
+import com.uangel.acs.rmqif.handler.base.RmqIncomingMessageInterface;
 import com.uangel.acs.rmqif.messages.InboundSetOfferReq;
 import com.uangel.acs.rmqif.types.RmqMessage;
 import com.uangel.core.rabbitmq.message.RmqData;
@@ -13,6 +14,10 @@ public class RmqProcInboundSetOfferReq implements RmqIncomingMessageInterface {
 
     @Override
     public boolean handle(RmqMessage msg) {
+        if (msg == null || msg.getHeader() == null) {
+            return false;
+        }
+
         RmqData<InboundSetOfferReq> data = new RmqData<>(InboundSetOfferReq.class);
         InboundSetOfferReq req = data.parse(msg);
 
@@ -21,8 +26,8 @@ public class RmqProcInboundSetOfferReq implements RmqIncomingMessageInterface {
             return false;
         }
 
-        logger.info("InboundSetOfferReq: from [{}] to [{}] cnfid [{}] sdp [{}]",
-                req.getFromNo(), req.getToNo(), req.getConferenceId(), req.getSdp());
+        logger.info("[{}] <- InboundSetOfferReq: from [{}] to [{}] cnfid [{}]",
+                req.getFromNo(), req.getToNo(), req.getConferenceId());
 
         SdpParser sdpParser = new SdpParser();
         try {

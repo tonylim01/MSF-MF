@@ -3,6 +3,7 @@ package com.uangel.acs.rmqif.module;
 import com.uangel.acs.AppInstance;
 import com.uangel.acs.common.StringValue;
 import com.uangel.acs.config.AmfConfig;
+import com.uangel.acs.rmqif.handler.RmqProcInboundGetAnswerReq;
 import com.uangel.acs.rmqif.handler.RmqProcInboundSetOfferReq;
 import com.uangel.acs.rmqif.types.RmqMessage;
 import com.uangel.acs.rmqif.types.RmqMessageType;
@@ -66,12 +67,14 @@ public class RmqServer {
 
         switch (msg.getMessageType()) {
             case RmqMessageType.RMQ_MSG_TYPE_INBOUND_SET_OFFER_REQ:
-                RmqProcInboundSetOfferReq req = new RmqProcInboundSetOfferReq();
-                req.handle(msg);
+                RmqProcInboundSetOfferReq inboudSetOfferReq = new RmqProcInboundSetOfferReq();
+                inboudSetOfferReq.handle(msg);
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_INBOUND_SET_OFFER_RES:
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_INBOUND_GET_ANSWER_REQ:
+                RmqProcInboundGetAnswerReq inboundGetAnswerReq= new RmqProcInboundGetAnswerReq();
+                inboundGetAnswerReq.handle(msg);
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_INBOUND_GET_ANSWER_RES:
                 break;
