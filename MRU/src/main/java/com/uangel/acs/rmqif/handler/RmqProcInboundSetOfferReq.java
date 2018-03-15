@@ -4,6 +4,7 @@ import com.uangel.acs.rmqif.handler.base.RmqIncomingMessageInterface;
 import com.uangel.acs.rmqif.messages.InboundSetOfferReq;
 import com.uangel.acs.rmqif.types.RmqMessage;
 import com.uangel.core.rabbitmq.message.RmqData;
+import com.uangel.core.sdp.SdpInfo;
 import com.uangel.core.sdp.SdpParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +32,11 @@ public class RmqProcInboundSetOfferReq implements RmqIncomingMessageInterface {
 
         SdpParser sdpParser = new SdpParser();
         try {
-            sdpParser.parse(req.getSdp());
+            SdpInfo sdpInfo = sdpParser.parse(req.getSdp());
+
+            //
+            // TODO
+            //
         } catch (Exception e) {
             e.printStackTrace();
         }

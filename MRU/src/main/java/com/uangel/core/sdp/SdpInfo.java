@@ -6,7 +6,7 @@ import java.util.List;
 public class SdpInfo {
 
     private String remoteIp;
-    private String remotePort;
+    private int remotePort;
     private int payloadId;
 
     List<SdpAttribute> attributes = null;
@@ -19,11 +19,11 @@ public class SdpInfo {
         this.remoteIp = remoteIp;
     }
 
-    public String getRemotePort() {
+    public int getRemotePort() {
         return remotePort;
     }
 
-    public void setRemotePort(String remotePort) {
+    public void setRemotePort(int remotePort) {
         this.remotePort = remotePort;
     }
 
@@ -45,4 +45,30 @@ public class SdpInfo {
         }
         attributes.add(new SdpAttribute(payloadId, description));
     }
+
+    public void addAttribute(String name, String description) {
+        if (attributes == null) {
+            attributes = new ArrayList<>();
+        }
+        attributes.add(new SdpAttribute(name, description));
+    }
+
+    public boolean updateAttribute(int payloadId, String description) {
+        if (attributes == null) {
+            return false;
+        }
+
+        boolean result = false;
+
+        for (SdpAttribute attr: attributes) {
+            if (attr.getPayloadId() == payloadId) {
+                attr.setDescription(description);
+                result = true;
+                break;
+            }
+        }
+
+        return result;
+    }
+
 }

@@ -71,16 +71,30 @@ public class App
             Thread.sleep(100);
 
             sender.send("{\n" +
-                "\"header\": {\n" +
-                "\"type\": \"msfmp_inbound_get_answer_req\",\n" +
-                "\"sessionId\": \"AAqzXgAACP4AABeyAf_sJw--c4655@xener.com\",\n" +
-                "\"transactionId\": 517234739004,\n" +
-                "\"msgFrom\": \"mcu1_mcud\",\n" +
-                "\"trxType\": 0,\n" +
-                "\"reasonCode\": 0\n" +
-                "}\n}");
+                    "\"header\": {\n" +
+                    "\"type\": \"msfmp_inbound_get_answer_req\",\n" +
+                    "\"sessionId\": \"AAqzXgAACP4AABeyAf_sJw--c4655@xener.com\",\n" +
+                    "\"transactionId\": 517234739004,\n" +
+                    "\"msgFrom\": \"mcu1_mcud\",\n" +
+                    "\"trxType\": 0,\n" +
+                    "\"reasonCode\": 0\n" +
+                    "}\n}");
 
-                sender.close();
+            Thread.sleep(100);
+
+            sender.send("{\n" +
+                    "   \"header\": {\n" +
+                    "      \"type\": \"msfmp_nego_done_req\",\n" +
+                    "      \"sessionId\": \"AAqzXgAACP4AABeyAf_sJw--c4655@xener.com\",\n" +
+                    "      \"transactionId\": 517234747124,\n" +
+                    "      \"msgFrom\": \"mcu1_mcud\",\n" +
+                    "      \"trxType\": 0,\n" +
+                    "      \"reasonCode\": 0\n" +
+                    "   },\n" +
+                    "   \"body\": {}\n" +
+                    "}");
+
+            sender.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

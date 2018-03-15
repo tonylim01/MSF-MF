@@ -5,6 +5,7 @@ import com.uangel.acs.common.StringValue;
 import com.uangel.acs.config.AmfConfig;
 import com.uangel.acs.rmqif.handler.RmqProcInboundGetAnswerReq;
 import com.uangel.acs.rmqif.handler.RmqProcInboundSetOfferReq;
+import com.uangel.acs.rmqif.handler.RmqProcNegoDoneReq;
 import com.uangel.acs.rmqif.types.RmqMessage;
 import com.uangel.acs.rmqif.types.RmqMessageType;
 import com.uangel.core.rabbitmq.message.RmqParser;
@@ -91,6 +92,8 @@ public class RmqServer {
             case RmqMessageType.RMQ_MSG_TYPE_HANGUP_RES:
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_NEGO_DONE_REQ:
+                RmqProcNegoDoneReq negoDoneReq= new RmqProcNegoDoneReq();
+                negoDoneReq.handle(msg);
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_NEGO_DONE_RES:
                 break;

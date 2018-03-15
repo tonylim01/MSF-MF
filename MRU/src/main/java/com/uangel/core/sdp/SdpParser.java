@@ -12,13 +12,13 @@ public class SdpParser {
 
     private static final Logger logger = LoggerFactory.getLogger(SdpParser.class);
 
-    public boolean parse(String msg) throws Exception {
+    public SdpInfo parse(String msg) throws Exception {
         SDPAnnounceParser parser = new SDPAnnounceParser(msg);
         SessionDescriptionImpl sdp = parser.parse();
 
         Vector mdVector = sdp.getMediaDescriptions(false);
         if (mdVector == null) {
-            return false;
+            return null;
         }
 
         MediaDescription md = (MediaDescription)mdVector.get(0);
@@ -33,30 +33,76 @@ public class SdpParser {
             // TODO
             //
 
-            return false;
+            return null;
         }
-
-        // sdp connection addr 1.255.239.173 type IP4 net IN
-        logger.debug("sdp connection addr {} type {} net {}", connection.getAddress(), connection.getAddressType(), connection.getNetworkType());
 
         Media media = md.getMedia();
         if (media == null) {
-            return false;
+            return null;
         }
 
+        SdpInfo sdpInfo = new SdpInfo();
+        sdpInfo.setRemoteIp(connection.getAddress());
+        sdpInfo.setRemotePort(media.getMediaPort());
+
+        Vector<Integer> mediaFormats = new Vector<>();
+
+        for (Object obj: media.getMediaFormats(false)) {
+
+            Integer payloadId = Integer.valueOf((String)obj);
+
+            mediaFormats.add(payloadId);
+            sdpInfo.addAttribute(payloadId, null);
+        }
+
+        for (Object obj: md.getAttributes(false)) {
+
+            Attribute attr = (Attribute)obj;
+            if (attr.getName() == null) {
+                continue;
+            }
+
+            if (!attr.hasValue()) {
+                sdpInfo.addAttribute(attr.getName(), null);
+                continue;
+            }
+
+            String value = attr.getValue();
+
+            if (attr.getName().equals("rtpmap")) {
+                int space = value.indexOf(' ');
+                if (space <= 0) {
+                    continue;
+                }
+
+                Integer payloadId = Integer.valueOf(value.substring(0, space));
+                String description = value.substring(space + 1);
+
+                if (mediaFormats.contains(payloadId)) {
+                    mediaFormats.remove(payloadId);
+                }
+
+                sdpInfo.updateAttribute(payloadId, description);
+            }
+            else {
+                sdpInfo.addAttribute(attr.getName(), value);
+            }
+        }
+
+        // sdp connection addr 1.255.239.173 type IP4 net IN
+        logger.debug("sdp connection addr {} type {} net {}", sdpInfo.getRemoteIp(), connection.getAddressType(), connection.getNetworkType());
+
         // sdp media port 35664 type audio
-        logger.debug("sdp media port {} type {}", media.getMediaPort(), media.getMediaType());
+        logger.debug("sdp media port {} type {}", sdpInfo.getRemotePort(), media.getMediaType());
 
         // sdp media [0, 8, 4, 18, 101]
         logger.debug("sdp media {}", media.getMediaFormats(false).toString());
 
-        for (Object obj: md.getAttributes(false)) {
-            Attribute attr = (Attribute)obj;
-
-            // sdp attr name rtpmap value 0 PCMU/8000
-            logger.debug("sdp attr name {} value {}", attr.getName(), attr.hasValue() ? attr.getValue() : "-");
+        for (SdpAttribute attr: sdpInfo.getAttributes()) {
+            // sdp attr name [rtpmap] payload [0] value [PCMU/8000]
+            logger.debug("sdp attr name [{}] payload [{}] value [{}]", attr.getName(), attr.getPayloadId(), attr.getDescription());
         }
 
-        return true;
+        return sdpInfo;
     }
 }
