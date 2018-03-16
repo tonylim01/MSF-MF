@@ -1,13 +1,11 @@
 package com.uangel.acs.rmqif.handler;
 
-import com.uangel.acs.rmqif.handler.base.RmqIncomingMessageInterface;
-    import com.uangel.acs.rmqif.types.RmqMessage;
-import com.uangel.core.rabbitmq.message.RmqData;
-import com.uangel.core.sdp.SdpParser;
+import com.uangel.acs.rmqif.handler.base.RmqIncomingMessageHandler;
+import com.uangel.acs.rmqif.types.RmqMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RmqProcInboundGetAnswerReq implements RmqIncomingMessageInterface {
+public class RmqProcInboundGetAnswerReq extends RmqIncomingMessageHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(RmqProcInboundGetAnswerReq.class);
 
@@ -29,5 +27,9 @@ public class RmqProcInboundGetAnswerReq implements RmqIncomingMessageInterface {
         return false;
     }
 
+    @Override
+    public void sendResponse(String sessionId, long transactionId, int reasonCode, String reasonStr) {
+
+    }
 }
 

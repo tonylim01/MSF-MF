@@ -1,16 +1,13 @@
 package com.uangel.acs.rmqif.handler;
 
-import com.uangel.acs.rmqif.handler.base.RmqIncomingMessageInterface;
-import com.uangel.acs.rmqif.messages.InboundSetOfferReq;
+import com.uangel.acs.rmqif.handler.base.RmqIncomingMessageHandler;
 import com.uangel.acs.rmqif.messages.NegoDoneReq;
 import com.uangel.acs.rmqif.types.RmqMessage;
 import com.uangel.core.rabbitmq.message.RmqData;
-import com.uangel.core.sdp.SdpInfo;
-import com.uangel.core.sdp.SdpParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RmqProcNegoDoneReq implements RmqIncomingMessageInterface {
+public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(RmqProcNegoDoneReq.class);
 
@@ -42,5 +39,9 @@ public class RmqProcNegoDoneReq implements RmqIncomingMessageInterface {
         return false;
     }
 
+    @Override
+    public void sendResponse(String sessionId, long transactionId, int reasonCode, String reasonStr) {
+
+    }
 }
 

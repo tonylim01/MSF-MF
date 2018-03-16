@@ -1,11 +1,11 @@
 package com.uangel.acs.rmqif.handler;
 
-import com.uangel.acs.rmqif.handler.base.RmqIncomingMessageInterface;
+import com.uangel.acs.rmqif.handler.base.RmqIncomingMessageHandler;
 import com.uangel.acs.rmqif.types.RmqMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RmqProcHangupReq implements RmqIncomingMessageInterface {
+public class RmqProcHangupReq extends RmqIncomingMessageHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(RmqProcHangupReq.class);
 
@@ -27,5 +27,9 @@ public class RmqProcHangupReq implements RmqIncomingMessageInterface {
         return false;
     }
 
+    @Override
+    public void sendResponse(String sessionId, long transactionId, int reasonCode, String reasonStr) {
+
+    }
 }
 

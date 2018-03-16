@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.util.Enumeration;
 
 public class NetUtil {
 
@@ -21,5 +23,32 @@ public class NetUtil {
         }
 
         return result;
+    }
+
+    public static String getLocalIP() {
+        String ipAddress = null;
+        try {
+            Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+
+            while ((networkInterfaces.hasMoreElements())) {
+                NetworkInterface networkInterface = networkInterfaces.nextElement();
+
+                Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
+                while ((inetAddresses.hasMoreElements())) {
+
+                    InetAddress inetAddress = inetAddresses.nextElement();
+                    String hostAddress = inetAddress.getHostAddress();
+                    logger.debug("Network address [{}]", hostAddress);
+
+                    if (ipAddress == null) {
+                        ipAddress = hostAddress;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ipAddress;
     }
 }

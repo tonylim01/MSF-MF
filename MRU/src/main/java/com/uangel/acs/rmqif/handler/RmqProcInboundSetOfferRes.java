@@ -17,6 +17,7 @@ public class RmqProcInboundSetOfferRes extends RmqOutgoingMessage {
     }
 
     public boolean send() {
+
         return sendTo(RMQ_TARGET_ID_MCUD);
     }
 }

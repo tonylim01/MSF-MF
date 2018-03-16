@@ -69,7 +69,7 @@ public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
 
     @Override
     public void setReasonStr(String reasonStr) {
-
+        header.setReason(reasonStr);
     }
 
     @Override
@@ -97,6 +97,10 @@ public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
             target = config.getMcudName();
         }
 
+        if (config.getLocalName() != null) {
+            header.setMsgFrom(config.getLocalName());
+        }
+
         RmqMessage msg = new RmqMessage(header);
         if (jsonElement != null) {
             msg.setBody(jsonElement);
@@ -106,13 +110,21 @@ public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
             String json = RmqBuilder.build(msg);
 
             if (json != null) {
+                logger.debug("[{}] json=[{}]", msg.getSessionId(), json);
+
                 RmqClient client = RmqClient.getInstance(target);
                 if (client != null) {
                     result = client.send(json);
 
                     if (result) {
-                        logger.info("[{}] -> ({}) {}", msg.getSessionId(), target,
-                                RmqMessageType.getMessageTypeStr(msg.getMessageType()));
+                        if (msg.getHeader().getReason() == null) {
+                            logger.info("[{}] -> ({}) {}", msg.getSessionId(), target,
+                                    RmqMessageType.getMessageTypeStr(msg.getMessageType()));
+                        }
+                        else {
+                            logger.info("[{}] -> ({}) {}: code=[{}] reason=[{}]", msg.getSessionId(), target,
+                                    RmqMessageType.getMessageTypeStr(msg.getMessageType()), msg.getHeader().getReasonCode(), msg.getHeader().getReason());
+                        }
                     }
                     else {
                         logger.error("[{}] -> ({}) {} failed", msg.getSessionId(), target,
@@ -130,4 +142,7 @@ public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
         return result;
     }
 
+    public RmqHeader getHeader() {
+        return header;
+    }
 }

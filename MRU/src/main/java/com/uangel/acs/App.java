@@ -3,6 +3,7 @@ package com.uangel.acs;
 import com.uangel.acs.common.NetUtil;
 import com.uangel.acs.config.AmfConfig;
 import com.uangel.acs.rmqif.module.RmqServer;
+import com.uangel.acs.simulator.UdpRelay;
 import com.uangel.core.rabbitmq.transport.RmqSender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,11 @@ public class App
             logger.error("Process exited");
             return;
         }
+
+        NetUtil.getLocalIP();
+
+        UdpRelay udpRelay = new UdpRelay();
+        udpRelay.openUdpServer(10034);
 
         RmqServer rmqServer = null;
 
@@ -128,6 +134,8 @@ public class App
         if (rmqServer != null) {
             rmqServer.stop();
         }
+
+        udpRelay.closeUdpServer();
 
         logger.info("Process End..");
     }
