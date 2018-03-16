@@ -17,15 +17,13 @@ public class RmqProcInboundGetAnswerReq implements RmqIncomingMessageInterface {
             return false;
         }
 
-        logger.info("[{}] <- InboundGetAnswerReq", msg.getHeader().getSessionId());
-
         //
         // TODO
         //
 
         RmqProcInboundGetAnswerRes res = new RmqProcInboundGetAnswerRes(msg.getHeader().getSessionId(), msg.getHeader().getTransactionId());
         if (res.send() == false) {
-            logger.error("[{}] -> InboundSetOfferRes failed", msg.getHeader().getSessionId());
+            // TODO
         }
 
         return false;

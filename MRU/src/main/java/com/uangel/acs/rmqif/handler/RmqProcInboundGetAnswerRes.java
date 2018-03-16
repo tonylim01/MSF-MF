@@ -37,15 +37,6 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
 
         setBody(res, InboundGetAnswerRes.class);
 
-        boolean result = sendTo(RMQ_TARGET_ID_MCUD);
-
-        if (result) {
-            logger.info("[{}] -> IncomingGetAnswerRes", getSessionId());
-        }
-        else {
-            logger.error("[{}] -> IncomingGetAnswerRes failed", getSessionId());
-        }
-
-        return result;
+        return sendTo(RMQ_TARGET_ID_MCUD);
     }
 }

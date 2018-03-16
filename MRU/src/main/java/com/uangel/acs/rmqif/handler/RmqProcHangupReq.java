@@ -15,15 +15,13 @@ public class RmqProcHangupReq implements RmqIncomingMessageInterface {
             return false;
         }
 
-        logger.info("[{}] <- HangupReq", msg.getHeader().getSessionId());
-
         //
         // TODO
         //
 
         RmqProcHangupRes res = new RmqProcHangupRes(msg.getHeader().getSessionId(), msg.getHeader().getTransactionId());
         if (res.send() == false) {
-            logger.error("[{}] -> HangupRes failed", msg.getHeader().getSessionId());
+            // TODO
         }
 
         return false;

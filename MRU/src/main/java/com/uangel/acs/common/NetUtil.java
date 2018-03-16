@@ -13,7 +13,6 @@ public class NetUtil {
 
         boolean result = false;
         try {
-//            InetAddress inet = InetAddress.getByAddress(new byte[] {(byte)172, (byte)16, (byte)246, (byte)130});
             InetAddress inet = InetAddress.getByName(ip);
             logger.debug("Sending ping to {}", inet);
             result = inet.isReachable(timeout);

@@ -14,6 +14,13 @@ public class RmqTransport {
     private Connection connection;
     private Channel channel;
 
+    public RmqTransport(String host, String userName, String password) {
+        this.host = host;
+        this.queueName = null;
+        this.userName = userName;
+        this.password = password;
+    }
+
     public RmqTransport(String host, String userName, String password, String queueName) {
         this.host = host;
         this.queueName = queueName;

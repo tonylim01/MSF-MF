@@ -28,15 +28,15 @@ public class RmqProcNegoDoneReq implements RmqIncomingMessageInterface {
             return false;
         }
 
-        logger.info("[{}] <- NegoDoneReq: sdp [{}]", req.getSdp());
+        logger.info("[{}] NegoDoneReq: sdp [{}]", msg.getSessionId(), req.getSdp());
 
         //
         // TODO
         //
 
-        RmqProcNegoDoneRes res = new RmqProcNegoDoneRes(msg.getHeader().getSessionId(), msg.getHeader().getTransactionId());
+        RmqProcNegoDoneRes res = new RmqProcNegoDoneRes(msg.getSessionId(), msg.getHeader().getTransactionId());
         if (res.send() == false) {
-            logger.error("[{}] -> NegoDoneRes failed", msg.getHeader().getSessionId());
+            // TODO
         }
 
         return false;

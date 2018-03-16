@@ -1,5 +1,7 @@
 package com.uangel.core.rabbitmq.transport;
 
+import com.uangel.acs.AppInstance;
+import com.uangel.acs.config.AmfConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,5 +30,9 @@ public class RmqSender extends RmqTransport {
         }
 
         return result;
+    }
+
+    public boolean isOpened() {
+        return getChannel().isOpen();
     }
 }

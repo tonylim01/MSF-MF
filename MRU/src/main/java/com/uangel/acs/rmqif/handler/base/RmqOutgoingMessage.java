@@ -5,14 +5,21 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.uangel.acs.AppInstance;
 import com.uangel.acs.config.AmfConfig;
+import com.uangel.acs.rmqif.module.RmqClient;
 import com.uangel.acs.rmqif.types.RmqHeader;
 import com.uangel.acs.rmqif.types.RmqMessage;
+import com.uangel.acs.rmqif.types.RmqMessageType;
 import com.uangel.core.rabbitmq.message.RmqBuilder;
+import com.uangel.core.rabbitmq.transport.RmqCallback;
 import com.uangel.core.rabbitmq.transport.RmqSender;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 
 public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
+
+    private static final Logger logger = LoggerFactory.getLogger(RmqOutgoingMessage.class);
 
     public static final int RMQ_TARGET_ID_MCUD  = 1;
 
@@ -99,10 +106,22 @@ public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
             String json = RmqBuilder.build(msg);
 
             if (json != null) {
-                RmqSender sender = new RmqSender(config.getRmqHost(), config.getRmqUser(), config.getRmqPass(), target);
-                sender.connect();
-                result = sender.send(json);
-                sender.close();
+                RmqClient client = RmqClient.getInstance(target);
+                if (client != null) {
+                    result = client.send(json);
+
+                    if (result) {
+                        logger.info("[{}] -> ({}) {}", msg.getSessionId(), target,
+                                RmqMessageType.getMessageTypeStr(msg.getMessageType()));
+                    }
+                    else {
+                        logger.error("[{}] -> ({}) {} failed", msg.getSessionId(), target,
+                                RmqMessageType.getMessageTypeStr(msg.getMessageType()));
+                    }
+
+                    return result;
+
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

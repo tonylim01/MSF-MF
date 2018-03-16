@@ -21,6 +21,7 @@ public class RmqMessage {
                 header.getReasonCode(),
                 header.getReason());
     }
+
     public RmqHeader getHeader() {
         return header;
     }
@@ -44,5 +45,9 @@ public class RmqMessage {
 
     public int getMessageType() {
         return RmqMessageType.getMessageType(header.getType());
+    }
+
+    public String getSessionId() {
+        return (header != null) ? header.getSessionId() : null;
     }
 }

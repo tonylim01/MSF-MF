@@ -13,6 +13,7 @@ public class AmfConfig extends DefaultConfig {
     private static final String CONFIG_FILE = "amf.conf";
 
     private String rmqHost;
+    private String rmqLocal;
     private String rmqMcud;
     private String rmqUser, rmqPass;
 
@@ -44,6 +45,7 @@ public class AmfConfig extends DefaultConfig {
 
         try {
             rmqHost = getStrValue("RMQ_HOST", "localhost");
+            rmqLocal = getStrValue("RMQ_LOCAL", "localhost");
             rmqMcud = getStrValue("RMQ_MCUD", null);
             rmqUser = getStrValue("RMQ_USER", null);
             rmqPass = getStrValue("RMQ_PASS", null);
@@ -57,7 +59,7 @@ public class AmfConfig extends DefaultConfig {
 
             if (rmqPass != null) {
                 String decoded = new String(Base64.getDecoder().decode(rmqPass));
-                logger.info("Decoding passowrd: input [{}] decoded [{}]", rmqPass, decoded);
+                logger.info("Decoding password: input [{}] decoded [{}]", rmqPass, decoded);
                 rmqPass = decoded;
             }
 
@@ -83,6 +85,10 @@ public class AmfConfig extends DefaultConfig {
 
     public String getRmqHost() {
         return rmqHost;
+    }
+
+    public String getLocalName() {
+        return rmqLocal;
     }
 
     public String getMcudName() {

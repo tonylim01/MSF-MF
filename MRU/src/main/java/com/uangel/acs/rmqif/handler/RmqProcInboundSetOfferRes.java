@@ -17,15 +17,6 @@ public class RmqProcInboundSetOfferRes extends RmqOutgoingMessage {
     }
 
     public boolean send() {
-        boolean result = sendTo(RMQ_TARGET_ID_MCUD);
-
-        if (result) {
-            logger.info("[{}] -> IncomingSetOfferRes", getSessionId());
-        }
-        else {
-            logger.error("[{}] -> IncomingSetOfferRes failed", getSessionId());
-        }
-
-        return result;
+        return sendTo(RMQ_TARGET_ID_MCUD);
     }
 }

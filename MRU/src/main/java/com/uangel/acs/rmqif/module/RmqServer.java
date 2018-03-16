@@ -25,7 +25,7 @@ public class RmqServer {
 
         logger.info("{} start", getClass().getSimpleName());
 
-        receiver = new RmqReceiver(config.getRmqHost(), config.getRmqUser(), config.getRmqPass(), config.getMcudName());
+        receiver = new RmqReceiver(config.getRmqHost(), config.getRmqUser(), config.getRmqPass(), config.getLocalName());
         receiver.setCallback(new MessageCallback());
 
         boolean result = receiver.connect();
@@ -36,7 +36,7 @@ public class RmqServer {
         }
 
         result = receiver.start();
-        logger.info("{} start ... [{}]", getClass().getSimpleName(), StringValue.getOkFail(result));
+        logger.info("{} [{}] start ... [{}]", getClass().getSimpleName(), config.getLocalName(), StringValue.getOkFail(result));
     }
 
     public void stop() {
@@ -58,6 +58,9 @@ public class RmqServer {
             if (msg.getBody() != null) {
                 logger.debug("Received message: body {}", msg.getBody().toString());
             }
+
+            logger.info("[{}] <- ({}) {}", msg.getSessionId(), msg.getHeader().getMsgFrom(),
+                    RmqMessageType.getMessageTypeStr(msg.getMessageType()));
 
         } catch (Exception e) {
             e.printStackTrace();

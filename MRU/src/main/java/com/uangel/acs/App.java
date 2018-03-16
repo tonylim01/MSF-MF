@@ -40,17 +40,20 @@ public class App
         logger.info("Host [{}] is {}", config.getRmqHost(), rmqAvailable ? "reachable" : "NOT reachable");
 
 
+        if (!rmqAvailable) {
+            logger.error("Process exited");
+            return;
+        }
+
         RmqServer rmqServer = null;
 
-        if (rmqAvailable) {
-            rmqServer = new RmqServer();
-            rmqServer.start();
-        }
+        rmqServer = new RmqServer();
+        rmqServer.start();
 
         try {
 
             // To test a message
-            RmqSender sender = new RmqSender(config.getRmqHost(), config.getRmqUser(), config.getRmqPass(), config.getMcudName());
+            RmqSender sender = new RmqSender(config.getRmqHost(), config.getRmqUser(), config.getRmqPass(), config.getLocalName());
             sender.connect();
             sender.send("{   \"header\": {\n" +
                     "      \"type\": \"msfmp_inbound_set_offer_req\",\n" +

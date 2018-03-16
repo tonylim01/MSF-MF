@@ -28,15 +28,6 @@ public class RmqProcHangupRes extends RmqOutgoingMessage {
 
         setBody(res, HangupRes.class);
 
-        boolean result = sendTo(RMQ_TARGET_ID_MCUD);
-
-        if (result) {
-            logger.info("[{}] -> HangupRes", getSessionId());
-        }
-        else {
-            logger.error("[{}] -> HangupRes failed", getSessionId());
-        }
-
-        return result;
+        return sendTo(RMQ_TARGET_ID_MCUD);
     }
 }

@@ -200,9 +200,75 @@ public class RmqMessageType {
                 ).collect(Collectors.toMap((e) -> e.getKey(), (e) ->e.getValue())));
     }
 
+    private static Map<Integer, String> typeStrMap() {
+        return Collections.unmodifiableMap(Stream.of(
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_INBOUND_SET_OFFER_REQ, "InboundSetOfferReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_INBOUND_SET_OFFER_RES, "InboundSetOfferRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_INBOUND_GET_ANSWER_REQ, "InboundGetAnswerReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_INBOUND_GET_ANSWER_RES, "InboundGetAnswerRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_OUTBOUND_GET_OFFER_REQ, "OutboundGetOfferReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_OUTBOUND_GET_OFFER_RES, "OutboundGetOfferRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_OUTBOUND_SET_ANSWER_REQ, "OutboundSetOfferReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_OUTBOUND_SET_ANSWER_RES, "OutboundSetOfferRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_NEGO_DONE_REQ, "NegoDoneReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_NEGO_DONE_RES, "NegoDoneRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_COMMAND_REQ, "CommandReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_COMMAND_RES, "CommandRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_PROMPT_REQ, "PlayPromptReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_PROMPT_ACK, "PlayPromptAck"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_PROMPT_RES, "PlayPromptRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_COLLECT_REQ, "PlayCollectReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_COLLECT_ACK, "PlayCollectAck"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_COLLECT_RES, "PlayCollectRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_RECORD_REQ, "PlayRecordReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_RECORD_ACK, "PlayRecordAck"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_RECORD_RES, "PlayRecordRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_STOP_RECORD_REQ, "StopRecordReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_STOP_RECORD_RES, "StopRecordRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_CONTROL_FILE_REQ, "ControlFileReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_CONTROL_FILE_RES, "ControlFileRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_ASR_REQ, "PlayASRReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_ASR_ACK, "PlayASRAck"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_ASR_RES, "PlayASRRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_STOP_PLAY_REQ, "StopPlayReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_STOP_PLAY_RES, "StopPlayRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_HANGUP_REQ, "HangupReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_HANGUP_RES, "HangupRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_LONGCALL_CHECK_REQ, "LongcallCheckReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_LONGCALL_CHECK_RES, "LongcallCheckRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_CREATE_CONFERENCE_REQ, "CreateConferenceReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_CREATE_CONFERENCE_RES, "CreateConferenceRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_DELETE_CONFERENCE_REQ, "DeleteConferenceReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_DELETE_CONFERENCE_RES, "DeleteConferenceRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_JOIN_CONFERENCE_REQ, "JoinConferenceReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_JOIN_CONFERENCE_RES, "JoinConferenceRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_WITHDRAW_CONFERENCE_REQ, "WithdrawConferenceReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_WITHDRAW_CONFERENCE_RES, "WithdrawConferenceRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_UPDATE_CONFERENCE_REQ, "UpdateConferenceReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_UPDATE_CONFERENCE_RES, "UpdateConferenceRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_STARTRECORD_CONFERENCE_REQ, "StartRecordConferenceReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_STARTRECORD_CONFERENCE_RES, "StartRecordConferenceRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_STOPRECORD_CONFERENCE_REQ, "StopRecordConferenceReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_STOPRECORD_CONFERENCE_RES, "StopRecordConferenceRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_RECORD_CONFERENCE_RPT, "RecordConferenceRpt"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_RECORD_CONFERENCE_ACK, "RecordConferenceAck"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_CHANGE_CONFERENCE_REQ, "ChangeConferenceReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_CHANGE_CONFERENCE_RES, "ChangeConferenceRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_DTMF_CONFERENCE_RPT, "DTMFConferenceRpt"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_DTMF_CONFERENCE_ACK, "DTMFConferenceAck"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_CONFERENCE_REQ, "PlayConferenceReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_CONFERENCE_ACK, "PlayConferenceAck"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_CONFERENCE_RES, "PlayConferenceRes")
+
+        ).collect(Collectors.toMap((e) -> e.getKey(), (e) ->e.getValue())));
+    }
 
     public static int getMessageType(String typeStr) {
         Integer value = typeMap().get(typeStr);
         return (value == null) ? RMQ_MSG_TYPE_UNDEFINED : value.intValue();
+    }
+
+    public static String getMessageTypeStr(int messageType) {
+        return typeStrMap().get(messageType);
     }
 }

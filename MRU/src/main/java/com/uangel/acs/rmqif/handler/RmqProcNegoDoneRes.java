@@ -15,15 +15,6 @@ public class RmqProcNegoDoneRes extends RmqOutgoingMessage {
     }
 
     public boolean send() {
-        boolean result = sendTo(RMQ_TARGET_ID_MCUD);
-
-        if (result) {
-            logger.info("[{}] -> NegoDoneRes", getSessionId());
-        }
-        else {
-            logger.error("[{}] -> NegoDoneRes failed", getSessionId());
-        }
-
-        return result;
+        return sendTo(RMQ_TARGET_ID_MCUD);
     }
 }
