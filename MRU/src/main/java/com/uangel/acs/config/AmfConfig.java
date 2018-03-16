@@ -17,6 +17,9 @@ public class AmfConfig extends DefaultConfig {
     private String rmqMcud;
     private String rmqUser, rmqPass;
 
+    private int sessionMaxSize;
+    private int sessionTimeout;
+
     private SdpConfig sdpConfig;
 
     public AmfConfig() {
@@ -49,6 +52,9 @@ public class AmfConfig extends DefaultConfig {
             rmqMcud = getStrValue("RMQ_MCUD", null);
             rmqUser = getStrValue("RMQ_USER", null);
             rmqPass = getStrValue("RMQ_PASS", null);
+
+            sessionMaxSize = getIntValue("SESSION_MAX_SIZE", 0);
+            sessionTimeout = getIntValue("SESSION_TIMEOUT_SEC", 0);
 
             String rawPasswd = getStrValue("RAW_PASS", null);
             if (rawPasswd != null) {
@@ -105,5 +111,13 @@ public class AmfConfig extends DefaultConfig {
 
     public SdpConfig getSdpConfig() {
         return sdpConfig;
+    }
+
+    public int getSessionMaxSize() {
+        return sessionMaxSize;
+    }
+
+    public int getSessionTimeout() {
+        return sessionTimeout;
     }
 }

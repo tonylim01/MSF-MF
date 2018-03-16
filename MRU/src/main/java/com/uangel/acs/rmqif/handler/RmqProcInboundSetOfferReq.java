@@ -4,6 +4,8 @@ import com.uangel.acs.rmqif.handler.base.RmqIncomingMessageHandler;
 import com.uangel.acs.rmqif.messages.InboundSetOfferReq;
 import com.uangel.acs.rmqif.types.RmqMessage;
 import com.uangel.acs.rmqif.types.RmqMessageType;
+import com.uangel.acs.session.SessionInfo;
+import com.uangel.acs.session.SessionManager;
 import com.uangel.core.rabbitmq.message.RmqData;
 import com.uangel.core.sdp.SdpInfo;
 import com.uangel.core.sdp.SdpParser;
@@ -49,6 +51,12 @@ public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        SessionInfo sessionInfo = SessionManager.getSessionManager().createSession(msg.getSessionId());
+
+        //
+        // TODO
+        //
 
         sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId());
 

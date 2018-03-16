@@ -2,6 +2,7 @@ package com.uangel.acs.rmqif.handler;
 
 import com.uangel.acs.rmqif.handler.base.RmqIncomingMessageHandler;
 import com.uangel.acs.rmqif.types.RmqMessage;
+import com.uangel.acs.session.SessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,17 +19,24 @@ public class RmqProcHangupReq extends RmqIncomingMessageHandler {
         //
         // TODO
         //
+        SessionManager.getSessionManager().deleteSession(msg.getSessionId());
 
-        RmqProcHangupRes res = new RmqProcHangupRes(msg.getHeader().getSessionId(), msg.getHeader().getTransactionId());
-        if (res.send() == false) {
-            // TODO
-        }
+        sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId());
 
         return false;
     }
 
     @Override
     public void sendResponse(String sessionId, long transactionId, int reasonCode, String reasonStr) {
+
+        RmqProcHangupRes res = new RmqProcHangupRes(sessionId, transactionId);
+
+        res.setReasonCode(reasonCode);
+        res.setReasonStr(reasonStr);
+
+        if (res.send() == false) {
+            // TODO
+        }
 
     }
 }

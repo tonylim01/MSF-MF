@@ -3,6 +3,7 @@ package com.uangel.acs;
 import com.uangel.acs.common.NetUtil;
 import com.uangel.acs.config.AmfConfig;
 import com.uangel.acs.rmqif.module.RmqServer;
+import com.uangel.acs.session.SessionManager;
 import com.uangel.acs.simulator.UdpRelay;
 import com.uangel.core.rabbitmq.transport.RmqSender;
 import org.slf4j.Logger;
@@ -56,11 +57,15 @@ public class App
         rmqServer = new RmqServer();
         rmqServer.start();
 
+        SessionManager sessionManager = new SessionManager();
+        sessionManager.start();
+
+        RmqSender sender = new RmqSender(config.getRmqHost(), config.getRmqUser(), config.getRmqPass(), config.getLocalName());
+        sender.connect();
+
         try {
 
             // To test a message
-            RmqSender sender = new RmqSender(config.getRmqHost(), config.getRmqUser(), config.getRmqPass(), config.getLocalName());
-            sender.connect();
             sender.send("{   \"header\": {\n" +
                     "      \"type\": \"msfmp_inbound_set_offer_req\",\n" +
                     "      \"sessionId\": \"773917-3193@1.255.239.167\",\n" +
@@ -72,6 +77,7 @@ public class App
                     "   \"body\": {\n" +
                     "      \"from_no\": \"07081773916\",\n" +
                     "      \"to_no\": \"09933\",\n" +
+                    "      \"conference_id\": \"this_conference_id\",\n" +
                     "      \"sdp\": \"v=0\\r\\no=- 7432311109587324954 4392946837496567243 IN IP4 1.255.239.170\\r\\ns=-\\r\\nt=0 0\\r\\nm=audio 35664 RTP/AVP 0 8 4 18 101\\r\\nc=IN IP4 1.255.239.173\\r\\na=rtpmap:0 PCMU/8000\\r\\na=rtpmap:8 PCMA/8000\\r\\na=rtpmap:4 G723/8000\\r\\na=rtpmap:18 G729/8000\\r\\na=ptime:20\\r\\na=rtpmap:101 telephone-event/8000\\r\\na=fmtp:101 0-16\\r\\na=sendrecv\\r\\na=direction:active\\r\\n\",\n" +
                     "      \"outbound\": false\n" +
                     "   }\n" +
@@ -103,8 +109,17 @@ public class App
                     "   \"body\": {}\n" +
                     "}");
 
-            Thread.sleep(500);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
+        try {
+            Thread.sleep(3000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
             sender.send("{\n" +
                     "   \"header\": {\n" +
                     "      \"type\": \"msfmp_hangup_req\",\n" +
@@ -121,12 +136,8 @@ public class App
             e.printStackTrace();
         }
 
-        //
-        // TODO
-        //
-
         try {
-            Thread.sleep(5000);
+            Thread.sleep(2000);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -136,6 +147,8 @@ public class App
         }
 
         udpRelay.closeUdpServer();
+
+        sessionManager.stop();
 
         logger.info("Process End..");
     }
