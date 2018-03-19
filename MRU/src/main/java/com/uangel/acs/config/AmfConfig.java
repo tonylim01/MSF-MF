@@ -5,7 +5,9 @@ import com.uangel.core.config.DefaultConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 
 public class AmfConfig extends DefaultConfig {
 
@@ -20,6 +22,8 @@ public class AmfConfig extends DefaultConfig {
     private int sessionMaxSize;
     private int sessionTimeout;
 
+    private List<Integer> mediaPriorities;
+
     private SdpConfig sdpConfig;
 
     public AmfConfig() {
@@ -29,6 +33,7 @@ public class AmfConfig extends DefaultConfig {
         boolean result = load();
         logger.info("Load config [{}] ... [{}]", CONFIG_FILE, StringValue.getOkFail(result));
 
+        mediaPriorities = new ArrayList<>();
         sdpConfig = new SdpConfig();
 
         if (result == true) {
@@ -67,6 +72,11 @@ public class AmfConfig extends DefaultConfig {
                 String decoded = new String(Base64.getDecoder().decode(rmqPass));
                 logger.info("Decoding password: input [{}] decoded [{}]", rmqPass, decoded);
                 rmqPass = decoded;
+            }
+
+            String mediaPriority = getStrValue("MEDIA_PRIORITY", null);
+            if (mediaPriority != null) {
+                setMediaPriority(mediaPriority);
             }
 
             String localHost = getStrValue("SDP_LOCAL_HOST", null);
@@ -119,5 +129,34 @@ public class AmfConfig extends DefaultConfig {
 
     public int getSessionTimeout() {
         return sessionTimeout;
+    }
+
+    private void setMediaPriority(String priorityStr) {
+        if (priorityStr == null) {
+            return;
+        }
+
+        String[] priorities = priorityStr.split(",");
+        if (priorities != null) {
+            for (String priority: priorities) {
+                try {
+                    mediaPriorities.add(Integer.valueOf(priority.trim()));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public List<Integer> getMediaPriorities() {
+        return mediaPriorities;
+    }
+
+    public int getMediaPriority(int index) {
+        if (index < 0 || index >= mediaPriorities.size()) {
+            return -1;
+        }
+
+        return mediaPriorities.get(index);
     }
 }

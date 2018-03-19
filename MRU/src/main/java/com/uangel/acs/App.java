@@ -88,7 +88,7 @@ public class App
             sender.send("{\n" +
                     "\"header\": {\n" +
                     "\"type\": \"msfmp_inbound_get_answer_req\",\n" +
-                    "\"sessionId\": \"AAqzXgAACP4AABeyAf_sJw--c4655@xener.com\",\n" +
+                    "\"sessionId\": \"773917-3193@1.255.239.167\",\n" +
                     "\"transactionId\": 517234739004,\n" +
                     "\"msgFrom\": \"mcu1_mcud\",\n" +
                     "\"trxType\": 0,\n" +
@@ -100,7 +100,7 @@ public class App
             sender.send("{\n" +
                     "   \"header\": {\n" +
                     "      \"type\": \"msfmp_nego_done_req\",\n" +
-                    "      \"sessionId\": \"AAqzXgAACP4AABeyAf_sJw--c4655@xener.com\",\n" +
+                    "      \"sessionId\": \"773917-3193@1.255.239.167\",\n" +
                     "      \"transactionId\": 517234747124,\n" +
                     "      \"msgFrom\": \"mcu1_mcud\",\n" +
                     "      \"trxType\": 0,\n" +
@@ -123,7 +123,7 @@ public class App
             sender.send("{\n" +
                     "   \"header\": {\n" +
                     "      \"type\": \"msfmp_hangup_req\",\n" +
-                    "      \"sessionId\": \"AAWFHQAABNkAABezAf_sJw--c4706@xener.com\",\n" +
+                    "      \"sessionId\": \"773917-3193@1.255.239.167\",\n" +
                     "      \"transactionId\": 585819438444,\n" +
                     "      \"msgFrom\": \"mcu1_mcud\",\n" +
                     "      \"trxType\": 0,\n" +

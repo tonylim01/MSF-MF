@@ -54,16 +54,29 @@ public class SdpInfo {
     }
 
     public boolean updateAttribute(int payloadId, String description) {
-        if (attributes == null) {
+        SdpAttribute attr = getAttribute(payloadId);
+        if (attr == null) {
             return false;
         }
 
-        boolean result = false;
+        attr.setDescription(description);
+        return true;
+    }
+
+    public boolean findAttribute(int payloadId) {
+        return (getAttribute(payloadId) != null);
+    }
+
+    public SdpAttribute getAttribute(int payloadId) {
+        if (attributes == null) {
+            return null;
+        }
+
+        SdpAttribute result = null;
 
         for (SdpAttribute attr: attributes) {
             if (attr.getPayloadId() == payloadId) {
-                attr.setDescription(description);
-                result = true;
+                result = attr;
                 break;
             }
         }

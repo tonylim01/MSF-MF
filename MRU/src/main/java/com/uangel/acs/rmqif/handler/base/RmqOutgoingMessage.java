@@ -145,4 +145,14 @@ public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
     public RmqHeader getHeader() {
         return header;
     }
+
+    /**
+     * Combines two functions: setReasonCode() and setReasonStr()
+     * @param reasonCode
+     * @param reasonStr
+     */
+    protected void setReason(int reasonCode, String reasonStr) {
+        setReasonCode(reasonCode);
+        setReasonStr(reasonStr);
+    }
 }

@@ -19,7 +19,7 @@ public class RmqProcHangupReq extends RmqIncomingMessageHandler {
         //
         // TODO
         //
-        SessionManager.getSessionManager().deleteSession(msg.getSessionId());
+        SessionManager.getInstance().deleteSession(msg.getSessionId());
 
         sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId());
 

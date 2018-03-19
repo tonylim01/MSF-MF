@@ -1,9 +1,12 @@
 package com.uangel.acs.session;
 
+import com.uangel.core.sdp.SdpInfo;
+
 public class SessionInfo {
 
     private String sessionId;
     private long timestamp;
+    private SdpInfo sdpInfo;
 
     public String getSessionId() {
         return sessionId;
@@ -21,4 +24,11 @@ public class SessionInfo {
         this.timestamp = timestamp;
     }
 
+    public SdpInfo getSdpInfo() {
+        return sdpInfo;
+    }
+
+    public void setSdpInfo(SdpInfo sdpInfo) {
+        this.sdpInfo = sdpInfo;
+    }
 }
