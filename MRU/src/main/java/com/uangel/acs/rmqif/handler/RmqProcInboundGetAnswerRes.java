@@ -39,11 +39,16 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
             if (getHeader().getReasonCode() == RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_SUCCESS) {
                 setReason(RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_WRONG_PARAM, "NO SESSION FOUND");
             }
-
             return sendTo(RMQ_TARGET_ID_MCUD);
         }
 
         String sdpStr = makeSdp(sessionInfo);
+        if (sdpStr == null) {
+            logger.error("[{}] Cannot make SDP", getSessionId());
+
+            setReason(RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_FAILURE, "SDP FAILURE");
+            return sendTo(RMQ_TARGET_ID_MCUD);
+        }
 
         //
         // TODO
@@ -64,11 +69,16 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
      */
     private String makeSdp(SessionInfo sessionInfo) {
 
+        if (sessionInfo == null) {
+            return null;
+        }
+
         SdpConfig config = AppInstance.getInstance().getConfig().getSdpConfig();
 
         SdpBuilder builder = new SdpBuilder();
         builder.setHost(config.getLocalHost());
-        builder.setLocalIpAddress(config.getLocalIpAddress());
+        builder.setLocalIpAddress(sessionInfo.getLocalIpAddress());
+        builder.setLocalPort(sessionInfo.getLocalPort());
         builder.setSessionName("acs-mru");      // TODO
 
         SdpAttribute attr = selectSdp(sessionInfo);

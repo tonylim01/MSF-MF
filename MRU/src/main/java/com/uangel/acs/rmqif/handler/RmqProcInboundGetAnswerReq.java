@@ -1,11 +1,13 @@
 package com.uangel.acs.rmqif.handler;
 
+import com.uangel.acs.AppInstance;
+import com.uangel.acs.config.SdpConfig;
 import com.uangel.acs.rmqif.handler.base.RmqIncomingMessageHandler;
 import com.uangel.acs.rmqif.types.RmqMessage;
 import com.uangel.acs.rmqif.types.RmqMessageType;
 import com.uangel.acs.session.SessionInfo;
 import com.uangel.acs.session.SessionManager;
-import com.uangel.core.sdp.SdpInfo;
+import com.uangel.acs.simulator.UdpRelayManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +18,7 @@ public class RmqProcInboundGetAnswerReq extends RmqIncomingMessageHandler {
     @Override
     public boolean handle(RmqMessage msg) {
         if (msg == null || msg.getHeader() == null) {
+            logger.error("[{}] Invalid message");
             return false;
         }
 
@@ -27,6 +30,8 @@ public class RmqProcInboundGetAnswerReq extends RmqIncomingMessageHandler {
                     "NO SESSION ID");
             return  false;
         }
+
+        allocLocalResource(msg.getSessionId());
 
         sendResponse(msg.getHeader().getSessionId(), msg.getHeader().getTransactionId());
 
@@ -44,6 +49,36 @@ public class RmqProcInboundGetAnswerReq extends RmqIncomingMessageHandler {
         if (res.send() == false) {
             // TODO
         }
+    }
+
+    private boolean allocLocalResource(String sessionId) {
+        if (sessionId == null) {
+            return false;
+        }
+
+        SessionInfo sessionInfo = SessionManager.getInstance().getSession(sessionId);
+        if (sessionInfo == null) {
+            logger.error("[{}] No sessionInfo found", sessionId);
+            return false;
+        }
+
+        //
+        // TODO
+        //
+        // Start of Demo Service
+        SdpConfig config = AppInstance.getInstance().getConfig().getSdpConfig();
+        sessionInfo.setLocalIpAddress(config.getLocalIpAddress());
+
+        UdpRelayManager udpRelayManager = UdpRelayManager.getInstance();
+        int localPort = udpRelayManager.getNextLocalPort();
+
+        sessionInfo.setLocalPort(localPort);
+
+        logger.debug("[{}] Alloc local media: ip [{}] port [{}]", sessionId,
+                sessionInfo.getLocalIpAddress(), sessionInfo.getLocalPort());
+        // End of Demo service
+
+        return true;
     }
 }
 

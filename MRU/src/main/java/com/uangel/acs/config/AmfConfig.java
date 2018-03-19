@@ -26,6 +26,9 @@ public class AmfConfig extends DefaultConfig {
 
     private SdpConfig sdpConfig;
 
+    private int localUdpPortMin;
+    private int localUdpPortMax;
+
     public AmfConfig() {
 
         super(CONFIG_FILE);
@@ -94,6 +97,9 @@ public class AmfConfig extends DefaultConfig {
                 sdpConfig.addAttribute(attr);
             }
 
+            localUdpPortMin = getIntValue("LOCAL_UDP_PORT_MIN", 0);
+            localUdpPortMax = getIntValue("LOCAL_UDP_PORT_MAX", 0);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -129,6 +135,14 @@ public class AmfConfig extends DefaultConfig {
 
     public int getSessionTimeout() {
         return sessionTimeout;
+    }
+
+    public int getLocalUdpPortMin() {
+        return localUdpPortMin;
+    }
+
+    public int getLocalUdpPortMax() {
+        return localUdpPortMax;
     }
 
     private void setMediaPriority(String priorityStr) {

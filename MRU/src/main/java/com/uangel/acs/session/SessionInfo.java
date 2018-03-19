@@ -8,6 +8,9 @@ public class SessionInfo {
     private long timestamp;
     private SdpInfo sdpInfo;
 
+    private String localIpAddress;
+    private int localPort;
+
     public String getSessionId() {
         return sessionId;
     }
@@ -30,5 +33,21 @@ public class SessionInfo {
 
     public void setSdpInfo(SdpInfo sdpInfo) {
         this.sdpInfo = sdpInfo;
+    }
+
+    public String getLocalIpAddress() {
+        return localIpAddress;
+    }
+
+    public void setLocalIpAddress(String localIpAddress) {
+        this.localIpAddress = localIpAddress;
+    }
+
+    public int getLocalPort() {
+        return localPort;
+    }
+
+    public void setLocalPort(int localPort) {
+        this.localPort = localPort;
     }
 }

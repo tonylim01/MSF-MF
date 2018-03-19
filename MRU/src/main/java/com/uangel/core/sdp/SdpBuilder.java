@@ -30,6 +30,10 @@ public class SdpBuilder {
         this.localIpAddress = localIpAddress;
     }
 
+    public void setLocalPort(int localPort) {
+        this.localPort = localPort;
+    }
+
     public void setSessionName(String sessionName) {
         this.sessionName = sessionName;
     }
