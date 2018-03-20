@@ -54,7 +54,7 @@ public class UdpRelayManager {
      */
     public int getNextLocalPort() {
         int result = currentUdpPort;
-        currentUdpPort++;
+        currentUdpPort += 2;
 
         if (currentUdpPort > localUdpPortMax) {
             currentUdpPort = localUdpPortMin;
@@ -65,22 +65,23 @@ public class UdpRelayManager {
 
     public boolean openServer(String sessionId, int localPort) {
         UdpRelay udpRelay = getUdpRelay(sessionId);
-        udpRelay.openUdpServer(localPort);
+        udpRelay.setLocalPort(localPort);
 
         return true;
     }
 
-    public boolean openClient(String sessionId, String remoteIpAddress, int remotePort, int localPort) {
+    public boolean openClient(String sessionId, String remoteIpAddress, int remotePort) {
+        logger.debug("Open UDP client. remote [{}:{}]", remoteIpAddress, remotePort);
+
         UdpRelay udpRelay = getUdpRelay(sessionId);
-        udpRelay.openUdpClient(remoteIpAddress, remotePort, localPort);
+        udpRelay.openUdpClient(remoteIpAddress, remotePort);
 
         return true;
     }
 
     public void close(String sessionId) {
         UdpRelay udpRelay = getUdpRelay(sessionId);
-        udpRelay.closeUdpServer();
-        udpRelay.closeUdpClient();
+        udpRelay.closeUdpSocket();
     }
 
     private UdpRelay getUdpRelay(String sessionId) {

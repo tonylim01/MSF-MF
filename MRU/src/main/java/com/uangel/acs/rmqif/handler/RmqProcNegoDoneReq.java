@@ -96,20 +96,20 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
         if (otherSessionId != null) {
             logger.info("[{}] Connected to session [{}]", sessionId, otherSessionId);
 
-            SessionInfo otherSessionInfo = sessionManager.getSession(sessionId);
+            SessionInfo otherSessionInfo = sessionManager.getSession(otherSessionId);
             if (otherSessionInfo == null) {
                 logger.warn("[{}] No sessionInfo found", otherSessionId);
                 return false;
             }
 
             SdpInfo otherRemoteSdpInfo = otherSessionInfo.getSdpInfo();
-            udpRelayManager.openClient(sessionId, otherRemoteSdpInfo.getRemoteIp(), otherRemoteSdpInfo.getRemotePort(), otherSessionInfo.getLocalPort());
+            udpRelayManager.openClient(sessionId, otherRemoteSdpInfo.getRemoteIp(), otherRemoteSdpInfo.getRemotePort());
 
             logger.debug("[{}] Make connection: local [{}] to [{}:{}]", sessionId,
                     sessionInfo.getLocalPort(), otherRemoteSdpInfo.getRemoteIp(), otherRemoteSdpInfo.getRemotePort());
 
             SdpInfo remoteSdpInfo = sessionInfo.getSdpInfo();
-            udpRelayManager.openClient(otherSessionId, remoteSdpInfo.getRemoteIp(), remoteSdpInfo.getRemotePort(), sessionInfo.getLocalPort());
+            udpRelayManager.openClient(otherSessionId, remoteSdpInfo.getRemoteIp(), remoteSdpInfo.getRemotePort());
 
             logger.debug("[{}] Make connection: local [{}] to [{}:{}]", otherSessionId,
                     otherSessionInfo.getLocalPort(), remoteSdpInfo.getRemoteIp(), remoteSdpInfo.getRemotePort());

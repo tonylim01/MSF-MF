@@ -3,6 +3,7 @@ package com.uangel.acs.simulator;
 import com.uangel.core.socket.UdpCallback;
 import com.uangel.core.socket.UdpClient;
 import com.uangel.core.socket.UdpServer;
+import com.uangel.core.socket.UdpSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,38 +11,29 @@ public class UdpRelay {
 
     private static final Logger logger = LoggerFactory.getLogger(UdpRelay.class);
 
-    private UdpServer udpServer = null;
-    private UdpClient udpClient = null;
+    private UdpSocket udpSocket = null;
+    private int localPort;
 
-    public UdpRelay() {
+    public void setLocalPort(int localPort) {
+        this.localPort = localPort;
     }
 
-    public void openUdpServer(int serverPort) {
-        udpServer = new UdpServer(serverPort);
-        udpServer.setUdpCallback(new RelayUdpCallback());
-        udpServer.start();
+    public void openUdpClient(String remoteIpAddress, int remotePort) {
+        logger.debug("Open UDP client. remote [{}:{}] lport [{}]", remoteIpAddress, remotePort, localPort);
+        udpSocket = new UdpSocket(remoteIpAddress, remotePort, localPort);
+        udpSocket.setUdpCallback(new RelayUdpCallback());
+        udpSocket.start();
     }
 
-    public void closeUdpServer() {
-        udpServer.stop();
-    }
-
-    public void openUdpClient(String remoteIpAddress, int remotePort, int localPort) {
-        udpClient = new UdpClient(remoteIpAddress, remotePort, localPort);
-    }
-
-    public void closeUdpClient() {
-        if (udpClient != null) {
-            udpClient.close();
-        }
+    public void closeUdpSocket() {
+        udpSocket.stop();
     }
 
     class RelayUdpCallback implements UdpCallback {
         @Override
         public void onReceived(byte[] srcAddress, int srcPort, byte[] buf, int length) {
             logger.debug("UDP received: size [{}]", length);
-            udpClient.send(buf);
+            udpSocket.send(buf);
         }
     }
-
 }

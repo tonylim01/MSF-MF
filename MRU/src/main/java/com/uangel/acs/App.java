@@ -77,7 +77,7 @@ public class App
                     "      \"from_no\": \"07081773916\",\n" +
                     "      \"to_no\": \"09933\",\n" +
                     "      \"conference_id\": \"this_conference_id\",\n" +
-                    "      \"sdp\": \"v=0\\r\\no=- 7432311109587324954 4392946837496567243 IN IP4 1.255.239.170\\r\\ns=-\\r\\nt=0 0\\r\\nm=audio 35664 RTP/AVP 0 8 4 18 101\\r\\nc=IN IP4 1.255.239.173\\r\\na=rtpmap:0 PCMU/8000\\r\\na=rtpmap:8 PCMA/8000\\r\\na=rtpmap:4 G723/8000\\r\\na=rtpmap:18 G729/8000\\r\\na=ptime:20\\r\\na=rtpmap:101 telephone-event/8000\\r\\na=fmtp:101 0-16\\r\\na=sendrecv\\r\\na=direction:active\\r\\n\",\n" +
+                    "      \"sdp\": \"v=0\\r\\no=- 7432311109587324954 4392946837496567243 IN IP4 1.255.239.170\\r\\ns=-\\r\\nt=0 0\\r\\nm=audio 35660 RTP/AVP 0 8 4 18 101\\r\\nc=IN IP4 1.255.239.173\\r\\na=rtpmap:0 PCMU/8000\\r\\na=rtpmap:8 PCMA/8000\\r\\na=rtpmap:4 G723/8000\\r\\na=rtpmap:18 G729/8000\\r\\na=ptime:20\\r\\na=rtpmap:101 telephone-event/8000\\r\\na=fmtp:101 0-16\\r\\na=sendrecv\\r\\na=direction:active\\r\\n\",\n" +
                     "      \"outbound\": false\n" +
                     "   }\n" +
                     "}");
@@ -108,6 +108,51 @@ public class App
                     "   \"body\": {}\n" +
                     "}");
 
+
+            // To test a message
+            sender.send("{   \"header\": {\n" +
+                    "      \"type\": \"msfmp_inbound_set_offer_req\",\n" +
+                    "      \"sessionId\": \"173917-3193@1.255.239.167\",\n" +
+                    "      \"transactionId\": 7390813034292,\n" +
+                    "      \"msgFrom\": \"mcu1_mcud\",\n" +
+                    "      \"trxType\": 0,\n" +
+                    "      \"reasonCode\": 0\n" +
+                    "   },\n" +
+                    "   \"body\": {\n" +
+                    "      \"from_no\": \"07081773916\",\n" +
+                    "      \"to_no\": \"09933\",\n" +
+                    "      \"conference_id\": \"this_conference_id\",\n" +
+                    "      \"sdp\": \"v=0\\r\\no=- 7432311109587324954 4392946837496567243 IN IP4 1.255.239.170\\r\\ns=-\\r\\nt=0 0\\r\\nm=audio 35664 RTP/AVP 0 8 4 18 101\\r\\nc=IN IP4 1.255.239.173\\r\\na=rtpmap:0 PCMU/8000\\r\\na=rtpmap:8 PCMA/8000\\r\\na=rtpmap:4 G723/8000\\r\\na=rtpmap:18 G729/8000\\r\\na=ptime:20\\r\\na=rtpmap:101 telephone-event/8000\\r\\na=fmtp:101 0-16\\r\\na=sendrecv\\r\\na=direction:active\\r\\n\",\n" +
+                    "      \"outbound\": false\n" +
+                    "   }\n" +
+                    "}");
+
+            Thread.sleep(100);
+
+            sender.send("{\n" +
+                    "\"header\": {\n" +
+                    "\"type\": \"msfmp_inbound_get_answer_req\",\n" +
+                    "\"sessionId\": \"173917-3193@1.255.239.167\",\n" +
+                    "\"transactionId\": 517234739004,\n" +
+                    "\"msgFrom\": \"mcu1_mcud\",\n" +
+                    "\"trxType\": 0,\n" +
+                    "\"reasonCode\": 0\n" +
+                    "}\n}");
+
+            Thread.sleep(100);
+
+            sender.send("{\n" +
+                    "   \"header\": {\n" +
+                    "      \"type\": \"msfmp_nego_done_req\",\n" +
+                    "      \"sessionId\": \"173917-3193@1.255.239.167\",\n" +
+                    "      \"transactionId\": 517234747124,\n" +
+                    "      \"msgFrom\": \"mcu1_mcud\",\n" +
+                    "      \"trxType\": 0,\n" +
+                    "      \"reasonCode\": 0\n" +
+                    "   },\n" +
+                    "   \"body\": {}\n" +
+                    "}");
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -130,6 +175,16 @@ public class App
                     "   }\n" +
                     "}\n");
 
+            sender.send("{\n" +
+                    "   \"header\": {\n" +
+                    "      \"type\": \"msfmp_hangup_req\",\n" +
+                    "      \"sessionId\": \"173917-3193@1.255.239.167\",\n" +
+                    "      \"transactionId\": 585819438444,\n" +
+                    "      \"msgFrom\": \"mcu1_mcud\",\n" +
+                    "      \"trxType\": 0,\n" +
+                    "      \"reasonCode\": 0\n" +
+                    "   }\n" +
+                    "}\n");
             sender.close();
         } catch (Exception e) {
             e.printStackTrace();
