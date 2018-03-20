@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 
 public class RmqConsumer implements Runnable {
@@ -36,7 +37,8 @@ public class RmqConsumer implements Runnable {
 
             } catch (Exception e) {
                 logger.warn("Exception [{}] [{}]", e.getClass(), e.getMessage());
-                if (e.getClass() != IOException.class) {
+                e.printStackTrace();
+                if (e.getClass() == InterruptedException.class || e.getClass() == SocketException.class) {
                     isQuit = true;
                 }
             }

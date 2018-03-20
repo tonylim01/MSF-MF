@@ -26,7 +26,9 @@ public class UdpRelay {
     }
 
     public void closeUdpSocket() {
-        udpSocket.stop();
+        if (udpSocket != null) {
+            udpSocket.stop();
+        }
     }
 
     class RelayUdpCallback implements UdpCallback {
