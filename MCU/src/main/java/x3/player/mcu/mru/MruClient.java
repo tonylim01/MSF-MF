@@ -19,7 +19,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * Created by hwaseob on 2018-03-06.
  */
-public class MruClient {
+public class MruClient implements HeartbeatListener {
     final static Logger log = LoggerFactory.getLogger(MruClient.class);
     //offer
     //answer
@@ -31,6 +31,7 @@ public class MruClient {
     Channel channel;
     final String EXCHANGE_NAME = "";//default exchange
     Map<String, FutureResult> futureResultMap = Collections.synchronizedMap(new TimedHashMap<String, FutureResult>(60000/*1 min*/));
+    private HeartbeatListener heartbeatListener;
 
     public MruClient() {
     }
@@ -42,6 +43,9 @@ public class MruClient {
     public void setConnectionFactory(ConnectionFactory factory) {
         this.factory = factory;
     }
+
+//    public void listen(HeartbeatListener listener) {
+//    }
 
     public void connect() throws IOException, TimeoutException {
         connection = factory.newConnection();
@@ -87,6 +91,29 @@ public class MruClient {
                                      }
                                  }
                              });
+
+        channel.queueDeclare("mcu_mcud",
+                             true,//durable
+                             false,//exclusive
+                             true,//autoDelete
+                             null);
+        setHeartbeatListener(this);
+        channel.basicConsume("mcu_mcud",
+                             true,
+                             new DefaultConsumer(channel) {
+                                 @Override
+                                 public void handleDelivery(String consumerTag,
+                                                            Envelope envelope,
+                                                            AMQP.BasicProperties properties,
+                                                            byte[] body) throws IOException {
+                                     if (heartbeatListener != null)
+                                     {
+                                         JSONReader r= new JSONReader();
+                                         Map<String, Object> h=(Map<String, Object>)r.read(new String(body));
+                                         heartbeatListener.beat(h);
+                                     }
+                                 }
+                             });
     }
 
     public void close() {
@@ -113,31 +140,44 @@ public class MruClient {
         String tid = UUID.randomUUID().toString();
         futureResultMap.put(tid, f);
         header.put("transactionId", tid);
-//        channel.basicPublish(EXCHANGE_NAME,//exchange
-//                             "mru1_mrud",//routingKey
-//                             new AMQP.BasicProperties
-//                                .Builder()
-//                                        .headers(header.build())
-//                                        .build(),
-//                             body);
+        try
+        {
+            channel.basicPublish(EXCHANGE_NAME,//exchange
+                                 "mru1_mrud",//routingKey
+                                 new AMQP.BasicProperties
+                                         .Builder()
+                                         .headers(header)
+                                         .build(),
+                                 body);
+//        } catch (IOException e)
+//        {
+//            log.error("MCU-->MRU "+dir + "\n"+ header/*+"\n"+body*/);
+//            throw e;
+        } catch (NullPointerException e)
+        {
+            throw e;
+        }
         Map<String,Object> res = new HashMap<>();
         res.put("reasonCode", 0);
         f.set(res);
         return f;
     }
 
-    public FutureResult offer(String dir,
-                              String callId,
-                              String caller,
-                              String callee) throws IOException {
-        return offer(dir,
-                     callId,
-                     caller,
-                     callee,
-                     null);
-    }
+//    public FutureResult offer(String dir,
+//                              String conference_id,
+//                              String callId,
+//                              String caller,
+//                              String callee) throws IOException {
+//        return offer(dir,
+//                     conference_id,
+//                     callId,
+//                     caller,
+//                     callee,
+//                     null);
+//    }
 
     public FutureResult offer(String dir,
+                              String conference_id,
                               String callId,
                               String caller,
                               String callee,
@@ -160,7 +200,7 @@ public class MruClient {
 //        put("msgFrom", "mcu1_mcud");
         //build();
         Map<String,Object> header=new HashMap<>();
-        header.put("type", "msfmp_inbound_set_offer_req");
+        header.put("type", "msfmp_set_offer_req");
         header.put("sessionId", callId);
 //                put("transactionId", tid).
         header.put("msgFrom", "mcu1_mcud");
@@ -168,6 +208,7 @@ public class MruClient {
         String body = (sdp != null) ? new JSONWriter().write(ImmutableMap.<String, String>builder().
                 put("from_no", caller).
                 put("to_no", callee).
+                put("conference_id", conference_id).
                 put("sdp", sdp).
                 build())
                 : new JSONWriter().write(ImmutableMap.<String, String>builder().
@@ -201,7 +242,7 @@ public class MruClient {
 //        put("msgFrom", "mcu1_mcud");
 //                build();
         Map<String,Object> header=new HashMap<>();
-        header.put("type", "msfmp_inbound_get_answer_req");
+        header.put("type", "msfmp_get_answer_req");
         header.put("sessionId", callId);
 //                put("transactionId", tid).
         header.put("msgFrom", "mcu1_mcud");
@@ -214,12 +255,12 @@ public class MruClient {
         return f;
     }
 
-    public FutureResult negoDone(String dir,
-                                 String callId) throws IOException {
-        return negoDone(dir,
-                        callId,
-                        null);
-    }
+//    public FutureResult negoDone(String dir,
+//                                 String callId) throws IOException {
+//        return negoDone(dir,
+//                        callId,
+//                        null);
+//    }
 
     public FutureResult negoDone(String dir,
                                  String callId,
@@ -284,6 +325,19 @@ public class MruClient {
         return f;
     }
 
+    public HeartbeatListener getHeartbeatListener() {
+        return heartbeatListener;
+    }
+
+    public void setHeartbeatListener(HeartbeatListener heartbeatListener) {
+        this.heartbeatListener = heartbeatListener;
+    }
+
+    @Override
+    public void beat(Map<String, Object> h) {
+        log.info("MCU<--MRU heartbeat\n"+h);
+    }
+
 
     public static void main(String[] args) throws Exception {
 
@@ -295,37 +349,31 @@ public class MruClient {
 //        factory.setHost("192.168.2.115");//5672
 //        factory.setUsername("mornbr");
 //        factory.setPassword("mornbr");
-        Connection connection = factory.newConnection();
-        Channel channel = connection.createChannel();
-        channel.queueDeclare("mru1_mrud",
-                             true,//durable
-                             false,//exclusive
-                             false,//autoDelete
-                             null);
-        channel.basicConsume("mru1_mrud",
-                             true,
-                             new DefaultConsumer(channel) {
-                                 public void handleDelivery(String consumerTag,
-                                                            Envelope envelope,
-                                                            AMQP.BasicProperties properties,
-                                                            byte[] body) throws IOException {
-                                     Map<String, Object> h = properties.getHeaders();
-                                     System.out.println("mru1_mrud >> " + h);
-                                     if (body != null)
-                                     {
-                                         System.out.println(new String(body));
-                                     }
-                                 }
-                             });
-
 
         MruClient client = new MruClient();
         client.setConnectionFactory(factory);
+//        client.setHeartbeatListener(new HeartbeatListener() {
+//            @Override
+//            public void beat(Map<String, Object> h) {
+//                System.out.println(h);
+//            }
+//        });
         client.connect();
-        client.offer("1234",
-                     "7687",
-                     "8233",
-                     "s=kwjef");
+//        client.offer("INBOUND",
+//                    "1234",
+//                     "31ekf",
+//                     "7687",
+//                     "8233",
+//                     "s=kwjef");
 
+
+        Connection connection = factory.newConnection();
+        Channel channel = connection.createChannel();
+        channel.basicPublish("",//exchange
+                             "mcu_mcud",//routingKey
+                             new AMQP.BasicProperties
+                                     .Builder()
+                                     .build(),
+                             "{\"session_total\":2000}".getBytes());
     }
 }
