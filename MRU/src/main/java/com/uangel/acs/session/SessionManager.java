@@ -165,7 +165,9 @@ public class SessionManager {
         long current = System.currentTimeMillis();
 
         synchronized (sessionInfos) {
-            logger.debug("Session count: {}", sessionInfos.size());
+            if (sessionInfos.size() > 0) {
+                logger.debug("Session count: {}", sessionInfos.size());
+            }
 
             for (Map.Entry<String, SessionInfo> entry: sessionInfos.entrySet()) {
                 SessionInfo sessionInfo = entry.getValue();
@@ -182,7 +184,9 @@ public class SessionManager {
         }
 
         long elapsed = System.currentTimeMillis() - current;
-        logger.debug("Sleep diff [{}]", elapsed);
+        if (elapsed > 100) {
+            logger.debug("Sleep diff [{}]", elapsed);
+        }
     }
 
     /**

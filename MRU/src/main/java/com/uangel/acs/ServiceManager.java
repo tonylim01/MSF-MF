@@ -38,7 +38,11 @@ public class ServiceManager {
         startService();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+
+            logger.warn("Process is about to quit (Ctrl+C)");
             isQuit = true;
+
+            stopService();
             }));
 
         while (!isQuit) {
@@ -49,12 +53,7 @@ public class ServiceManager {
             }
         }
 
-        logger.warn("Process is about to quit");
-
-        stopService();
-
-        logger.warn("Process End");
-
+        System.out.println("Process End");
     }
 
     /**

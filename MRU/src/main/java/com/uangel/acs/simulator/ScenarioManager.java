@@ -1,6 +1,5 @@
 package com.uangel.acs.simulator;
 
-import com.uangel.acs.AppInstance;
 import com.uangel.acs.config.AmfConfig;
 import com.uangel.core.rabbitmq.transport.RmqSender;
 import org.slf4j.Logger;
@@ -41,16 +40,7 @@ public class ScenarioManager {
                 }
                 else if (line.startsWith("SLEEP")) {
                     logger.debug("SLEEP line: {}", line);
-                    // TODO
-                    String [] args = line.split(" ");
-                    if (args.length >= 2) {
-                        int sleepValue = Integer.valueOf(args[1]);
-                        logger.info("Sleep value [{}]", sleepValue);
-
-                        try {
-                            Thread.sleep(sleepValue);
-                        } catch (Exception e) {}
-                    }
+                    sleepCommand(line);
                 }
                 else if (sb != null) {
                     sb.append(line);
@@ -71,5 +61,17 @@ public class ScenarioManager {
     private void sendMessage(String msg) {
         logger.debug("Send message: {}", msg);
         rmqSender.send(msg);
+    }
+
+    private void sleepCommand(String line) {
+        String [] args = line.split(" ");
+        if (args.length >= 2) {
+            int sleepValue = Integer.valueOf(args[1]);
+            logger.info("Sleep value [{}]", sleepValue);
+
+            try {
+                Thread.sleep(sleepValue);
+            } catch (Exception e) {}
+        }
     }
 }
