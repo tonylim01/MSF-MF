@@ -2,6 +2,8 @@ package com.uangel.acs;
 
 import com.uangel.acs.common.NetUtil;
 import com.uangel.acs.config.AmfConfig;
+import com.uangel.acs.rmqif.module.RmqClient;
+import com.uangel.acs.rmqif.module.RmqConsumer;
 import com.uangel.acs.rmqif.module.RmqServer;
 import com.uangel.acs.session.SessionManager;
 import com.uangel.acs.simulator.UdpRelay;
@@ -48,9 +50,6 @@ public class App
         }
 
         NetUtil.getLocalIP();
-
-        UdpRelay udpRelay = new UdpRelay();
-        udpRelay.openUdpServer(10034);
 
         RmqServer rmqServer = null;
 
@@ -146,9 +145,11 @@ public class App
             rmqServer.stop();
         }
 
-        udpRelay.closeUdpServer();
-
         sessionManager.stop();
+
+        if (RmqClient.hasInstance(config.getMcudName())) {
+            RmqClient.getInstance(config.getMcudName()).closeSender();
+        }
 
         logger.info("Process End..");
     }

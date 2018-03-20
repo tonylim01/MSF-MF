@@ -6,6 +6,7 @@ public class SessionInfo {
 
     private String sessionId;
     private long timestamp;
+    private String conferenceId;
     private SdpInfo sdpInfo;
 
     private String localIpAddress;
@@ -25,6 +26,14 @@ public class SessionInfo {
 
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String getConferenceId() {
+        return conferenceId;
+    }
+
+    public void setConferenceId(String conferenceId) {
+        this.conferenceId = conferenceId;
     }
 
     public SdpInfo getSdpInfo() {

@@ -74,6 +74,7 @@ public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
         }
 
         sessionInfo.setSdpInfo(sdpInfo);
+        sessionInfo.setConferenceId(req.getConferenceId());
 
         //
         // TODO

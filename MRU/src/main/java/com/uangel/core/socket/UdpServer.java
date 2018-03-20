@@ -3,8 +3,10 @@ package com.uangel.core.socket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.SocketException;
 
 public class UdpServer {
 
@@ -15,15 +17,19 @@ public class UdpServer {
     private DatagramSocket socket;
     private Thread thread = null;
     private byte[] buf = new byte[MAX_BUFFER_SIZE];
+    private boolean isQuit = false;
+    private int serverPort;
 
     public UdpServer(int port) {
         try {
             socket = new DatagramSocket(port);
-            logger.debug("UdpServer ip {}", socket.getLocalAddress().toString());
-            logger.debug("UdpServer ip {}", socket.getLocalSocketAddress().toString());
+            logger.debug("UdpServer ip {} port {}", socket.getLocalAddress().toString(), port);
+            logger.debug("UdpServer ip {} port {}", socket.getLocalSocketAddress().toString(), port);
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        this.serverPort = port;
     }
 
     private UdpCallback callback = null;
@@ -56,15 +62,22 @@ public class UdpServer {
         @Override
         public void run() {
 
-            DatagramPacket packet = new DatagramPacket(buf, buf.length);
-            try {
-                socket.receive(packet);
-                if (callback != null) {
-                    callback.onReceived(packet.getAddress().getAddress(), packet.getPort(), buf, buf.length);
+            logger.info("UdpServer ({}) start", serverPort);
+            while (!isQuit) {
+                try {
+                    DatagramPacket packet = new DatagramPacket(buf, buf.length);
+                    socket.receive(packet);
+                    if (callback != null) {
+                        callback.onReceived(packet.getAddress().getAddress(), packet.getPort(), buf, buf.length);
+                    }
+                } catch (Exception e) {
+                    logger.warn("Exception [{}] [{}]", e.getClass(), e.getMessage());
+                    if (e.getClass() != IOException.class) {
+                        isQuit = true;
+                    }
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+            logger.info("UdpServer ({}) end", serverPort);
         }
     }
 }

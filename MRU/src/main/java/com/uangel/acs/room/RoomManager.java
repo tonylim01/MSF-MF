@@ -26,6 +26,17 @@ public class RoomManager {
         roomInfos = new HashMap<>();
     }
 
+    public RoomInfo getRoomInfo(String roomId) {
+        RoomInfo roomInfo = null;
+        synchronized (roomInfos) {
+            if (roomInfos.containsKey(roomId)) {
+                roomInfo = roomInfos.get(roomId);
+            }
+        }
+
+        return roomInfo;
+    }
+
     public boolean hasSession(String roomId, String sessionId) {
         boolean result = false;
 
@@ -79,11 +90,18 @@ public class RoomManager {
                 else {
                     logger.warn("[{}] Room has not session [{}]", roomId, sessionId);
                 }
+
+                logger.debug("[{}] Room session count [{}]", roomId, roomInfo.getSessionSize());
+                if (roomInfo.getSessionSize() == 0) {
+                    roomInfos.remove(roomId);
+                    logger.debug("[{}] Room deleted", roomId);
+                }
             }
             else {
                 logger.warn("[{}] Room not found", roomId);
             }
-        }
+
+       }
 
         return result;
     }

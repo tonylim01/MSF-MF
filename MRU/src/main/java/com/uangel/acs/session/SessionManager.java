@@ -75,7 +75,8 @@ public class SessionManager {
      * Stops the session scheduler
      */
     public void stop() {
-        scheduleFuture.cancel(false);
+        scheduleFuture.cancel(true);
+        scheduleService.shutdown();
     }
 
     /**
@@ -119,9 +120,8 @@ public class SessionManager {
     public void deleteSession(String sessionId) {
         synchronized (sessionInfos) {
             sessionInfos.remove(sessionId);
+            logger.debug("[{}] Delete session. Remaining count [{}]", sessionId, sessionInfos.size());
         }
-
-        logger.debug("[{}] Delete session", sessionId);
     }
 
     /**

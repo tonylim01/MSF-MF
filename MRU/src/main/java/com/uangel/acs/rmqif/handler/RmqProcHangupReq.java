@@ -2,7 +2,10 @@ package com.uangel.acs.rmqif.handler;
 
 import com.uangel.acs.rmqif.handler.base.RmqIncomingMessageHandler;
 import com.uangel.acs.rmqif.types.RmqMessage;
+import com.uangel.acs.room.RoomManager;
+import com.uangel.acs.session.SessionInfo;
 import com.uangel.acs.session.SessionManager;
+import com.uangel.acs.simulator.UdpRelayManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,10 +19,7 @@ public class RmqProcHangupReq extends RmqIncomingMessageHandler {
             return false;
         }
 
-        //
-        // TODO
-        //
-        SessionManager.getInstance().deleteSession(msg.getSessionId());
+        releaseResources(msg.getSessionId());
 
         sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId());
 
@@ -38,6 +38,32 @@ public class RmqProcHangupReq extends RmqIncomingMessageHandler {
             // TODO
         }
 
+    }
+
+    private boolean releaseResources(String sessionId) {
+        if (sessionId == null) {
+            return false;
+        }
+
+        SessionManager sessionManager = SessionManager.getInstance();
+
+        SessionInfo sessionInfo = sessionManager.getSession(sessionId);
+
+        if (sessionInfo == null) {
+            logger.warn("[{}] No session found", sessionId);
+            return false;
+        }
+
+        UdpRelayManager udpRelayManager = UdpRelayManager.getInstance();
+        udpRelayManager.close(sessionId);
+
+        if (sessionInfo.getConferenceId() != null) {
+            RoomManager.getInstance().removeSession(sessionInfo.getConferenceId(), sessionId);
+        }
+
+        sessionManager.deleteSession(sessionId);
+
+        return true;
     }
 }
 

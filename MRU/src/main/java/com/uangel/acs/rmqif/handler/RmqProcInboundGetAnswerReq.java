@@ -51,6 +51,11 @@ public class RmqProcInboundGetAnswerReq extends RmqIncomingMessageHandler {
         }
     }
 
+    /**
+     * Allocates a local media resource to receive RTP packets
+     * @param sessionId
+     * @return
+     */
     private boolean allocLocalResource(String sessionId) {
         if (sessionId == null) {
             return false;

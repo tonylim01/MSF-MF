@@ -31,6 +31,14 @@ public class RmqClient {
         return client;
     }
 
+    public static boolean hasInstance(String queueName) {
+        if (clients == null) {
+            return false;
+        }
+
+        return clients.containsKey(queueName);
+    }
+
     private RmqSender sender = null;
     private boolean isConnected = false;
     private String queueName = null;

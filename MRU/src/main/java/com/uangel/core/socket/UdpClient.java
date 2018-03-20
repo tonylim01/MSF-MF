@@ -8,15 +8,16 @@ public class UdpClient {
 
     private DatagramSocket socket;
     private InetAddress address;
-    private int port;
+    private int remotePort;
 
-    public UdpClient(String ipAddress) {
+    public UdpClient(String ipAddress, int remotePort, int localPort) {
         try {
-            socket = new DatagramSocket();
+            socket = new DatagramSocket(localPort);
             address = InetAddress.getByName(ipAddress);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        this.remotePort = remotePort;
     }
 
     public boolean send(byte[] buf) {
@@ -25,7 +26,7 @@ public class UdpClient {
         }
 
         boolean result = false;
-        DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
+        DatagramPacket packet = new DatagramPacket(buf, buf.length, address, remotePort);
         try {
             socket.send(packet);
             result = true;
