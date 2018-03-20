@@ -78,7 +78,7 @@
               <finalName>mrud</finalName>
               <archive>
                 <manifest>
-                  <mainClass>com.uangel.acs.App</mainClass>
+                  <mainClass>x3.player.mru.App</mainClass>
                 </manifest>
               </archive>
             </configuration>
@@ -96,7 +96,7 @@
               <finalName>mcud-emul</finalName>
               <archive>
                 <manifest>
-                  <mainClass>com.uangel.acs.Emulator</mainClass>
+                  <mainClass>x3.player.mru.Emulator</mainClass>
                 </manifest>
               </archive>
             </configuration>
@@ -117,7 +117,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.uangel.acs.App</mainClass>
+              <mainClass>x3.player.mru.App</mainClass>
             </manifest>
           </archive>
         </configuration>
