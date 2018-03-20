@@ -211,9 +211,9 @@ a=fmtp:99 profile-level-id=3
 //        ToHeader to= (ToHeader) req.getHeader(ToHeader.NAME);
 //        log.info(fr.getAddress() + "-->" + method + "-->"+to.getAddress());
 //        log.info(Utils.toString(e.getRequest()));
-//        executor.execute(()->{
+        executor.execute(()->{
                 fact.create(e);
-//        });
+        });
 
     }
 
@@ -238,9 +238,9 @@ a=fmtp:99 profile-level-id=3
         log.debug("processBye");
         try
         {
-//            executor.execute(()->{
+            executor.execute(()->{
                 ((McuSession) event.getServerTransaction().getDialog().getApplicationData()).close(event);
-//            });
+            });
             //todo:
             //failover applicationData == null
             /*
@@ -304,11 +304,11 @@ a=fmtp:99 profile-level-id=3
 //            int decline=Response.DECLINE;//603
             //REQUEST_TERMINATED = 487
             //if (Response.DECLINE/*603*/ == res.getStatusCode())
-            if (Response.REQUEST_TERMINATED == res.getStatusCode())
-            {
-                //noop
-                return;
-            }
+//            if (Response.REQUEST_TERMINATED == res.getStatusCode())
+//            {
+//                //noop
+//                return;
+//            }
             if (300 <= res.getStatusCode() && res.getStatusCode() <= 699)
             {
                 try
@@ -364,7 +364,7 @@ a=fmtp:99 profile-level-id=3
 
     public void sessionCreated(McuSession s) {
 //        log.debug("sessionCreated");
-        log.info("sessionCreated inbound="+s.getInboundTr().getDialog().getCallId().getCallId()+"---outbound"+s.getOutboundTr().getDialog().getCallId().getCallId());
+        log.info("sessionCreated inbound="+s.getInboundTr().getDialog().getCallId().getCallId()+"----outbound"+s.getOutboundTr().getDialog().getCallId().getCallId());
 
         Jedis jedis = pool.getResource();
         try
@@ -383,9 +383,14 @@ a=fmtp:99 profile-level-id=3
         }
     }
 
+    @Override
+    public void sessionCannotCreate(McuSession s, Exception e) {
+        log.error("sessionCannotCreate", e);
+    }
+
     public void sessionClosed(McuSession s) {
 //        log.debug("sessionClosed");
-        log.info("sessionClosed inbound="+s.getInboundTr().getDialog().getCallId().getCallId()+"-|-- outbound"+s.getOutboundTr().getDialog().getCallId().getCallId());
+        log.info("sessionClosed inbound="+s.getInboundTr().getDialog().getCallId().getCallId()+"--|-- outbound"+s.getOutboundTr().getDialog().getCallId().getCallId());
 
         Jedis jedis = pool.getResource();
         try

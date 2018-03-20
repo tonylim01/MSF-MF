@@ -9,4 +9,5 @@ public interface SessionLifeCycleListener {
     void sessionCancelled(McuSession s);
     void sessionCreated(McuSession s);
     void sessionClosed(McuSession s);
+    void sessionCannotCreate(McuSession s, Exception e);
 }

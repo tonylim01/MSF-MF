@@ -54,6 +54,7 @@ public class Main {
             factory.setPassword(passwd);
         }
         mru.setConnectionFactory(factory);
+        mru.connect();
 
         McuSipSignal sip = new McuSipSignal();
         sip.setPort(port);
