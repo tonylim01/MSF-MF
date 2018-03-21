@@ -85,25 +85,14 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
             builder.addRtpAttribute(attr.getPayloadId(), attr.getDescription());
         }
         else {  // Outbound case
-            //
-            // TODO
-            // Belows are test codes
-//            SDP_LOCAL_ATTR_0 = rtpmap:0 PCMU/8000
-//            SDP_LOCAL_ATTR_1 = rtpmap:8 PCMA/8000
-//            SDP_LOCAL_ATTR_2 = rtpmap:4 G723/8000
-//            SDP_LOCAL_ATTR_3 = rtpmap:18 G729/8000
-//            SDP_LOCAL_ATTR_4 = ptime:20
-//            SDP_LOCAL_ATTR_5 = rtpmap:101 telephone-event/8000
-//            SDP_LOCAL_ATTR_6 = fmtp:101 0-16
-//            SDP_LOCAL_ATTR_7 = sendrecv
-//            SDP_LOCAL_ATTR_8 = direction:active
-            builder.addRtpAttribute(8, "PCMA/8000");
-            builder.addRtpAttribute(0, "PCMU/8000");
-            builder.addRtpAttribute(101, "telephone-event/8000");
-            builder.addGeneralAttribute("ptime:20" );
-            builder.addGeneralAttribute("fmtp:101 0-16");
-            builder.addGeneralAttribute("sendrecv");
-            builder.addGeneralAttribute("direction:active");
+            for (String desc: config.getAttributes()) {
+                builder.addGeneralAttribute(desc);
+            }
+        }
+
+        SdpAttribute dtmfAttr = getTelephonyEvent(sessionInfo);
+        if (dtmfAttr != null) {
+            builder.addRtpAttribute(dtmfAttr.getPayloadId(), dtmfAttr.getDescription());
         }
 
         if (sessionInfo.getSdpInfo() != null) {
@@ -135,7 +124,8 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
             // Outbound case
             return null;
         }
-        else if (sdpInfo.getAttributes() != null) {
+
+        if (sdpInfo.getAttributes() != null) {
             List<Integer> mediaPriorities = AppInstance.getInstance().getConfig().getMediaPriorities();
 
             if (mediaPriorities != null && mediaPriorities.size() > 0) {
@@ -144,6 +134,29 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
                     if (attr != null) { // SDP found
                         break;
                     }
+                }
+            }
+        }
+
+        return attr;
+    }
+
+    private SdpAttribute getTelephonyEvent(SessionInfo sessionInfo) {
+        SdpAttribute attr = null;
+        SdpInfo sdpInfo = sessionInfo.getSdpInfo();
+
+        if (sdpInfo == null) {
+            // Outbound case
+            return null;
+        }
+
+        if (sdpInfo.getAttributes() != null) {
+            List<SdpAttribute> attributes = sdpInfo.getAttributes();
+            for (SdpAttribute attribute: attributes) {
+                if (attribute.getDescription() != null &&
+                        attribute.getDescription().equals(SdpAttribute.DESC_TELEPHONY_EVENT)) {
+                    attr = attribute;
+                    break;
                 }
             }
         }

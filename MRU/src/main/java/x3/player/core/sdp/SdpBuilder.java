@@ -81,14 +81,16 @@ public class SdpBuilder {
 
         // Attributes
         for (SdpAttribute attr: audioAttrs) {
-            sb.append("a=");
-            if (attr.getPayloadId() != SdpAttribute.PAYLOADID_NONE) {
-                sb.append("rtpmap:");
-                sb.append(attr.getPayloadId());
-                sb.append(" ");
+            if (attr.getDescription() != null) {
+                sb.append("a=");
+                if (attr.getPayloadId() != SdpAttribute.PAYLOADID_NONE) {
+                    sb.append("rtpmap:");
+                    sb.append(attr.getPayloadId());
+                    sb.append(" ");
+                }
+                sb.append(attr.getDescription());
+                sb.append(CRLF);
             }
-            sb.append(attr.getDescription());
-            sb.append(CRLF);
         }
 
         return sb.toString();
