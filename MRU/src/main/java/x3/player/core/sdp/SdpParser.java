@@ -12,6 +12,34 @@ public class SdpParser {
 
     private static final Logger logger = LoggerFactory.getLogger(SdpParser.class);
 
+    /**
+     * Simple static parser to call the parse() of SdpParser
+     * @param sdp
+     * @return SdpInfo
+     */
+    public static SdpInfo parseSdp(String sdp) {
+        if (sdp == null) {
+            return null;
+        }
+
+        SdpInfo sdpInfo = null;
+        SdpParser sdpParser = new SdpParser();
+        try {
+            sdpInfo = sdpParser.parse(sdp);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return sdpInfo;
+    }
+
+    /**
+     * Parses a SDP body and returns SdpInfo
+     * @param msg
+     * @return
+     * @throws Exception
+     */
     public SdpInfo parse(String msg) throws Exception {
         SDPAnnounceParser parser = new SDPAnnounceParser(msg);
         SessionDescriptionImpl sdp = parser.parse();

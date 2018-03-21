@@ -5,7 +5,7 @@ import java.lang.reflect.Type;
 public interface RmqOutgoingMessageInterface {
     void setType(String type);
 
-    void setTransactionId(long transactionId);
+    void setTransactionId(String transactionId);
 
     void setSessionId(String sessionId);
 
@@ -21,5 +21,5 @@ public interface RmqOutgoingMessageInterface {
 
     void setBody(Object obj, Type objType);
 
-    boolean sendTo(int targetId);
+    boolean sendTo(String target);
 }

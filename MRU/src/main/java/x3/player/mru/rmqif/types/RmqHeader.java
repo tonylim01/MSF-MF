@@ -4,7 +4,7 @@ public class RmqHeader {
 
     private String type;
     private String sessionId;
-    private long transactionId;
+    private String transactionId;
     private String msgFrom;
     private int trxType;
     private int reasonCode;
@@ -14,7 +14,7 @@ public class RmqHeader {
 
     }
 
-    public RmqHeader(String type, String sessionId, long transactionId, String msgFrom, int trxType, int reasonCode, String reason) {
+    public RmqHeader(String type, String sessionId, String transactionId, String msgFrom, int trxType, int reasonCode, String reason) {
         this.type = type;
         this.sessionId = sessionId;
         this.transactionId = transactionId;
@@ -40,11 +40,11 @@ public class RmqHeader {
         this.sessionId = sessionId;
     }
 
-    public long getTransactionId() {
+    public String getTransactionId() {
         return transactionId;
     }
 
-    public void setTransactionId(long transactionId) {
+    public void setTransactionId(String transactionId) {
         this.transactionId = transactionId;
     }
 

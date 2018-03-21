@@ -53,7 +53,7 @@ public class RmqClient {
             return false;
         }
         sender = new RmqSender(config.getRmqHost(), config.getRmqUser(), config.getRmqPass(), queueName);
-        return sender.connect();
+        return sender.connectClient();
    }
 
    public void closeSender() {
@@ -74,7 +74,7 @@ public class RmqClient {
         }
 
         if (!sender.isOpened()) {
-            if (!sender.connect()) {
+            if (!sender.connectClient()) {
                 return false;
             }
         }

@@ -10,12 +10,12 @@ public class RmqProcHangupRes extends RmqOutgoingMessage {
 
     private static final Logger logger = LoggerFactory.getLogger(RmqProcHangupRes.class);
 
-    public RmqProcHangupRes(String sessionId, long transactionId) {
+    public RmqProcHangupRes(String sessionId, String transactionId) {
         super(sessionId, transactionId);
         setType(RmqMessageType.RMQ_MSG_STR_HANGUP_RES);
     }
 
-    public boolean send() {
+    public boolean send(String queueName) {
 
         HangupRes res = new HangupRes();
 
@@ -24,6 +24,6 @@ public class RmqProcHangupRes extends RmqOutgoingMessage {
 
         setBody(res, HangupRes.class);
 
-        return sendTo(RMQ_TARGET_ID_MCUD);
+        return sendTo(queueName);
     }
 }

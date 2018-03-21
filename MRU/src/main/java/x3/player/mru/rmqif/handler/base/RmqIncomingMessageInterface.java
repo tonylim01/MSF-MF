@@ -11,7 +11,15 @@ public interface RmqIncomingMessageInterface {
      * @param sessionId
      * @param transactionId
      */
-    void sendResponse(String sessionId, long transactionId);
+    void sendResponse(String sessionId, String transactionId);
+
+    /**
+     * Sends a response to the given queue
+     * @param sessionId
+     * @param transactionId
+     * @param queueName
+     */
+    void sendResponse(String sessionId, String transactionId, String queueName);
 
     /**
      * Sends a resopnse with a specified reasonCode and reasonStr
@@ -20,5 +28,15 @@ public interface RmqIncomingMessageInterface {
      * @param reasonCode
      * @param reasonStr
      */
-    void sendResponse(String sessionId, long transactionId, int reasonCode, String reasonStr);
+    void sendResponse(String sessionId, String transactionId, int reasonCode, String reasonStr);
+
+    /**
+     * Sends a response to the given queue
+     * @param sessionId
+     * @param transactionId
+     * @param queueName
+     * @param reasonCode
+     * @param reasonStr
+     */
+    void sendResponse(String sessionId, String transactionId, String queueName, int reasonCode, String reasonStr);
 }

@@ -37,25 +37,28 @@ public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
         // SessionId and ConferenceId are mandatory fields in the service
         if (msg.getSessionId() == null) {
             logger.error("[{}] No sessionId found");
-            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_WRONG_PARAM,
+            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom(),
+                    RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_WRONG_PARAM,
                     "NO SESSION ID");
             return  false;
         }
 
         if (req.getConferenceId() == null) {
             logger.warn("[{}] InboundSetOfferReq: No conferenceId", msg.getSessionId());
-            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_WRONG_PARAM,
+            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom(),
+                    RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_WRONG_PARAM,
                     "NO CONFERENCE ID");
             return false;
         }
 
         // sdpInfo can be null for a no-sdp case
-        SdpInfo sdpInfo = parseSdp(req.getSdp());
+        SdpInfo sdpInfo = SdpParser.parseSdp(req.getSdp());
 
         boolean result;
         result = setRoomInfo(req.getConferenceId(), msg.getSessionId());
         if (result == false) {
-            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_FAILURE,
+            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom(),
+                    RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_FAILURE,
                     "ROOM-SESSION ERROR");
             return false;
         }
@@ -68,7 +71,8 @@ public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
             logger.warn("[{}] Cannot create session", msg.getSessionId());
             RoomManager.getInstance().removeSession(req.getConferenceId(), msg.getSessionId());
 
-            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_FAILURE,
+            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom(),
+                    RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_FAILURE,
                     "SESSION ERROR");
             return false;
         }
@@ -80,44 +84,22 @@ public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
         // TODO
         //
 
-        sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId());
+        sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom());
 
         return true;
     }
 
     @Override
-    public void sendResponse(String sessionId, long transactionId, int reasonCode, String reasonStr) {
+    public void sendResponse(String sessionId, String transactionId, String queueName, int reasonCode, String reasonStr) {
 
         RmqProcInboundSetOfferRes res = new RmqProcInboundSetOfferRes(sessionId, transactionId);
 
         res.setReasonCode(reasonCode);
         res.setReasonStr(reasonStr);
 
-        if (res.send() == false) {
+        if (res.send(queueName) == false) {
             // TODO
         }
-    }
-
-    /**
-     * Parses a SDP body and returns SdpInfo
-     * @param sdp
-     * @return SdpInfo
-     */
-    private SdpInfo parseSdp(String sdp) {
-        if (sdp == null) {
-            return null;
-        }
-
-        SdpInfo sdpInfo = null;
-        SdpParser sdpParser = new SdpParser();
-        try {
-            sdpInfo = sdpParser.parse(sdp);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return sdpInfo;
     }
 
     /**

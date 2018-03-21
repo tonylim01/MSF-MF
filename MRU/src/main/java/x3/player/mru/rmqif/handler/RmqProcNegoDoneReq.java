@@ -1,5 +1,6 @@
 package x3.player.mru.rmqif.handler;
 
+import x3.player.core.sdp.SdpParser;
 import x3.player.mru.rmqif.handler.base.RmqIncomingMessageHandler;
 import x3.player.mru.rmqif.messages.NegoDoneReq;
 import x3.player.mru.rmqif.types.RmqMessage;
@@ -27,7 +28,8 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
 
         if (msg.getSessionId() == null) {
             logger.error("[{}] No sessionId found");
-            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_WRONG_PARAM,
+            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom(),
+                    RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_WRONG_PARAM,
                     "NO SESSION ID");
             return  false;
         }
@@ -37,29 +39,44 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
 
         if (req == null) {
             logger.error("[{}] NegoDoneReq: parsing failed", msg.getSessionId());
-            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_FAILURE,
+            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom(),
+                    RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_FAILURE,
                     "PARSING FAILURE");
             return false;
         }
 
         logger.info("[{}] NegoDoneReq: sdp [{}]", msg.getSessionId(), req.getSdp());
 
+        if (req.getSdp() != null) {
+            SdpInfo sdpInfo = SdpParser.parseSdp(req.getSdp());
+
+            SessionInfo sessionInfo = SessionManager.getInstance().getSession(msg.getSessionId());
+            if (sessionInfo == null) {
+                sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom(),
+                        RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_FAILURE,
+                        "NO SESSION");
+                return false;
+            }
+
+            sessionInfo.setSdpInfo(sdpInfo);
+        }
+
         openLocalResource(msg.getSessionId());
 
-        sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId());
+        sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom());
 
         return false;
     }
 
     @Override
-    public void sendResponse(String sessionId, long transactionId, int reasonCode, String reasonStr) {
+    public void sendResponse(String sessionId, String transactionId, String queueName, int reasonCode, String reasonStr) {
 
         RmqProcNegoDoneRes res = new RmqProcNegoDoneRes(sessionId, transactionId);
 
         res.setReasonCode(reasonCode);
         res.setReasonStr(reasonStr);
 
-        if (res.send() == false) {
+        if (res.send(queueName) == false) {
             // TODO
         }
     }
@@ -106,11 +123,11 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
             logger.debug("[{}] Make connection: local [{}] to [{}:{}]", sessionId,
                     sessionInfo.getLocalPort(), otherRemoteSdpInfo.getRemoteIp(), otherRemoteSdpInfo.getRemotePort());
 
-            SdpInfo remoteSdpInfo = sessionInfo.getSdpInfo();
-            udpRelayManager.openClient(otherSessionId, remoteSdpInfo.getRemoteIp(), remoteSdpInfo.getRemotePort());
-
-            logger.debug("[{}] Make connection: local [{}] to [{}:{}]", otherSessionId,
-                    otherSessionInfo.getLocalPort(), remoteSdpInfo.getRemoteIp(), remoteSdpInfo.getRemotePort());
+//            SdpInfo remoteSdpInfo = sessionInfo.getSdpInfo();
+//            udpRelayManager.openClient(otherSessionId, remoteSdpInfo.getRemoteIp(), remoteSdpInfo.getRemotePort());
+//
+//            logger.debug("[{}] Make connection: local [{}] to [{}:{}]", otherSessionId,
+//                    otherSessionInfo.getLocalPort(), remoteSdpInfo.getRemoteIp(), remoteSdpInfo.getRemotePort());
         }
         // End of Demo service
 

@@ -36,13 +36,27 @@ public class RmqTransport {
         return queueName;
     }
 
-    public boolean connect() {
+    public boolean connectServer() {
 
         if (makeConnection() == false) {
             return false;
         }
 
-        if (makeChannel() == false) {
+        if (makeChannel(true) == false) {
+            closeConnection();
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean connectClient() {
+
+        if (makeConnection() == false) {
+            return false;
+        }
+
+        if (makeChannel(false) == false) {
             closeConnection();
             return false;
         }
@@ -82,13 +96,15 @@ public class RmqTransport {
         }
     }
 
-    private boolean makeChannel() {
+    private boolean makeChannel(boolean declareQueue) {
 
         boolean result = false;
 
         try {
             channel = connection.createChannel();
-            channel.queueDeclare(queueName, false, false, false, null);
+            if (declareQueue) {
+                channel.queueDeclare(queueName, false, false, false, null);
+            }
             result = true;
         } catch (Exception e) {
             e.printStackTrace();

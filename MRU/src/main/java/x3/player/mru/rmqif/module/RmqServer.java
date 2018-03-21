@@ -35,7 +35,7 @@ public class RmqServer {
         receiver = new RmqReceiver(config.getRmqHost(), config.getRmqUser(), config.getRmqPass(), config.getLocalName());
         receiver.setCallback(new MessageCallback());
 
-        boolean result = receiver.connect();
+        boolean result = receiver.connectServer();
         logger.info("{} connect ... [{}]", getClass().getSimpleName(), StringValue.getOkFail(result));
 
         if (result == false) {

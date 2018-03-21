@@ -28,7 +28,7 @@ public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
         this.header = new RmqHeader();
     }
 
-    public RmqOutgoingMessage(String sessionId, long transactionId) {
+    public RmqOutgoingMessage(String sessionId, String transactionId) {
         this.header = new RmqHeader();
 
         setSessionId(sessionId);
@@ -41,7 +41,7 @@ public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
     }
 
     @Override
-    public void setTransactionId(long transactionId) {
+    public void setTransactionId(String transactionId) {
         header.setTransactionId(transactionId);
     }
 
@@ -82,7 +82,7 @@ public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
     }
 
     @Override
-    public boolean sendTo(int targetId) {
+    public boolean sendTo(String target) {
         boolean result = false;
 
         AmfConfig config = AppInstance.getInstance().getConfig();
@@ -90,8 +90,7 @@ public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
             return false;
         }
 
-        String target = null;
-        if (targetId == RMQ_TARGET_ID_MCUD) {
+        if (target == null) {
             target = config.getMcudName();
         }
 

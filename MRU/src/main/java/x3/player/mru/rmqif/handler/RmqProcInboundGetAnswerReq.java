@@ -26,27 +26,28 @@ public class RmqProcInboundGetAnswerReq extends RmqIncomingMessageHandler {
 
         if (msg.getSessionId() == null) {
             logger.error("[{}] No sessionId found");
-            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_WRONG_PARAM,
+            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom(),
+                    RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_WRONG_PARAM,
                     "NO SESSION ID");
             return  false;
         }
 
         allocLocalResource(msg.getSessionId());
 
-        sendResponse(msg.getHeader().getSessionId(), msg.getHeader().getTransactionId());
+        sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom());
 
         return false;
     }
 
     @Override
-    public void sendResponse(String sessionId, long transactionId, int reasonCode, String reasonStr) {
+    public void sendResponse(String sessionId, String transactionId, String queueName, int reasonCode, String reasonStr) {
 
         RmqProcInboundGetAnswerRes res = new RmqProcInboundGetAnswerRes(sessionId, transactionId);
 
         res.setReasonCode(reasonCode);
         res.setReasonStr(reasonStr);
 
-        if (res.send() == false) {
+        if (res.send(queueName) == false) {
             // TODO
         }
     }

@@ -19,7 +19,7 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
 
     private static final Logger logger = LoggerFactory.getLogger(RmqProcInboundGetAnswerRes.class);
 
-    public RmqProcInboundGetAnswerRes(String sessionId, long transactionId) {
+    public RmqProcInboundGetAnswerRes(String sessionId, String transactionId) {
         super(sessionId, transactionId);
         setType(RmqMessageType.RMQ_MSG_STR_INBOUND_GET_ANSWER_RES);
     }
@@ -28,7 +28,7 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
      * Makes a response body and sends the message to MCUD
      * @return
      */
-    public boolean send() {
+    public boolean send(String queueName) {
 
         SessionInfo sessionInfo = SessionManager.getInstance().getSession(getSessionId());
         if (sessionInfo == null) {
@@ -38,7 +38,7 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
             if (getHeader().getReasonCode() == RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_SUCCESS) {
                 setReason(RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_WRONG_PARAM, "NO SESSION FOUND");
             }
-            return sendTo(RMQ_TARGET_ID_MCUD);
+            return sendTo(queueName);
         }
 
         String sdpStr = makeSdp(sessionInfo);
@@ -46,7 +46,7 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
             logger.error("[{}] Cannot make SDP", getSessionId());
 
             setReason(RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_FAILURE, "SDP FAILURE");
-            return sendTo(RMQ_TARGET_ID_MCUD);
+            return sendTo(queueName);
         }
 
         //
@@ -58,7 +58,7 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
 
         setBody(res, InboundGetAnswerRes.class);
 
-        return sendTo(RMQ_TARGET_ID_MCUD);
+        return sendTo(queueName);
     }
 
     /**
@@ -84,16 +84,38 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
         if (attr != null) {
             builder.addRtpAttribute(attr.getPayloadId(), attr.getDescription());
         }
-        else {
+        else {  // Outbound case
             //
             // TODO
-            //
+            // Belows are test codes
+//            SDP_LOCAL_ATTR_0 = rtpmap:0 PCMU/8000
+//            SDP_LOCAL_ATTR_1 = rtpmap:8 PCMA/8000
+//            SDP_LOCAL_ATTR_2 = rtpmap:4 G723/8000
+//            SDP_LOCAL_ATTR_3 = rtpmap:18 G729/8000
+//            SDP_LOCAL_ATTR_4 = ptime:20
+//            SDP_LOCAL_ATTR_5 = rtpmap:101 telephone-event/8000
+//            SDP_LOCAL_ATTR_6 = fmtp:101 0-16
+//            SDP_LOCAL_ATTR_7 = sendrecv
+//            SDP_LOCAL_ATTR_8 = direction:active
+            builder.addRtpAttribute(8, "PCMA/8000");
+            builder.addRtpAttribute(0, "PCMU/8000");
+            builder.addRtpAttribute(101, "telephone-event/8000");
+            builder.addGeneralAttribute("ptime:20" );
+            builder.addGeneralAttribute("fmtp:101 0-16");
+            builder.addGeneralAttribute("sendrecv");
+            builder.addGeneralAttribute("direction:active");
         }
 
-        for (SdpAttribute sdpAttribute: sessionInfo.getSdpInfo().getAttributes()) {
-            if (sdpAttribute.getPayloadId() == SdpAttribute.PAYLOADID_NONE) {
-                builder.addGeneralAttribute(sdpAttribute.getDescription() != null ? sdpAttribute.getDescription() : sdpAttribute.getName());
+        if (sessionInfo.getSdpInfo() != null) {
+
+            for (SdpAttribute sdpAttribute: sessionInfo.getSdpInfo().getAttributes()) {
+                if (sdpAttribute.getPayloadId() == SdpAttribute.PAYLOADID_NONE) {
+                    builder.addGeneralAttribute(sdpAttribute.getDescription() != null ? sdpAttribute.getDescription() : sdpAttribute.getName());
+                }
             }
+        }
+        else {  // Outbound case
+
         }
 
         return builder.build();
@@ -109,7 +131,11 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
         SdpAttribute attr = null;
         SdpInfo sdpInfo = sessionInfo.getSdpInfo();
 
-        if (sdpInfo.getAttributes() != null) {
+        if (sdpInfo == null) {
+            // Outbound case
+            return null;
+        }
+        else if (sdpInfo.getAttributes() != null) {
             List<Integer> mediaPriorities = AppInstance.getInstance().getConfig().getMediaPriorities();
 
             if (mediaPriorities != null && mediaPriorities.size() > 0) {

@@ -21,20 +21,20 @@ public class RmqProcHangupReq extends RmqIncomingMessageHandler {
 
         releaseResources(msg.getSessionId());
 
-        sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId());
+        sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom());
 
         return false;
     }
 
     @Override
-    public void sendResponse(String sessionId, long transactionId, int reasonCode, String reasonStr) {
+    public void sendResponse(String sessionId, String transactionId, String queueName, int reasonCode, String reasonStr) {
 
         RmqProcHangupRes res = new RmqProcHangupRes(sessionId, transactionId);
 
         res.setReasonCode(reasonCode);
         res.setReasonStr(reasonStr);
 
-        if (res.send() == false) {
+        if (res.send(queueName) == false) {
             // TODO
         }
 

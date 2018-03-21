@@ -8,14 +8,14 @@ import java.util.stream.Stream;
 
 public class RmqMessageType {
 
-    public static final String RMQ_MSG_STR_INBOUND_SET_OFFER_REQ    = "msfmp_inbound_set_offer_req";
-    public static final String RMQ_MSG_STR_INBOUND_SET_OFFER_RES    = "msfmp_inbound_set_offer_res";
-    public static final String RMQ_MSG_STR_INBOUND_GET_ANSWER_REQ   = "msfmp_inbound_get_answer_req";
-    public static final String RMQ_MSG_STR_INBOUND_GET_ANSWER_RES   = "msfmp_inbound_get_answer_res";
-    public static final String RMQ_MSG_STR_OUTBOUND_GET_OFFER_REQ	= "msfmp_inbound_get_offer_req";
-    public static final String RMQ_MSG_STR_OUTBOUND_GET_OFFER_RES	= "msfmp_inbound_get_offer_res";
-    public static final String RMQ_MSG_STR_OUTBOUND_SET_ANSWER_REQ	= "msfmp_inbound_set_answer_req";
-    public static final String RMQ_MSG_STR_OUTBOUND_SET_ANSWER_RES	= "msfmp_inbound_set_answer_res";
+    public static final String RMQ_MSG_STR_INBOUND_SET_OFFER_REQ    = "msfmp_set_offer_req";
+    public static final String RMQ_MSG_STR_INBOUND_SET_OFFER_RES    = "msfmp_set_offer_res";
+    public static final String RMQ_MSG_STR_INBOUND_GET_ANSWER_REQ   = "msfmp_get_answer_req";
+    public static final String RMQ_MSG_STR_INBOUND_GET_ANSWER_RES   = "msfmp_get_answer_res";
+    public static final String RMQ_MSG_STR_OUTBOUND_GET_OFFER_REQ	= "msfmp_get_offer_req";
+    public static final String RMQ_MSG_STR_OUTBOUND_GET_OFFER_RES	= "msfmp_get_offer_res";
+    public static final String RMQ_MSG_STR_OUTBOUND_SET_ANSWER_REQ	= "msfmp_set_answer_req";
+    public static final String RMQ_MSG_STR_OUTBOUND_SET_ANSWER_RES	= "msfmp_set_answer_res";
     public static final String RMQ_MSG_STR_NEGO_DONE_REQ	        = "msfmp_nego_done_req";
     public static final String RMQ_MSG_STR_NEGO_DONE_RES	        = "msfmp_nego_done_res";
     public static final String RMQ_MSG_STR_COMMAND_REQ	            = "msfmp_command_req";

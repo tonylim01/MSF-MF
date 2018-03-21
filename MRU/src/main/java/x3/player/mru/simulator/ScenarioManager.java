@@ -17,7 +17,7 @@ public class ScenarioManager {
         AmfConfig config = new AmfConfig();
 
         rmqSender = new RmqSender(config.getRmqHost(), config.getRmqUser(), config.getRmqPass(), config.getLocalName());
-        rmqSender.connect();
+        rmqSender.connectClient();
     }
 
     public boolean startScenario(String filename) {
