@@ -33,7 +33,7 @@ public class UdpRelay {
         @Override
         public void onReceived(byte[] srcAddress, int srcPort, byte[] buf, int length) {
             logger.debug("UDP received: size [{}]", length);
-            udpSocket.send(buf);
+            udpSocket.send(buf, length);
         }
     }
 }

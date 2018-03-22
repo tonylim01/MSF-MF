@@ -85,9 +85,16 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
             builder.addRtpAttribute(attr.getPayloadId(), attr.getDescription());
         }
         else {  // Outbound case
-            for (String desc: config.getAttributes()) {
-                builder.addGeneralAttribute(desc);
-            }
+//            for (String desc: config.getAttributes()) {
+//                builder.addGeneralAttribute(desc);
+//            }
+            builder.addRtpAttribute(8, "PCMA/8000");
+            builder.addRtpAttribute(0, "PCMU/8000");
+            builder.addRtpAttribute(101, "telephone-event/8000");
+            builder.addGeneralAttribute("ptime:20" );
+            builder.addGeneralAttribute("fmtp:101 0-16");
+            builder.addGeneralAttribute("sendrecv");
+            builder.addGeneralAttribute("direction:active");
         }
 
         SdpAttribute dtmfAttr = getTelephonyEvent(sessionInfo);
@@ -98,9 +105,9 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
         if (sessionInfo.getSdpInfo() != null) {
 
             for (SdpAttribute sdpAttribute: sessionInfo.getSdpInfo().getAttributes()) {
-                if (sdpAttribute.getPayloadId() == SdpAttribute.PAYLOADID_NONE) {
-                    builder.addGeneralAttribute(sdpAttribute.getDescription() != null ? sdpAttribute.getDescription() : sdpAttribute.getName());
-                }
+//                if (sdpAttribute.getPayloadId() == SdpAttribute.PAYLOADID_NONE) {
+//                    builder.addGeneralAttribute(sdpAttribute.getDescription() != null ? sdpAttribute.getDescription() : sdpAttribute.getName());
+//                }
             }
         }
         else {  // Outbound case

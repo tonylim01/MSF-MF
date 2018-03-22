@@ -140,6 +140,28 @@ public class SessionManager {
         return sessionInfo;
     }
 
+    /**
+     * Returns total number of sessions
+     * @return
+     */
+    public int getTotalCount() {
+        //
+        // TODO
+        //
+        return 100;
+    }
+
+    /**
+     * Returns current idle session count
+     * @return
+     */
+    public int getIdleCount() {
+        //
+        // TODO
+        //
+        return 100;
+    }
+
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("mm:dd-hhmmss");
 
     public void printSessionList() {

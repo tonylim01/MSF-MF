@@ -42,7 +42,7 @@ public class RoomInfo {
         if (sessions.contains(sessionId) && sessions.size() > 1) {
             for (String session: sessions) {
                 System.out.println("Session list " + session + " input " + sessionId);
-                if (session != sessionId) {
+                if (session != null && !session.equals(sessionId)) {
                     otherSession = session;
                     break;
                 }

@@ -105,4 +105,28 @@ public class RoomManager {
 
         return result;
     }
+
+    /**
+     * Gets the total number of rooms
+     * @return
+     */
+    public int getTotalRoomCount() {
+
+        //
+        // TODO
+        //
+        return 10;
+    }
+
+    /**
+     * Gets the current idle room count
+     * @return
+     */
+    public int getIdleRoomCount() {
+        //
+        // TODO
+        //
+        return 10;
+    }
+
 }

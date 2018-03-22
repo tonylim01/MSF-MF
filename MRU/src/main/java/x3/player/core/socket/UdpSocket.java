@@ -61,13 +61,18 @@ public class UdpSocket {
         socket.close();
     }
 
-    public boolean send(byte[] buf) {
+    public boolean send(byte[] buf, int size) {
         if (buf == null || (buf != null && buf.length == 0)) {
             return false;
         }
 
+        if (size > buf.length) {
+            return false;
+        }
+
+        logger.debug("Remote port {} size {}", remotePort, size);
         boolean result = false;
-        DatagramPacket packet = new DatagramPacket(buf, buf.length, address, remotePort);
+        DatagramPacket packet = new DatagramPacket(buf, size, address, remotePort);
         try {
             socket.send(packet);
             result = true;
@@ -88,7 +93,7 @@ public class UdpSocket {
                     DatagramPacket packet = new DatagramPacket(buf, buf.length);
                     socket.receive(packet);
                     if (callback != null) {
-                        callback.onReceived(packet.getAddress().getAddress(), packet.getPort(), buf, buf.length);
+                        callback.onReceived(packet.getAddress().getAddress(), packet.getPort(), buf, packet.getLength());
                     }
                 } catch (Exception e) {
                     logger.warn("Exception [{}] [{}]", e.getClass(), e.getMessage());

@@ -1,9 +1,11 @@
-package x3.player.mru;
+package x3.player.mru.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import x3.player.mru.AppInstance;
 import x3.player.mru.common.NetUtil;
 import x3.player.mru.config.AmfConfig;
+import x3.player.mru.rmqif.messages.HeartbeatReq;
 import x3.player.mru.rmqif.module.RmqClient;
 import x3.player.mru.rmqif.module.RmqServer;
 import x3.player.mru.session.SessionManager;
@@ -14,6 +16,7 @@ public class ServiceManager {
 
     private RmqServer rmqServer;
     private SessionManager sessionManager;
+    private HeartbeatManager heartbeatManager;
 
     private boolean isQuit = false;
 
@@ -80,6 +83,9 @@ public class ServiceManager {
         sessionManager = new SessionManager();
         sessionManager.start();
 
+        heartbeatManager = HeartbeatManager.getInstance();
+        heartbeatManager.start();
+
         return true;
     }
 
@@ -91,6 +97,7 @@ public class ServiceManager {
             rmqServer.stop();
         }
 
+        heartbeatManager.stop();
         sessionManager.stop();
 
         AmfConfig config = AppInstance.getInstance().getConfig();
