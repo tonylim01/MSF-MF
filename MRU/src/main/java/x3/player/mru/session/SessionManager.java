@@ -87,13 +87,18 @@ public class SessionManager {
     public SessionInfo createSession(String sessionId) {
 
         if (sessionId == null) {
-            logger.error("newSessionInfo() failed: Null sessionId");
+            logger.error("createSession() failed: Null sessionId");
             return null;
         }
 
         if (sessionInfos.containsKey(sessionId)) {
-            logger.warn("newSessionInfo() failed: Already sessionId [{}] found", sessionId);
+            logger.warn("createSession() failed: Already sessionId [{}] found", sessionId);
             return sessionInfos.get(sessionId);
+        }
+
+        if (sessionInfos.size() >= sessionSize) {
+            logger.warn("(createSession() failed: Session full");
+            return null;
         }
 
         SessionInfo sessionInfo = new SessionInfo();
@@ -145,10 +150,7 @@ public class SessionManager {
      * @return
      */
     public int getTotalCount() {
-        //
-        // TODO
-        //
-        return 100;
+        return sessionSize;
     }
 
     /**
@@ -156,10 +158,7 @@ public class SessionManager {
      * @return
      */
     public int getIdleCount() {
-        //
-        // TODO
-        //
-        return 100;
+        return sessionSize - sessionInfos.size();
     }
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("mm:dd-hhmmss");
