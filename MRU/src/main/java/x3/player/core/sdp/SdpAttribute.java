@@ -12,6 +12,7 @@ public class SdpAttribute {
     private String description;
 
     public SdpAttribute() {
+        this.payloadId = PAYLOADID_NONE;
     }
 
     public SdpAttribute(int payloadId, String description) {
@@ -53,4 +54,5 @@ public class SdpAttribute {
     public void setDescription(String description) {
         this.description = description;
     }
+
 }

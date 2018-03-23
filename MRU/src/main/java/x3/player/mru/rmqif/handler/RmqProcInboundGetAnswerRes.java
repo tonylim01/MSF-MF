@@ -1,5 +1,6 @@
 package x3.player.mru.rmqif.handler;
 
+import x3.player.core.sdp.SdpUtil;
 import x3.player.mru.AppInstance;
 import x3.player.mru.config.SdpConfig;
 import x3.player.mru.rmqif.handler.base.RmqOutgoingMessage;
@@ -14,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
 
@@ -83,36 +86,38 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
         SdpAttribute attr = selectSdp(sessionInfo);
         if (attr != null) {
             builder.addRtpAttribute(attr.getPayloadId(), attr.getDescription());
-        }
-        else {  // Outbound case
-//            for (String desc: config.getAttributes()) {
-//                builder.addGeneralAttribute(desc);
-//            }
-            builder.addRtpAttribute(8, "PCMA/8000");
-            builder.addRtpAttribute(0, "PCMU/8000");
-            builder.addRtpAttribute(101, "telephone-event/8000");
-            builder.addGeneralAttribute("ptime:20" );
-            builder.addGeneralAttribute("fmtp:101 0-16");
-            builder.addGeneralAttribute("sendrecv");
-            builder.addGeneralAttribute("direction:active");
-        }
 
-        SdpAttribute dtmfAttr = getTelephonyEvent(sessionInfo);
-        if (dtmfAttr != null) {
-            builder.addRtpAttribute(dtmfAttr.getPayloadId(), dtmfAttr.getDescription());
-        }
-
-        if (sessionInfo.getSdpInfo() != null) {
+            SdpAttribute dtmfAttr = getTelephonyEvent(sessionInfo);
+            if (dtmfAttr != null) {
+                builder.addRtpAttribute(dtmfAttr.getPayloadId(), dtmfAttr.getDescription());
+            }
 
             for (SdpAttribute sdpAttribute: sessionInfo.getSdpInfo().getAttributes()) {
-//                if (sdpAttribute.getPayloadId() == SdpAttribute.PAYLOADID_NONE) {
-//                    builder.addGeneralAttribute(sdpAttribute.getDescription() != null ? sdpAttribute.getDescription() : sdpAttribute.getName());
-//                }
+                if (sdpAttribute.getPayloadId() == SdpAttribute.PAYLOADID_NONE) {
+                    builder.addGeneralAttribute(SdpUtil.getAttributeString(sdpAttribute));
+                }
             }
         }
         else {  // Outbound case
+            for (String desc: config.getAttributes()) {
+                if (desc == null) {
+                    continue;
+                }
 
+                attr = SdpUtil.parseAttribute(desc);
+                if (attr == null) {
+                    continue;
+                }
+
+                if (attr.getPayloadId() != SdpAttribute.PAYLOADID_NONE) {
+                    builder.addRtpAttribute(attr.getPayloadId(), attr.getDescription());
+                }
+                else {
+                    builder.addGeneralAttribute(attr.getDescription());
+                }
+            }
         }
+
 
         return builder.build();
     }
