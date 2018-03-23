@@ -66,6 +66,7 @@
         <artifactId>maven-assembly-plugin</artifactId>
         <executions>
           <execution>
+            <id>build-App</id>
             <goals>
               <goal>attached</goal>
             </goals>
@@ -74,9 +75,28 @@
               <descriptorRefs>
                 <descriptorRef>jar-with-dependencies</descriptorRef>
               </descriptorRefs>
+              <finalName>mrud</finalName>
               <archive>
                 <manifest>
-                  <mainClass>com.uangel.acs.App</mainClass>
+                  <mainClass>x3.player.mru.App</mainClass>
+                </manifest>
+              </archive>
+            </configuration>
+          </execution>
+          <execution>
+            <id>build-Emulator</id>
+            <goals>
+              <goal>attached</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+              <finalName>mcud-emul</finalName>
+              <archive>
+                <manifest>
+                  <mainClass>x3.player.mru.Emulator</mainClass>
                 </manifest>
               </archive>
             </configuration>
@@ -97,7 +117,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.uangel.acs.App</mainClass>
+              <mainClass>x3.player.mru.App</mainClass>
             </manifest>
           </archive>
         </configuration>
