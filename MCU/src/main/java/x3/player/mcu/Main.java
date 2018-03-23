@@ -40,11 +40,7 @@ public class Main {
         String passwd=config.getProperty("rabbitmq.passwd");
         log.info("rabbitmq = "+mq_host+", "+user+":"+passwd);
         ConnectionFactory factory = new ConnectionFactory();
-//        factory.setHost("localhost");
-//        factory.setHost("192.168.56.101");
-//        factory.setUsername("hwaseob");
-//        factory.setPassword("1111111");
-        factory.setHost("localhost");//5672
+        factory.setHost(mq_host);
         if (user != null)
         {
             factory.setUsername(user);

@@ -36,13 +36,13 @@ public class MruSession {
         {
 //            e.printStackTrace();
         }
-        throw new IOException("df");
-//        return client.offer(dir,
-//                            conferenceID,
-//                            sessionID,
-//                            caller,
-//                            callee,
-//                            sdp);
+//        throw new IOException("df");
+        return client.offer(dir,
+                            conferenceID,
+                            sessionID,
+                            caller,
+                            callee,
+                            sdp);
     }
 
     public FutureResult answer() throws IOException {

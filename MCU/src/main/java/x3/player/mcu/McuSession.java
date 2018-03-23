@@ -179,20 +179,28 @@ public class McuSession {
 //                e1.printStackTrace();
             }
 
+//            /*ClientTransaction outbound = */invite(
+//                "ACS",//fromName
+//                "192.168.2.97",//fromSipAddress
+//                "ACService",//fromDisplayName
+//                "whaworld",//toUser
+//                "172.0.0.2",//toSipAddress
+//                "whaworld",//toDisplayName
+//                "172.0.0.2:5060",//peerHostPort
+//                "192.168.2.97",
+//                req.getRawContent()
+//        );
             /*ClientTransaction outbound = */invite(
-                    "ACS",//fromName
-//                     "192.168.56.1",//fromSipAddress
-                    "192.168.2.97",//fromSipAddress
-                    "ACService",//fromDisplayName
-                    "whaworld",//toUser
-                    "172.0.0.3",//toSipAddress
-                    "whaworld",//toDisplayName
-//                     "192.168.56.101:15060;transport=tcp",//peerHostPort
-//                     "192.168.56.101:5060",//peerHostPort
-                    "172.0.0.3:5060",//peerHostPort
-                    "192.168.2.97",
-                    req.getRawContent()
-            );
+                "ACS",//fromName
+                "10.10.10.186",//fromSipAddress
+                "ACService",//fromDisplayName
+                "whaworld",//toUser
+                "10.10.10.132",//toSipAddress
+                "whaworld",//toDisplayName
+                "10.10.10.132:5060",//peerHostPort
+                "10.10.10.186",
+                req.getRawContent()
+        );
 
         } catch (Exception ex)
         {
@@ -377,7 +385,7 @@ public class McuSession {
         try
         {
             tr.sendRequest();
-            log.info(Utils.toString(req));
+            log.info(Utils.toString(req)+"\n"+sdp);
 //            outBoundDialog = tr.getDialog();
 //            outBoundTr = tr;
 //            log.info("************** state = "+tr.getDialog().getState());
@@ -416,7 +424,7 @@ public class McuSession {
         {
             e.printStackTrace();
         }
-        */
+        //*/
 //                System.out.println("Sending ACK");
 
         //inbound<-- 300~699 <--MCU
@@ -492,13 +500,15 @@ public class McuSession {
         {
             Response ok = fact.getMessageFactory().createResponse(Response.OK, inviteRequest);
 //            Address address = addressFactory.createAddress("mrfc <sip:"+ "192.168.56.1" + ":" + udpListeningPoint.getPort() + ">");
-            Address address = fact.getAddressFactory().createAddress("mrfc <sip:" + "192.168.2.97" + ":" + fact.getSipProvider().getListeningPoint(transport).getPort() + ">");
+            Address address = fact.getAddressFactory().createAddress("mrfc <sip:" + "10.10.10.186" + ":" + fact.getSipProvider().getListeningPoint(transport).getPort() + ">");
             ContactHeader contactHeader = fact.getHeaderFactory().createContactHeader(address);
             ok.addHeader(contactHeader);
 
+            byte[] sdp=inbound_sdp == null ? outbound_sdp : inbound_sdp;
             ContentTypeHeader callerContentTypeHeader = fact.getHeaderFactory().createContentTypeHeader("application", "sdp");
-            ok.setContent(/*res.getRawContent()*/inbound_sdp == null ? outbound_sdp : inbound_sdp, callerContentTypeHeader);
+            ok.setContent(sdp/*res.getRawContent()*/, callerContentTypeHeader);
 //                    ok.addHeader(headerFactory.createContentTypeHeader("application", "sdp"));
+            log.info(Utils.toString(ok)+"\n"+new String(sdp));
             inbound/*inviteTid*/.sendResponse(ok);
 
             //inbound: MCU-->MRU negoDone
@@ -697,13 +707,13 @@ public class McuSession {
             e.printStackTrace();
         } catch (TimeoutException e)
         {
-            e.printStackTrace();
+//            e.printStackTrace();
         } catch (InterruptedException e)
         {
-            e.printStackTrace();
+//            e.printStackTrace();
         } catch (InvocationTargetException e)
         {
-            e.printStackTrace();
+//            e.printStackTrace();
         }
 
         try

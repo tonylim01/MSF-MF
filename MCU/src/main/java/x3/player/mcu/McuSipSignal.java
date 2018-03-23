@@ -364,7 +364,7 @@ a=fmtp:99 profile-level-id=3
 
     public void sessionCreated(McuSession s) {
 //        log.debug("sessionCreated");
-        log.info("sessionCreated inbound="+s.getInboundTr().getDialog().getCallId().getCallId()+"----outbound"+s.getOutboundTr().getDialog().getCallId().getCallId());
+        log.info("sessionCreated inbound callId="+s.getInboundTr().getDialog().getCallId().getCallId()+"----outbound callId="+s.getOutboundTr().getDialog().getCallId().getCallId());
 
         Jedis jedis = pool.getResource();
         try
