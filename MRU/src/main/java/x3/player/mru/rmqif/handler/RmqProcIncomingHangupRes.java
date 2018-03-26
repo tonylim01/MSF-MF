@@ -6,11 +6,11 @@ import x3.player.mru.rmqif.types.RmqMessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RmqProcHangupRes extends RmqOutgoingMessage {
+public class RmqProcIncomingHangupRes extends RmqOutgoingMessage {
 
-    private static final Logger logger = LoggerFactory.getLogger(RmqProcHangupRes.class);
+    private static final Logger logger = LoggerFactory.getLogger(RmqProcIncomingHangupRes.class);
 
-    public RmqProcHangupRes(String sessionId, String transactionId) {
+    public RmqProcIncomingHangupRes(String sessionId, String transactionId) {
         super(sessionId, transactionId);
         setType(RmqMessageType.RMQ_MSG_STR_HANGUP_RES);
     }

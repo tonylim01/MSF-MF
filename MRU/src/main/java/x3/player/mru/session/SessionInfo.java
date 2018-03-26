@@ -5,7 +5,11 @@ import x3.player.core.sdp.SdpInfo;
 public class SessionInfo {
 
     private String sessionId;
-    private long timestamp;
+    private long createdTime;
+
+    private SessionServiceState serviceState;
+    private long lastSentTime;
+
     private String conferenceId;
     private SdpInfo sdpInfo;
 
@@ -23,12 +27,33 @@ public class SessionInfo {
         this.sessionId = sessionId;
     }
 
-    public long getTimestamp() {
-        return timestamp;
+    public long getCreatedTime() {
+        return createdTime;
     }
 
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
+    public void setCreatedTime(long createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public SessionServiceState getServiceState() {
+        return serviceState;
+    }
+
+    public void setServiceState(SessionServiceState serviceState) {
+        this.serviceState = serviceState;
+        this.lastSentTime = 0;
+    }
+
+    public long getLastSentTime() {
+        return lastSentTime;
+    }
+
+    public void setLastSentTime(long lastSentTime) {
+        this.lastSentTime = lastSentTime;
+    }
+
+    public void setLastSentTime() {
+        this.lastSentTime = System.currentTimeMillis();
     }
 
     public String getConferenceId() {

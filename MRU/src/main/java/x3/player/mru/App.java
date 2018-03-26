@@ -10,7 +10,7 @@ public class App
 
     public static void main( String[] args )
     {
-        ServiceManager serviceManager = new ServiceManager();
+        ServiceManager serviceManager = ServiceManager.getInstance();
         serviceManager.loop();
     }
 }

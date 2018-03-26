@@ -4,11 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import x3.player.mru.rmqif.handler.base.RmqIncomingMessageHandler;
 import x3.player.mru.rmqif.types.RmqMessage;
+import x3.player.mru.service.ServiceManager;
 import x3.player.mru.session.SessionInfo;
-import x3.player.mru.session.SessionServiceState;
 
-public class RmqProcStartServiceRes extends RmqIncomingMessageHandler {
-    private static final Logger logger = LoggerFactory.getLogger(RmqProcStartServiceRes.class);
+public class RmqProcOutgoingHangupRes extends RmqIncomingMessageHandler {
+    private static final Logger logger = LoggerFactory.getLogger(RmqProcOutgoingHangupRes.class);
 
     @Override
     public boolean handle(RmqMessage msg) {
@@ -22,13 +22,9 @@ public class RmqProcStartServiceRes extends RmqIncomingMessageHandler {
             return false;
         }
 
-        sessionInfo.setServiceState(SessionServiceState.READY);
+        ServiceManager.getInstance().releaseResource(msg.getSessionId());
 
-        //
-        // TODO
-        //
-
-        return false;
+        return true;
     }
 
     @Override

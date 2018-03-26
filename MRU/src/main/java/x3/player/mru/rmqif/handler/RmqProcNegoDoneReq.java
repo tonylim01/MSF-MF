@@ -11,6 +11,7 @@ import x3.player.mru.room.RoomInfo;
 import x3.player.mru.room.RoomManager;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionManager;
+import x3.player.mru.session.SessionServiceState;
 import x3.player.mru.simulator.UdpRelayManager;
 import x3.player.mru.rmqif.module.RmqData;
 import x3.player.core.sdp.SdpInfo;
@@ -28,13 +29,13 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
             return false;
         }
 
-        if (msg.getSessionId() == null) {
-            logger.error("[{}] No sessionId found");
-            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom(),
-                    RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_WRONG_PARAM,
-                    "NO SESSION ID");
-            return  false;
+        SessionInfo sessionInfo = validateSessionId(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom());
+        if (sessionInfo == null) {
+            logger.error("[{}] Session not found", msg.getSessionId());
+            return false;
         }
+
+        sessionInfo.setServiceState(SessionServiceState.PREPARE);
 
         RmqData<NegoDoneReq> data = new RmqData<>(NegoDoneReq.class);
         NegoDoneReq req = data.parse(msg);
@@ -51,15 +52,6 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
 
         if (req.getSdp() != null) {
             SdpInfo sdpInfo = SdpParser.parseSdp(req.getSdp());
-
-            SessionInfo sessionInfo = SessionManager.getInstance().getSession(msg.getSessionId());
-            if (sessionInfo == null) {
-                sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom(),
-                        RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_FAILURE,
-                        "NO SESSION");
-                return false;
-            }
-
             sessionInfo.setSdpInfo(sdpInfo);
         }
 
@@ -145,14 +137,8 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
             return false;
         }
 
-        AmfConfig config = AppInstance.getInstance().getConfig();
-        if (config == null) {
-            logger.error("[{}] Null config", sessionId);
-            return false;
-        }
-
         RmqProcStartServiceReq req = new RmqProcStartServiceReq(sessionId, null);
-        return req.send(config.getRmqAcswf());
+        return req.sendToAcswf();
     }
 }
 

@@ -5,20 +5,19 @@ import org.slf4j.LoggerFactory;
 import x3.player.mru.AppInstance;
 import x3.player.mru.config.AmfConfig;
 import x3.player.mru.rmqif.handler.base.RmqOutgoingMessage;
-import x3.player.mru.rmqif.messages.ServiceStartReq;
 import x3.player.mru.rmqif.types.RmqMessageType;
 import x3.player.mru.session.SessionInfo;
 
-public class RmqProcStartServiceReq extends RmqOutgoingMessage {
-    private static final Logger logger = LoggerFactory.getLogger(RmqProcStartServiceReq.class);
+public class RmqProcOutgoingHangupReq extends RmqOutgoingMessage {
+    private static final Logger logger = LoggerFactory.getLogger(RmqProcOutgoingHangupReq.class);
 
-    public RmqProcStartServiceReq(String sessionId, String transactionId) {
+    public RmqProcOutgoingHangupReq(String sessionId, String transactionId) {
         super(sessionId, transactionId);
-        setType(RmqMessageType.RMQ_MSG_STR_SERVICE_START_REQ);
+        setType(RmqMessageType.RMQ_MSG_STR_HANGUP_REQ);
     }
 
     /**
-     * Sends a ServiceStartReq to the given queue
+     * Sends a HangupReq to the given queue
      * @param queueName
      * @return
      */
@@ -29,31 +28,19 @@ public class RmqProcStartServiceReq extends RmqOutgoingMessage {
             return sendTo(queueName);
         }
 
-        ServiceStartReq req = new ServiceStartReq();
-        req.setFromNo(sessionInfo.getFromNo());
-        req.setToNo(sessionInfo.getToNo());
-
-        setBody(req, ServiceStartReq.class);
-
-        boolean result = sendTo(queueName);
-        if (result) {
-            sessionInfo.setLastSentTime();
-        }
-
-        return result;
+        return sendTo(queueName);
     }
 
     /**
-     * Sends a message to ACSWF
+     * Sends a message to MCUD
      * @return
      */
-    public boolean sendToAcswf() {
+    public boolean sendToMcud() {
         AmfConfig config = AppInstance.getInstance().getConfig();
         if (config == null) {
             logger.error("[{}] Null config", getSessionId());
             return false;
         }
-
-       return send(config.getRmqAcswf());
+        return sendTo(config.getMcudName());
     }
 }

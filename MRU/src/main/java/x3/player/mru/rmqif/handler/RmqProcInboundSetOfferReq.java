@@ -12,6 +12,7 @@ import x3.player.core.sdp.SdpInfo;
 import x3.player.core.sdp.SdpParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import x3.player.mru.session.SessionServiceState;
 
 public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
 
@@ -76,6 +77,8 @@ public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
                     "SESSION ERROR");
             return false;
         }
+
+        sessionInfo.setServiceState(SessionServiceState.OFFER);
 
         sessionInfo.setSdpInfo(sdpInfo);
         sessionInfo.setConferenceId(req.getConferenceId());

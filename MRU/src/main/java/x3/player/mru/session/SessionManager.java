@@ -4,6 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import x3.player.mru.AppInstance;
 import x3.player.mru.config.AmfConfig;
+import x3.player.mru.rmqif.handler.RmqProcOutgoingHangupReq;
+import x3.player.mru.rmqif.handler.RmqProcStartServiceReq;
+import x3.player.mru.rmqif.types.RmqMessageType;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -20,6 +23,12 @@ public class SessionManager {
 
     private static final int DEFAULT_SESSION_MAX_SIZE = 2000;
     private static final int DEFAULT_SESSION_TIMEOUT = 3600;
+
+    // T2 : Timer 2 - Retransmission interval
+    // T4 : Timer 4 - Maximum interval
+
+    private static final int TIMER_PREPARE_T2 = 500;
+    private static final int TIMER_PREPARE_T4 = 2000;
 
     private static SessionManager sessionManager = null;
 
@@ -104,7 +113,8 @@ public class SessionManager {
         SessionInfo sessionInfo = new SessionInfo();
 
         sessionInfo.setSessionId(sessionId);
-        sessionInfo.setTimestamp(System.currentTimeMillis());
+        sessionInfo.setCreatedTime(System.currentTimeMillis());
+        sessionInfo.setServiceState(SessionServiceState.IDLE);
         //
         // TODO
         //
@@ -193,7 +203,7 @@ public class SessionManager {
                 }
 
                 logger.debug("Session [{}] time [{}]", sessionInfo.getSessionId(),
-                        dateFormat.format(new Date(sessionInfo.getTimestamp())));
+                        dateFormat.format(new Date(sessionInfo.getCreatedTime())));
             }
         }
     }
@@ -213,10 +223,17 @@ public class SessionManager {
                     continue;
                 }
 
-                if (current - sessionInfo.getTimestamp() >= sessionTimeout) {
+                if (current - sessionInfo.getCreatedTime() >= sessionTimeout) {
                     //
                     // TODO: Session timeout expired
                     //
+                }
+
+                if (sessionInfo.getLastSentTime() > 0) {
+                    long interval = current - sessionInfo.getLastSentTime();
+                    if (sessionInfo.getServiceState() == SessionServiceState.PREPARE) {
+                        checkSessionStatePrepare(sessionInfo, interval);
+                    }
                 }
             }
         }
@@ -239,5 +256,37 @@ public class SessionManager {
                 manager.checkSessionValidity();
             }
         }
+    }
+
+    private boolean checkSessionStatePrepare(SessionInfo sessionInfo, long interval) {
+        if (sessionInfo == null) {
+            logger.error("Null sessionInfo");
+            return false;
+        }
+
+        if (interval < TIMER_PREPARE_T2) {
+            // Nothing to do
+        }
+        else if (interval >= TIMER_PREPARE_T2 && interval < TIMER_PREPARE_T4) {
+            // Retransmits StartServiceReq
+            logger.warn("[{}] Retransmit {} interval [{}", sessionInfo.getSessionId(),
+                    RmqMessageType.getMessageTypeStr(RmqMessageType.RMQ_MSG_TYPE_SERVICE_START_REQ),
+                    interval);
+
+            RmqProcStartServiceReq startServiceReq = new RmqProcStartServiceReq(sessionInfo.getSessionId(), null);
+            startServiceReq.sendToAcswf();
+        }
+        else if (interval >= TIMER_PREPARE_T4) {
+            // Stop retransmitting
+            logger.warn("[{}] {} failed. Timer expired [{}]", sessionInfo.getSessionId(),
+                    RmqMessageType.getMessageTypeStr(RmqMessageType.RMQ_MSG_TYPE_SERVICE_START_REQ),
+                    interval);
+
+            // Quit session
+            RmqProcOutgoingHangupReq hangupReq = new RmqProcOutgoingHangupReq(sessionInfo.getSessionId(), null);
+            hangupReq.sendToMcud();
+        }
+
+        return true;
     }
 }

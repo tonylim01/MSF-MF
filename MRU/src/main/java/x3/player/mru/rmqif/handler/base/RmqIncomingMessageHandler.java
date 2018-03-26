@@ -1,8 +1,14 @@
 package x3.player.mru.rmqif.handler.base;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import x3.player.mru.rmqif.types.RmqMessageType;
+import x3.player.mru.session.SessionInfo;
+import x3.player.mru.session.SessionManager;
 
 public abstract class RmqIncomingMessageHandler implements RmqIncomingMessageInterface {
+
+    private static final Logger logger = LoggerFactory.getLogger(RmqIncomingMessageHandler.class);
 
     /**
      * Calls a sendResponse() with the default queueName
@@ -34,5 +40,34 @@ public abstract class RmqIncomingMessageHandler implements RmqIncomingMessageInt
     @Override
     public void sendResponse(String sessionId, String transactionId, int reasonCode, String reasonStr) {
         sendResponse(sessionId, transactionId, null, reasonCode, reasonStr);
+    }
+
+    /**
+     * Checks whether sessionId is valid or not.
+     * If invalid, sends an response back after setting the proper reason
+     * @param sessionId
+     * @param transactionId
+     * @param msgFrom
+     * @return
+     */
+    protected SessionInfo validateSessionId(String sessionId, String transactionId, String msgFrom) {
+        if (sessionId == null) {
+            logger.error("[{}] No sessionId found");
+            sendResponse(sessionId, transactionId, msgFrom,
+                    RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_WRONG_PARAM,
+                    "NO SESSION ID");
+            return null;
+        }
+
+        SessionInfo sessionInfo = SessionManager.findSession(sessionId);
+        if (sessionInfo == null) {
+            logger.error("[{}] No sessionInfo found", sessionId);
+            sendResponse(sessionId, transactionId, msgFrom,
+                    RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_FAILURE,
+                    "NO SESSION");
+            return null;
+        }
+
+        return sessionInfo;
     }
 }
