@@ -35,12 +35,7 @@ public class RmqProcStartServiceReq extends RmqOutgoingMessage {
 
         setBody(req, ServiceStartReq.class);
 
-        boolean result = sendTo(queueName);
-        if (result) {
-            sessionInfo.setLastSentTime();
-        }
-
-        return result;
+        return sendTo(queueName);
     }
 
     /**
@@ -56,4 +51,5 @@ public class RmqProcStartServiceReq extends RmqOutgoingMessage {
 
        return send(config.getRmqAcswf());
     }
+
 }

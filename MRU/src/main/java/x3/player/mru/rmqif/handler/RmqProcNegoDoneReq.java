@@ -1,8 +1,6 @@
 package x3.player.mru.rmqif.handler;
 
 import x3.player.core.sdp.SdpParser;
-import x3.player.mru.AppInstance;
-import x3.player.mru.config.AmfConfig;
 import x3.player.mru.rmqif.handler.base.RmqIncomingMessageHandler;
 import x3.player.mru.rmqif.messages.NegoDoneReq;
 import x3.player.mru.rmqif.types.RmqMessage;
@@ -56,7 +54,9 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
         }
 
         openLocalResource(msg.getSessionId());
-        sendStartServiceReq(msg.getSessionId());
+        if (sendStartServiceReq(msg.getSessionId())) {
+
+        }
 
         sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom());
 
@@ -138,7 +138,13 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
         }
 
         RmqProcStartServiceReq req = new RmqProcStartServiceReq(sessionId, null);
-        return req.sendToAcswf();
+        if (req.sendToAcswf()) {
+            sessionInfo.setLastSentTime();
+            sessionInfo.updateT2Time(SessionManager.TIMER_PREPARE_T2);
+            sessionInfo.updateT4Time(SessionManager.TIMER_PREPARE_T4);
+            return true;
+        }
+        return false;
     }
 }
 

@@ -6,7 +6,9 @@ import x3.player.mru.AppInstance;
 import x3.player.mru.config.AmfConfig;
 import x3.player.mru.rmqif.handler.RmqProcOutgoingHangupReq;
 import x3.player.mru.rmqif.handler.RmqProcStartServiceReq;
+import x3.player.mru.rmqif.types.RmqMessage;
 import x3.player.mru.rmqif.types.RmqMessageType;
+import x3.player.mru.service.ServiceManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -27,8 +29,13 @@ public class SessionManager {
     // T2 : Timer 2 - Retransmission interval
     // T4 : Timer 4 - Maximum interval
 
-    private static final int TIMER_PREPARE_T2 = 500;
-    private static final int TIMER_PREPARE_T4 = 2000;
+    private static final int DEFAULT_T2 = 500;
+    private static final int DEFAULT_T4 = 2000;
+
+    public static final int TIMER_PREPARE_T2 = DEFAULT_T2;
+    public static final int TIMER_PREPARE_T4 = DEFAULT_T4;
+    public static final int TIMER_HANGUP_T2 = DEFAULT_T2;
+    public static final int TIMER_HANGUP_T4 = DEFAULT_T4;
 
     private static SessionManager sessionManager = null;
 
@@ -230,9 +237,13 @@ public class SessionManager {
                 }
 
                 if (sessionInfo.getLastSentTime() > 0) {
-                    long interval = current - sessionInfo.getLastSentTime();
                     if (sessionInfo.getServiceState() == SessionServiceState.PREPARE) {
-                        checkSessionStatePrepare(sessionInfo, interval);
+                        checkSessionStatePrepare(sessionInfo,
+                                sessionInfo.getLastSentTime(), sessionInfo.getT2Time(), sessionInfo.getT4Time());
+                    }
+                    else if (sessionInfo.getServiceState() == SessionServiceState.RELEASE) {
+                        checkSessionStateRelease(sessionInfo,
+                                sessionInfo.getLastSentTime(), sessionInfo.getT2Time(), sessionInfo.getT4Time());
                     }
                 }
             }
@@ -258,33 +269,74 @@ public class SessionManager {
         }
     }
 
-    private boolean checkSessionStatePrepare(SessionInfo sessionInfo, long interval) {
+    /**
+     * Checks if the session state = PREPARE
+     * @param sessionInfo
+     * @param lastSentTime
+     * @param t2Time
+     * @param t4Time
+     * @return
+     */
+    private boolean checkSessionStatePrepare(SessionInfo sessionInfo, long lastSentTime, long t2Time, long t4Time) {
         if (sessionInfo == null) {
             logger.error("Null sessionInfo");
             return false;
         }
 
-        if (interval < TIMER_PREPARE_T2) {
+        if (lastSentTime < t2Time) {
             // Nothing to do
         }
-        else if (interval >= TIMER_PREPARE_T2 && interval < TIMER_PREPARE_T4) {
+        else if (lastSentTime >= t2Time && lastSentTime < t4Time) {
             // Retransmits StartServiceReq
-            logger.warn("[{}] Retransmit {} interval [{}", sessionInfo.getSessionId(),
-                    RmqMessageType.getMessageTypeStr(RmqMessageType.RMQ_MSG_TYPE_SERVICE_START_REQ),
-                    interval);
+            logger.warn("[{}] Retransmit {}", sessionInfo.getSessionId(),
+                    RmqMessageType.getMessageTypeStr(RmqMessageType.RMQ_MSG_TYPE_SERVICE_START_REQ));
 
             RmqProcStartServiceReq startServiceReq = new RmqProcStartServiceReq(sessionInfo.getSessionId(), null);
-            startServiceReq.sendToAcswf();
+            if (startServiceReq.sendToAcswf()) {
+                sessionInfo.setLastSentTime();
+                sessionInfo.updateT2Time(TIMER_PREPARE_T2);
+            }
         }
-        else if (interval >= TIMER_PREPARE_T4) {
+        else if (lastSentTime >= t4Time) {
             // Stop retransmitting
-            logger.warn("[{}] {} failed. Timer expired [{}]", sessionInfo.getSessionId(),
-                    RmqMessageType.getMessageTypeStr(RmqMessageType.RMQ_MSG_TYPE_SERVICE_START_REQ),
-                    interval);
+            logger.warn("[{}] {} failed. Timer expired", sessionInfo.getSessionId(),
+                    RmqMessageType.getMessageTypeStr(RmqMessageType.RMQ_MSG_TYPE_SERVICE_START_REQ));
 
             // Quit session
             RmqProcOutgoingHangupReq hangupReq = new RmqProcOutgoingHangupReq(sessionInfo.getSessionId(), null);
             hangupReq.sendToMcud();
+        }
+
+        return true;
+    }
+
+    /**
+     * Checks if the session state = RELEASE
+     * @param sessionInfo
+     * @param lastSentTime
+     * @param t2Time
+     * @param t4Time
+     * @return
+     */
+    private boolean checkSessionStateRelease(SessionInfo sessionInfo, long lastSentTime, long t2Time, long t4Time) {
+        if (sessionInfo == null) {
+            logger.error("Null sessionInfo");
+            return false;
+        }
+
+        if (lastSentTime < t2Time) {
+            // Nothing to do
+        }
+        else if (lastSentTime >= t2Time && lastSentTime < t4Time) {
+            // Retransmits HangupReq
+            logger.warn("[{}] Retransmit {}", sessionInfo.getSessionId(),
+                    RmqMessageType.getMessageTypeStr(RmqMessageType.RMQ_MSG_TYPE_HANGUP_REQ));
+
+            RmqProcOutgoingHangupReq hangupReq = new RmqProcOutgoingHangupReq(sessionInfo.getSessionId(), null);
+            hangupReq.sendToMcud();
+        }
+        else if (lastSentTime >= t4Time) {
+            ServiceManager.getInstance().releaseResource(sessionInfo.getSessionId());
         }
 
         return true;

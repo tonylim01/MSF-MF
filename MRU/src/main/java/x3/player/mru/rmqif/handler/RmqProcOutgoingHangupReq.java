@@ -7,6 +7,8 @@ import x3.player.mru.config.AmfConfig;
 import x3.player.mru.rmqif.handler.base.RmqOutgoingMessage;
 import x3.player.mru.rmqif.types.RmqMessageType;
 import x3.player.mru.session.SessionInfo;
+import x3.player.mru.session.SessionManager;
+import x3.player.mru.session.SessionServiceState;
 
 public class RmqProcOutgoingHangupReq extends RmqOutgoingMessage {
     private static final Logger logger = LoggerFactory.getLogger(RmqProcOutgoingHangupReq.class);
@@ -28,7 +30,17 @@ public class RmqProcOutgoingHangupReq extends RmqOutgoingMessage {
             return sendTo(queueName);
         }
 
-        return sendTo(queueName);
+        boolean result = sendTo(queueName);
+        if (result) {
+            if (sessionInfo.getServiceState() != SessionServiceState.RELEASE) {
+                sessionInfo.setServiceState(SessionServiceState.RELEASE);
+                sessionInfo.updateT4Time(SessionManager.TIMER_HANGUP_T4);
+            }
+            sessionInfo.setLastSentTime();
+            sessionInfo.updateT2Time(SessionManager.TIMER_HANGUP_T2);
+        }
+
+        return result;
     }
 
     /**
@@ -41,6 +53,7 @@ public class RmqProcOutgoingHangupReq extends RmqOutgoingMessage {
             logger.error("[{}] Null config", getSessionId());
             return false;
         }
+
         return sendTo(config.getMcudName());
     }
 }

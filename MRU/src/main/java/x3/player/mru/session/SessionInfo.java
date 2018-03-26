@@ -9,6 +9,8 @@ public class SessionInfo {
 
     private SessionServiceState serviceState;
     private long lastSentTime;
+    private long t2Time;
+    private long t4Time;
 
     private String conferenceId;
     private SdpInfo sdpInfo;
@@ -40,20 +42,62 @@ public class SessionInfo {
     }
 
     public void setServiceState(SessionServiceState serviceState) {
-        this.serviceState = serviceState;
-        this.lastSentTime = 0;
+        synchronized (this) {
+            this.serviceState = serviceState;
+            this.lastSentTime = 0;
+            this.t2Time = 0;
+            this.t4Time = 0;
+        }
     }
 
     public long getLastSentTime() {
-        return lastSentTime;
+        synchronized (this) {
+            return lastSentTime;
+        }
     }
 
     public void setLastSentTime(long lastSentTime) {
-        this.lastSentTime = lastSentTime;
+        synchronized (this) {
+            this.lastSentTime = lastSentTime;
+        }
     }
 
     public void setLastSentTime() {
-        this.lastSentTime = System.currentTimeMillis();
+        setLastSentTime(System.currentTimeMillis());
+    }
+
+    public long getT2Time() {
+        synchronized (this) {
+            return t2Time;
+        }
+    }
+
+    public void setT2Time(long t2Time) {
+        synchronized (this) {
+            this.t2Time = t2Time;
+        }
+    }
+
+    public long getT4Time() {
+        synchronized (this) {
+            return t4Time;
+        }
+    }
+
+    public void setT4Time(long t4Time) {
+        this.t4Time = t4Time;
+    }
+
+    public void updateT2Time(long t2interval) {
+        synchronized (this) {
+            this.t2Time = System.currentTimeMillis() + t2interval;
+        }
+    }
+
+    public void updateT4Time(long t4interval) {
+        synchronized (this) {
+            this.t4Time = System.currentTimeMillis() + t4interval;
+        }
     }
 
     public String getConferenceId() {

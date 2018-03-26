@@ -172,4 +172,5 @@ public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
         }
         return sessionInfo;
     }
+
 }
