@@ -5,8 +5,7 @@ import org.slf4j.LoggerFactory;
 import x3.player.mru.AppInstance;
 import x3.player.mru.config.AmfConfig;
 import x3.player.mru.rmqif.handler.RmqProcOutgoingHangupReq;
-import x3.player.mru.rmqif.handler.RmqProcStartServiceReq;
-import x3.player.mru.rmqif.types.RmqMessage;
+import x3.player.mru.rmqif.handler.RmqProcServiceStartReq;
 import x3.player.mru.rmqif.types.RmqMessageType;
 import x3.player.mru.service.ServiceManager;
 
@@ -291,7 +290,7 @@ public class SessionManager {
             logger.warn("[{}] Retransmit {}", sessionInfo.getSessionId(),
                     RmqMessageType.getMessageTypeStr(RmqMessageType.RMQ_MSG_TYPE_SERVICE_START_REQ));
 
-            RmqProcStartServiceReq startServiceReq = new RmqProcStartServiceReq(sessionInfo.getSessionId(), null);
+            RmqProcServiceStartReq startServiceReq = new RmqProcServiceStartReq(sessionInfo.getSessionId(), null);
             if (startServiceReq.sendToAcswf()) {
                 sessionInfo.setLastSentTime();
                 sessionInfo.updateT2Time(TIMER_PREPARE_T2);

@@ -54,9 +54,7 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
         }
 
         openLocalResource(msg.getSessionId());
-        if (sendStartServiceReq(msg.getSessionId())) {
-
-        }
+        sendStartServiceReq(msg.getSessionId());
 
         sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom());
 
@@ -137,7 +135,7 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
             return false;
         }
 
-        RmqProcStartServiceReq req = new RmqProcStartServiceReq(sessionId, null);
+        RmqProcServiceStartReq req = new RmqProcServiceStartReq(sessionId, null);
         if (req.sendToAcswf()) {
             sessionInfo.setLastSentTime();
             sessionInfo.updateT2Time(SessionManager.TIMER_PREPARE_T2);

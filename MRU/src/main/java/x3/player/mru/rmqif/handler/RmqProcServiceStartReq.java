@@ -9,10 +9,10 @@ import x3.player.mru.rmqif.messages.ServiceStartReq;
 import x3.player.mru.rmqif.types.RmqMessageType;
 import x3.player.mru.session.SessionInfo;
 
-public class RmqProcStartServiceReq extends RmqOutgoingMessage {
-    private static final Logger logger = LoggerFactory.getLogger(RmqProcStartServiceReq.class);
+public class RmqProcServiceStartReq extends RmqOutgoingMessage {
+    private static final Logger logger = LoggerFactory.getLogger(RmqProcServiceStartReq.class);
 
-    public RmqProcStartServiceReq(String sessionId, String transactionId) {
+    public RmqProcServiceStartReq(String sessionId, String transactionId) {
         super(sessionId, transactionId);
         setType(RmqMessageType.RMQ_MSG_STR_SERVICE_START_REQ);
     }

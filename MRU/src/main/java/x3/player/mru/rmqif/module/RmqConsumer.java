@@ -103,6 +103,8 @@ public class RmqConsumer implements Runnable {
             case RmqMessageType.RMQ_MSG_TYPE_NEGO_DONE_RES:
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_COMMAND_REQ:
+                RmqProcCommandStartReq commandStartReq = new RmqProcCommandStartReq();
+                commandStartReq.handle(msg);
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_COMMAND_RES:
                 break;
@@ -149,7 +151,7 @@ public class RmqConsumer implements Runnable {
             case RmqMessageType.RMQ_MSG_TYPE_SERVICE_START_REQ:
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_SERVICE_START_RES:
-                RmqProcStartServiceRes startServiceRes = new RmqProcStartServiceRes();
+                RmqProcServiceStartRes startServiceRes = new RmqProcServiceStartRes();
                 startServiceRes.handle(msg);
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_COMMAND_STOP_REQ:

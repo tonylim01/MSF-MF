@@ -7,8 +7,8 @@ import x3.player.mru.rmqif.types.RmqMessage;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionServiceState;
 
-public class RmqProcStartServiceRes extends RmqIncomingMessageHandler {
-    private static final Logger logger = LoggerFactory.getLogger(RmqProcStartServiceRes.class);
+public class RmqProcServiceStartRes extends RmqIncomingMessageHandler {
+    private static final Logger logger = LoggerFactory.getLogger(RmqProcServiceStartRes.class);
 
     @Override
     public boolean handle(RmqMessage msg) {
