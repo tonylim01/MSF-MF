@@ -8,11 +8,11 @@ public class ServiceStartReq {
     @SerializedName("to_no")
     private String toNo;
 
-    public String getFromNo() {
-        return fromNo;
+    public void setFromNo(String fromNo) {
+        this.fromNo = fromNo;
     }
 
-    public String getToNo() {
-        return toNo;
+    public void setToNo(String toNo) {
+        this.toNo = toNo;
     }
 }

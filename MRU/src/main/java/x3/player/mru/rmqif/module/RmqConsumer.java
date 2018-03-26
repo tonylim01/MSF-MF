@@ -1,9 +1,6 @@
 package x3.player.mru.rmqif.module;
 
-import x3.player.mru.rmqif.handler.RmqProcHangupReq;
-import x3.player.mru.rmqif.handler.RmqProcInboundGetAnswerReq;
-import x3.player.mru.rmqif.handler.RmqProcInboundSetOfferReq;
-import x3.player.mru.rmqif.handler.RmqProcNegoDoneReq;
+import x3.player.mru.rmqif.handler.*;
 import x3.player.mru.rmqif.types.RmqMessage;
 import x3.player.mru.rmqif.types.RmqMessageType;
 import org.slf4j.Logger;
@@ -146,6 +143,24 @@ public class RmqConsumer implements Runnable {
             case RmqMessageType.RMQ_MSG_TYPE_PLAY_ASR_RES:
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_PLAY_ASR_ACK:
+                break;
+            case RmqMessageType.RMQ_MSG_TYPE_SERVICE_START_REQ:
+                break;
+            case RmqMessageType.RMQ_MSG_TYPE_SERVICE_START_RES:
+                RmqProcStartServiceRes startServiceRes = new RmqProcStartServiceRes();
+                startServiceRes.handle(msg);
+                break;
+            case RmqMessageType.RMQ_MSG_TYPE_COMMAND_STOP_REQ:
+                break;
+            case RmqMessageType.RMQ_MSG_TYPE_COMMAND_STOP_RES:
+                break;
+            case RmqMessageType.RMQ_MSG_TYPE_COMMAND_DONE_REQ:
+                break;
+            case RmqMessageType.RMQ_MSG_TYPE_COMMAND_DONE_RES:
+                break;
+            case RmqMessageType.RMQ_MSG_TYPE_COMMAND_END_REQ:
+                break;
+            case RmqMessageType.RMQ_MSG_TYPE_COMMAND_END_RES:
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_CREATE_CONFERENCE_REQ:
                 break;

@@ -17,6 +17,7 @@ public class AmfConfig extends DefaultConfig {
     private String rmqHost;
     private String rmqLocal;
     private String rmqMcud;
+    private String rmqAcswf;
     private String rmqUser, rmqPass;
 
     private int sessionMaxSize;
@@ -58,6 +59,7 @@ public class AmfConfig extends DefaultConfig {
             rmqHost = getStrValue("RMQ_HOST", "localhost");
             rmqLocal = getStrValue("RMQ_LOCAL", "localhost");
             rmqMcud = getStrValue("RMQ_MCUD", null);
+            rmqAcswf = getStrValue("RMQ_ACSWF", null);
             rmqUser = getStrValue("RMQ_USER", null);
             rmqPass = getStrValue("RMQ_PASS", null);
 
@@ -115,6 +117,10 @@ public class AmfConfig extends DefaultConfig {
 
     public String getMcudName() {
         return rmqMcud;
+    }
+
+    public String getRmqAcswf() {
+        return rmqAcswf;
     }
 
     public String getRmqUser() {

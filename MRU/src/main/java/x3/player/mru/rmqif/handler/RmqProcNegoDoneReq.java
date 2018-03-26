@@ -1,6 +1,8 @@
 package x3.player.mru.rmqif.handler;
 
 import x3.player.core.sdp.SdpParser;
+import x3.player.mru.AppInstance;
+import x3.player.mru.config.AmfConfig;
 import x3.player.mru.rmqif.handler.base.RmqIncomingMessageHandler;
 import x3.player.mru.rmqif.messages.NegoDoneReq;
 import x3.player.mru.rmqif.types.RmqMessage;
@@ -62,6 +64,7 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
         }
 
         openLocalResource(msg.getSessionId());
+        sendStartServiceReq(msg.getSessionId());
 
         sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom());
 
@@ -81,16 +84,16 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
         }
     }
 
+    /**
+     * Opens local udp server to receive rtp packets
+     * @param sessionId
+     * @return
+     */
     private boolean openLocalResource(String sessionId) {
-        if (sessionId == null) {
-            return false;
-        }
+        SessionInfo sessionInfo = SessionManager.findSession(sessionId);
 
-        SessionManager sessionManager = SessionManager.getInstance();
-
-        SessionInfo sessionInfo = sessionManager.getSession(sessionId);
         if (sessionInfo == null) {
-            logger.error("[{}] No sessionInfo found", sessionId);
+            logger.warn("[{}] No session found", sessionId);
             return false;
         }
 
@@ -111,7 +114,7 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
         if (otherSessionId != null) {
             logger.info("[{}] Connected to session [{}]", sessionId, otherSessionId);
 
-            SessionInfo otherSessionInfo = sessionManager.getSession(otherSessionId);
+            SessionInfo otherSessionInfo = SessionManager.findSession(otherSessionId);
             if (otherSessionInfo == null) {
                 logger.warn("[{}] No sessionInfo found", otherSessionId);
                 return false;
@@ -123,15 +126,33 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
             logger.debug("[{}] Make connection: local [{}] to [{}:{}]", sessionId,
                     sessionInfo.getLocalPort(), otherRemoteSdpInfo.getRemoteIp(), otherRemoteSdpInfo.getRemotePort());
 
-//            SdpInfo remoteSdpInfo = sessionInfo.getSdpInfo();
-//            udpRelayManager.openClient(otherSessionId, remoteSdpInfo.getRemoteIp(), remoteSdpInfo.getRemotePort());
-//
-//            logger.debug("[{}] Make connection: local [{}] to [{}:{}]", otherSessionId,
-//                    otherSessionInfo.getLocalPort(), remoteSdpInfo.getRemoteIp(), remoteSdpInfo.getRemotePort());
         }
         // End of Demo service
 
         return true;
+    }
+
+    /**
+     * Sends ServiceStartReq to ACSWF
+     * @param sessionId
+     * @return
+     */
+    private boolean sendStartServiceReq(String sessionId) {
+        SessionInfo sessionInfo = SessionManager.findSession(sessionId);
+
+        if (sessionInfo == null) {
+            logger.warn("[{}] No session found", sessionId);
+            return false;
+        }
+
+        AmfConfig config = AppInstance.getInstance().getConfig();
+        if (config == null) {
+            logger.error("[{}] Null config", sessionId);
+            return false;
+        }
+
+        RmqProcStartServiceReq req = new RmqProcStartServiceReq(sessionId, null);
+        return req.send(config.getRmqAcswf());
     }
 }
 

@@ -146,6 +146,25 @@ public class SessionManager {
     }
 
     /**
+     * Static function of the above getSession()
+     * @param sessionId
+     * @return
+     */
+    public static SessionInfo findSession(String sessionId) {
+        if (sessionId == null) {
+            return null;
+        }
+
+        SessionInfo sessionInfo = SessionManager.getInstance().getSession(sessionId);
+        if (sessionInfo == null) {
+            logger.error("[{}] No sessionInfo found", sessionId);
+            return null;
+        }
+
+        return sessionInfo;
+    }
+
+    /**
      * Returns total number of sessions
      * @return
      */

@@ -12,6 +12,9 @@ public class SessionInfo {
     private String localIpAddress;
     private int localPort;
 
+    private String fromNo;
+    private String toNo;
+
     public String getSessionId() {
         return sessionId;
     }
@@ -58,5 +61,21 @@ public class SessionInfo {
 
     public void setLocalPort(int localPort) {
         this.localPort = localPort;
+    }
+
+    public String getFromNo() {
+        return fromNo;
+    }
+
+    public void setFromNo(String fromNo) {
+        this.fromNo = fromNo;
+    }
+
+    public String getToNo() {
+        return toNo;
+    }
+
+    public void setToNo(String toNo) {
+        this.toNo = toNo;
     }
 }

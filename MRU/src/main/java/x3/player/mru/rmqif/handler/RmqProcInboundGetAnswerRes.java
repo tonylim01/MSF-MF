@@ -33,14 +33,8 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
      */
     public boolean send(String queueName) {
 
-        SessionInfo sessionInfo = SessionManager.getInstance().getSession(getSessionId());
+        SessionInfo sessionInfo = checkAndGetSession(getSessionId());
         if (sessionInfo == null) {
-            logger.error("[{}] No session found", getSessionId());
-            SessionManager.getInstance().printSessionList();
-
-            if (getHeader().getReasonCode() == RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_SUCCESS) {
-                setReason(RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_WRONG_PARAM, "NO SESSION FOUND");
-            }
             return sendTo(queueName);
         }
 
