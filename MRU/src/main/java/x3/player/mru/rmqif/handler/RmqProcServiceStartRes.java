@@ -2,37 +2,19 @@ package x3.player.mru.rmqif.handler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import x3.player.mru.rmqif.handler.base.RmqIncomingMessageHandler;
-import x3.player.mru.rmqif.types.RmqMessage;
-import x3.player.mru.session.SessionInfo;
-import x3.player.mru.session.SessionState;
+import x3.player.mru.rmqif.handler.base.RmqOutgoingMessage;
+import x3.player.mru.rmqif.types.RmqMessageType;
 
-public class RmqProcServiceStartRes extends RmqIncomingMessageHandler {
+public class RmqProcServiceStartRes extends RmqOutgoingMessage {
+
     private static final Logger logger = LoggerFactory.getLogger(RmqProcServiceStartRes.class);
 
-    @Override
-    public boolean handle(RmqMessage msg) {
-        if (msg == null || msg.getHeader() == null) {
-            return false;
-        }
-
-        SessionInfo sessionInfo = validateSessionId(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom());
-        if (sessionInfo == null) {
-            logger.error("[{}] Session not found", msg.getSessionId());
-            return false;
-        }
-
-        sessionInfo.setServiceState(SessionState.READY);
-
-        //
-        // TODO
-        //
-
-        return false;
+    public RmqProcServiceStartRes(String sessionId, String transactionId) {
+        super(sessionId, transactionId);
+        setType(RmqMessageType.RMQ_MSG_STR_SERVICE_START_RES);
     }
 
-    @Override
-    public void sendResponse(String sessionId, String transactionId, String queueName, int reasonCode, String reasonStr) {
-
+    public boolean send(String queueName) {
+        return sendTo(queueName);
     }
 }

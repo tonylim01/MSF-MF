@@ -248,8 +248,6 @@ public class SessionManager {
                         //
                         // TODO
                         //
-//                        checkSessionStatePrepare(sessionInfo,
-//                                sessionInfo.getLastSentTime(), sessionInfo.getT2Time(), sessionInfo.getT4Time());
                     }
                     else if (sessionInfo.getServiceState() == SessionState.RELEASE) {
                         checkSessionStateRelease(sessionInfo,
@@ -297,24 +295,9 @@ public class SessionManager {
             // Nothing to do
         }
         else if (lastSentTime >= t2Time && lastSentTime < t4Time) {
-            // Retransmits StartServiceReq
-            logger.warn("[{}] Retransmit {}", sessionInfo.getSessionId(),
-                    RmqMessageType.getMessageTypeStr(RmqMessageType.RMQ_MSG_TYPE_SERVICE_START_REQ));
-
-            RmqProcServiceStartReq startServiceReq = new RmqProcServiceStartReq(sessionInfo.getSessionId(), null);
-            if (startServiceReq.sendToAcswf()) {
-                sessionInfo.setLastSentTime();
-                sessionInfo.updateT2Time(TIMER_PREPARE_T2);
-            }
         }
         else if (lastSentTime >= t4Time) {
             // Stop retransmitting
-            logger.warn("[{}] {} failed. Timer expired", sessionInfo.getSessionId(),
-                    RmqMessageType.getMessageTypeStr(RmqMessageType.RMQ_MSG_TYPE_SERVICE_START_REQ));
-
-            // Quit session
-            RmqProcOutgoingHangupReq hangupReq = new RmqProcOutgoingHangupReq(sessionInfo.getSessionId(), null);
-            hangupReq.sendToMcud();
         }
 
         return true;

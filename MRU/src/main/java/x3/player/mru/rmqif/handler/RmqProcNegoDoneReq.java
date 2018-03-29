@@ -52,9 +52,6 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
             sessionInfo.setSdpInfo(sdpInfo);
         }
 
-        openLocalResource(msg.getSessionId());
-        sendStartServiceReq(msg.getSessionId());
-
         SessionStateManager.getInstance().setState(msg.getSessionId(), SessionState.PREPARE);
 
         sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom());
@@ -75,75 +72,5 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
         }
     }
 
-    /**
-     * Opens local udp server to receive rtp packets
-     * @param sessionId
-     * @return
-     */
-    private boolean openLocalResource(String sessionId) {
-        SessionInfo sessionInfo = SessionManager.findSession(sessionId);
-
-        if (sessionInfo == null) {
-            logger.warn("[{}] No session found", sessionId);
-            return false;
-        }
-
-        //
-        // TODO
-        //
-        // Start of Demo Service
-        UdpRelayManager udpRelayManager = UdpRelayManager.getInstance();
-        udpRelayManager.openServer(sessionId, sessionInfo.getLocalPort());
-
-        RoomInfo roomInfo = RoomManager.getInstance().getRoomInfo(sessionInfo.getConferenceId());
-        if (roomInfo == null) {
-            logger.error("[{}] No roomInfo found", sessionId);
-            return false;
-        }
-
-        String otherSessionId = roomInfo.getOtherSession(sessionId);
-        if (otherSessionId != null) {
-            logger.info("[{}] Connected to session [{}]", sessionId, otherSessionId);
-
-            SessionInfo otherSessionInfo = SessionManager.findSession(otherSessionId);
-            if (otherSessionInfo == null) {
-                logger.warn("[{}] No sessionInfo found", otherSessionId);
-                return false;
-            }
-
-            SdpInfo otherRemoteSdpInfo = otherSessionInfo.getSdpInfo();
-            udpRelayManager.openClient(sessionId, otherRemoteSdpInfo.getRemoteIp(), otherRemoteSdpInfo.getRemotePort());
-
-            logger.debug("[{}] Make connection: local [{}] to [{}:{}]", sessionId,
-                    sessionInfo.getLocalPort(), otherRemoteSdpInfo.getRemoteIp(), otherRemoteSdpInfo.getRemotePort());
-
-        }
-        // End of Demo service
-
-        return true;
-    }
-
-    /**
-     * Sends ServiceStartReq to ACSWF
-     * @param sessionId
-     * @return
-     */
-    private boolean sendStartServiceReq(String sessionId) {
-        SessionInfo sessionInfo = SessionManager.findSession(sessionId);
-
-        if (sessionInfo == null) {
-            logger.warn("[{}] No session found", sessionId);
-            return false;
-        }
-
-        RmqProcServiceStartReq req = new RmqProcServiceStartReq(sessionId, null);
-        if (req.sendToAcswf()) {
-            sessionInfo.setLastSentTime();
-            sessionInfo.updateT2Time(SessionManager.TIMER_PREPARE_T2);
-            sessionInfo.updateT4Time(SessionManager.TIMER_PREPARE_T4);
-            return true;
-        }
-        return false;
-    }
 }
 

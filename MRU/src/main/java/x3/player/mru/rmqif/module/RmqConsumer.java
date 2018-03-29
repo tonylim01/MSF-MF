@@ -149,10 +149,10 @@ public class RmqConsumer implements Runnable {
             case RmqMessageType.RMQ_MSG_TYPE_PLAY_ASR_ACK:
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_SERVICE_START_REQ:
+                RmqProcServiceStartReq startServiceReq = new RmqProcServiceStartReq();
+                startServiceReq.handle(msg);
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_SERVICE_START_RES:
-                RmqProcServiceStartRes startServiceRes = new RmqProcServiceStartRes();
-                startServiceRes.handle(msg);
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_COMMAND_STOP_REQ:
                 break;

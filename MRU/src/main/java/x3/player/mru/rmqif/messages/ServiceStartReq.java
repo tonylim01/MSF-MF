@@ -5,14 +5,14 @@ import com.google.gson.annotations.SerializedName;
 public class ServiceStartReq {
     @SerializedName("from_no")
     private String fromNo;
-    @SerializedName("to_no")
-    private String toNo;
+    @SerializedName("aiif_id")
+    private String aiifId;
 
-    public void setFromNo(String fromNo) {
-        this.fromNo = fromNo;
+    public String getFromNo() {
+        return fromNo;
     }
 
-    public void setToNo(String toNo) {
-        this.toNo = toNo;
+    public String getAiifId() {
+        return aiifId;
     }
 }
