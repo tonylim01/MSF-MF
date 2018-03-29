@@ -7,7 +7,7 @@ public class GenericClass {
     private static final Logger logger = LoggerFactory.getLogger(GenericClass.class);
 
     protected void PrintOKFail(String fmtStr, boolean result) {
-        String resultStr = StringValue.getOkFail(result);
+        String resultStr = StringUtil.getOkFail(result);
         if (result) {
             logger.info(fmtStr, resultStr);
         }

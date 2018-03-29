@@ -39,7 +39,7 @@ public class ServiceManager {
      */
     public ServiceManager() {
         AppInstance instance = AppInstance.getInstance();
-        instance.setConfig(new AmfConfig());
+        instance.setConfig(new AmfConfig(instance.getInstanceId()));
     }
 
     /**

@@ -23,10 +23,25 @@ public class PrepareStateFunction implements StateFunction {
             sessionInfo.setServiceState(SessionState.PREPARE);
         }
 
-        openLocalResource(sessionInfo);
         //
         // TODO
         //
+
+        // Step #1) Creates local resource to relay and convert RTP -> UDP
+        openLocalResource(sessionInfo);
+
+        // Step #2) Allocates 5 channels on the Surf
+
+        // Step #3) Makes a conference channel at the 1st one which has 4 dominants
+
+        // Step #4) Makes caller & callee channel with same privileges
+
+        // Step #5) Makes two playing channels
+
+        // Step #6) Connects 4 channels into the conference
+
+        // Step #7) Connects the above local resource to the caller channel
+
 
     }
 

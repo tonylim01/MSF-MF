@@ -1,7 +1,7 @@
 package x3.player.mru.rmqif.module;
 
 import x3.player.mru.AppInstance;
-import x3.player.mru.common.StringValue;
+import x3.player.mru.common.StringUtil;
 import x3.player.mru.config.AmfConfig;
 import x3.player.core.rabbitmq.transport.RmqCallback;
 import x3.player.core.rabbitmq.transport.RmqReceiver;
@@ -36,14 +36,14 @@ public class RmqServer {
         receiver.setCallback(new MessageCallback());
 
         boolean result = receiver.connectServer();
-        logger.info("{} connect ... [{}]", getClass().getSimpleName(), StringValue.getOkFail(result));
+        logger.info("{} connect ... [{}]", getClass().getSimpleName(), StringUtil.getOkFail(result));
 
         if (result == false) {
             return;
         }
 
         result = receiver.start();
-        logger.info("{} [{}] start ... [{}]", getClass().getSimpleName(), config.getLocalName(), StringValue.getOkFail(result));
+        logger.info("{} [{}] start ... [{}]", getClass().getSimpleName(), config.getLocalName(), StringUtil.getOkFail(result));
     }
 
     public void stop() {

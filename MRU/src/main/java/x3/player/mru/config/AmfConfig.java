@@ -1,6 +1,6 @@
 package x3.player.mru.config;
 
-import x3.player.mru.common.StringValue;
+import x3.player.mru.common.StringUtil;
 import x3.player.core.config.DefaultConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,43 +30,42 @@ public class AmfConfig extends DefaultConfig {
     private int localUdpPortMin;
     private int localUdpPortMax;
 
-    public AmfConfig() {
+    public AmfConfig(int instanceId) {
 
         super(CONFIG_FILE);
 
         boolean result = load();
-        logger.info("Load config [{}] ... [{}]", CONFIG_FILE, StringValue.getOkFail(result));
+        logger.info("Load config [{}] ... [{}]", CONFIG_FILE, StringUtil.getOkFail(result));
 
         mediaPriorities = new ArrayList<>();
         sdpConfig = new SdpConfig();
 
         if (result == true) {
-            loadConfig();
+            loadConfig(instanceId);
         }
     }
 
     @Override
-    public String getStrValue(String key, String defaultValue) {
-        String value = super.getStrValue(key, defaultValue);
+    public String getStrValue(String session, String key, String defaultValue) {
+        String value = super.getStrValue(session, key, defaultValue);
 
         logger.info("\tConfig key [{}] value [{}]", key, value);
         return value;
     }
 
-    private void loadConfig() {
+    private void loadConfig(int instanceId) {
 
         try {
-            rmqHost = getStrValue("RMQ_HOST", "localhost");
-            rmqLocal = getStrValue("RMQ_LOCAL", "localhost");
-            rmqMcud = getStrValue("RMQ_MCUD", null);
-            rmqAcswf = getStrValue("RMQ_ACSWF", null);
-            rmqUser = getStrValue("RMQ_USER", null);
-            rmqPass = getStrValue("RMQ_PASS", null);
+            sessionMaxSize = getIntValue("SESSION", "SESSION_MAX_SIZE", 0);
+            sessionTimeout = getIntValue("SESSION", "SESSION_TIMEOUT_SEC", 0);
 
-            sessionMaxSize = getIntValue("SESSION_MAX_SIZE", 0);
-            sessionTimeout = getIntValue("SESSION_TIMEOUT_SEC", 0);
+            rmqHost = getStrValue("RMQ", "RMQ_HOST", "localhost");
+            rmqMcud = getStrValue("RMQ", "RMQ_MCUD", null);
+            rmqAcswf = getStrValue("RMQ", "RMQ_ACSWF", null);
+            rmqUser = getStrValue("RMQ", "RMQ_USER", null);
+            rmqPass = getStrValue("RMQ", "RMQ_PASS", null);
 
-            String rawPasswd = getStrValue("RAW_PASS", null);
+            String rawPasswd = getStrValue("RMQ", "RAW_PASS", null);
             if (rawPasswd != null) {
                 String encoded = Base64.getEncoder().encodeToString(rawPasswd.getBytes());
                 logger.warn("Encoding password: input [{}] encoded [{}]", rawPasswd, encoded);
@@ -79,28 +78,31 @@ public class AmfConfig extends DefaultConfig {
                 rmqPass = decoded;
             }
 
-            String mediaPriority = getStrValue("MEDIA_PRIORITY", null);
+            String mediaPriority = getStrValue("MEDIA", "MEDIA_PRIORITY", null);
             if (mediaPriority != null) {
                 setMediaPriority(mediaPriority);
             }
 
-            String localHost = getStrValue("SDP_LOCAL_HOST", null);
-            String localIp = getStrValue("SDP_LOCAL_IP", null);
+            String localHost = getStrValue("MEDIA", "SDP_LOCAL_HOST", null);
+            String localIp = getStrValue("MEDIA", "SDP_LOCAL_IP", null);
 
             sdpConfig.setLocalHost(localHost);
             sdpConfig.setLocalIpAddress(localIp);
 
             for (int i = 0; ; i++) {
                 String key = String.format("SDP_LOCAL_ATTR_%d", i);
-                String attr = getStrValue(key, null);
+                String attr = getStrValue("MEDIA", key, null);
                 if (attr == null) {
                     break;
                 }
                 sdpConfig.addAttribute(attr);
             }
 
-            localUdpPortMin = getIntValue("LOCAL_UDP_PORT_MIN", 0);
-            localUdpPortMax = getIntValue("LOCAL_UDP_PORT_MAX", 0);
+            String instanceSection = String.format("INSTANCE-%d", instanceId);
+
+            rmqLocal = getStrValue(instanceSection, "RMQ_LOCAL", "localhost");
+            localUdpPortMin = getIntValue(instanceSection, "LOCAL_UDP_PORT_MIN", 0);
+            localUdpPortMax = getIntValue(instanceSection, "LOCAL_UDP_PORT_MAX", 0);
 
         } catch (Exception e) {
             e.printStackTrace();
