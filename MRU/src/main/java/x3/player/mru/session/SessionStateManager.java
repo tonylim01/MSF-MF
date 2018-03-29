@@ -2,10 +2,16 @@ package x3.player.mru.session;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import x3.player.mru.session.StateHandler.*;
 
 import java.net.SocketException;
+import java.util.AbstractMap;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SessionStateManager {
 
@@ -38,6 +44,11 @@ public class SessionStateManager {
         stateMachineThread = null;
     }
 
+    /**
+     * Adds SessionState into the state queue
+     * @param sessionId
+     * @param state
+     */
     public void setState(String sessionId, SessionState state) {
         if (sessionId == null) {
             return;
@@ -47,10 +58,24 @@ public class SessionStateManager {
         stateQueue.add(msg);
     }
 
+    /**
+     * Session state machine module
+     */
     class SessionStateMachine implements Runnable {
 
         private BlockingQueue<SessionStateMessage> queue;
         private boolean isQuit = false;
+
+        private Map<SessionState, StateFunction> stateFunctions() {
+            return Collections.unmodifiableMap(Stream.of(
+                    new AbstractMap.SimpleEntry<>(SessionState.IDLE, new IdleStateFunction()),
+                    new AbstractMap.SimpleEntry<>(SessionState.OFFER, new OfferStateFunction()),
+                    new AbstractMap.SimpleEntry<>(SessionState.ANSWER, new AnswerStateFunction()),
+                    new AbstractMap.SimpleEntry<>(SessionState.PREPARE, new PrepareStateFunction()),
+                    new AbstractMap.SimpleEntry<>(SessionState.READY, new ReadyStateFunction()),
+                    new AbstractMap.SimpleEntry<>(SessionState.RELEASE, new ReleaseStateFunction())
+            ).collect(Collectors.toMap((e) -> e.getKey(), (e) ->e.getValue())));
+        }
 
         public SessionStateMachine(BlockingQueue<SessionStateMessage> queue) {
             this.queue = queue;
@@ -87,115 +112,10 @@ public class SessionStateManager {
                 return;
             }
 
-            switch (msg.getState()) {
-                case IDLE:
-                    handleMessageIdle(sessionInfo);
-                    break;
-                case OFFER:
-                    handleMessageOffer(sessionInfo);
-                    break;
-                case ANSWER:
-                    handleMessageAnswer(sessionInfo);
-                    break;
-                case PREPARE:
-                    handleMessagePrepare(sessionInfo);
-                    break;
-                case READY:
-                    handleMessageReady(sessionInfo);
-                    break;
-                case PLAY_B:
-                    break;
-                case PLAY_C:
-                    break;
-                case RELEASE:
-                    handleMessageRelease(sessionInfo);
-                    break;
+            StateFunction stateFunction = stateFunctions().get(msg.getState());
+            if (stateFunction != null) {
+                stateFunction.run(sessionInfo);
             }
         }
-    }
-
-    private void handleMessageIdle(SessionInfo sessionInfo) {
-        if (sessionInfo == null) {
-            return;
-        }
-
-        if (sessionInfo.getServiceState() != SessionState.IDLE) {
-            sessionInfo.setServiceState(SessionState.IDLE);
-        }
-
-        //
-        // TODO
-        //
-    }
-
-
-    private void handleMessageOffer(SessionInfo sessionInfo) {
-        if (sessionInfo == null) {
-            return;
-        }
-
-        if (sessionInfo.getServiceState() != SessionState.OFFER) {
-            sessionInfo.setServiceState(SessionState.OFFER);
-        }
-
-        //
-        // TODO
-        //
-    }
-
-    private void handleMessageAnswer(SessionInfo sessionInfo) {
-        if (sessionInfo == null) {
-            return;
-        }
-
-        if (sessionInfo.getServiceState() != SessionState.ANSWER) {
-            sessionInfo.setServiceState(SessionState.ANSWER);
-        }
-
-        //
-        // TODO
-        //
-    }
-
-    private void handleMessagePrepare(SessionInfo sessionInfo) {
-        if (sessionInfo == null) {
-            return;
-        }
-
-        if (sessionInfo.getServiceState() != SessionState.PREPARE) {
-            sessionInfo.setServiceState(SessionState.PREPARE);
-        }
-
-        //
-        // TODO
-        //
-    }
-
-    private void handleMessageReady(SessionInfo sessionInfo) {
-        if (sessionInfo == null) {
-            return;
-        }
-
-        if (sessionInfo.getServiceState() != SessionState.READY) {
-            sessionInfo.setServiceState(SessionState.READY);
-        }
-
-        //
-        // TODO
-        //
-    }
-
-    private void handleMessageRelease(SessionInfo sessionInfo) {
-        if (sessionInfo == null) {
-            return;
-        }
-
-        if (sessionInfo.getServiceState() != SessionState.RELEASE) {
-            sessionInfo.setServiceState(SessionState.RELEASE);
-            sessionInfo.updateT4Time(SessionManager.TIMER_HANGUP_T4);
-        }
-
-        sessionInfo.setLastSentTime();
-        sessionInfo.updateT2Time(SessionManager.TIMER_HANGUP_T2);
     }
 }
