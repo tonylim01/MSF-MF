@@ -12,7 +12,8 @@ import x3.player.core.sdp.SdpInfo;
 import x3.player.core.sdp.SdpParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import x3.player.mru.session.SessionServiceState;
+import x3.player.mru.session.SessionState;
+import x3.player.mru.session.SessionStateManager;
 
 public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
 
@@ -78,8 +79,6 @@ public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
             return false;
         }
 
-        sessionInfo.setServiceState(SessionServiceState.OFFER);
-
         sessionInfo.setSdpInfo(sdpInfo);
         sessionInfo.setConferenceId(req.getConferenceId());
         sessionInfo.setFromNo(req.getFromNo());
@@ -88,6 +87,8 @@ public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
         //
         // TODO
         //
+
+        SessionStateManager.getInstance().setState(msg.getSessionId(), SessionState.OFFER);
 
         sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom());
 

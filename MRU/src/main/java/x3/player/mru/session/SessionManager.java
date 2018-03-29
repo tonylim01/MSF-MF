@@ -55,6 +55,8 @@ public class SessionManager {
     static ScheduledFuture<?> scheduleFuture;
     private SessionMonitorRunnable sessionMonitorRunnable;
 
+    private SessionStateManager sessionStateManager;
+
     public SessionManager() {
 
         AmfConfig config = AppInstance.getInstance().getConfig();
@@ -77,6 +79,10 @@ public class SessionManager {
 
         scheduleService = Executors.newScheduledThreadPool(1);
         sessionMonitorRunnable = new SessionMonitorRunnable();
+
+        sessionStateManager = SessionStateManager.getInstance();
+
+        logger.info("SessionManager started");
     }
 
     /**
@@ -90,6 +96,8 @@ public class SessionManager {
      * Stops the session scheduler
      */
     public void stop() {
+        sessionStateManager.stop();
+
         scheduleFuture.cancel(true);
         scheduleService.shutdown();
     }
@@ -120,7 +128,7 @@ public class SessionManager {
 
         sessionInfo.setSessionId(sessionId);
         sessionInfo.setCreatedTime(System.currentTimeMillis());
-        sessionInfo.setServiceState(SessionServiceState.IDLE);
+        sessionInfo.setServiceState(SessionState.IDLE);
         //
         // TODO
         //
@@ -236,11 +244,14 @@ public class SessionManager {
                 }
 
                 if (sessionInfo.getLastSentTime() > 0) {
-                    if (sessionInfo.getServiceState() == SessionServiceState.PREPARE) {
-                        checkSessionStatePrepare(sessionInfo,
-                                sessionInfo.getLastSentTime(), sessionInfo.getT2Time(), sessionInfo.getT4Time());
+                    if (sessionInfo.getServiceState() == SessionState.PREPARE) {
+                        //
+                        // TODO
+                        //
+//                        checkSessionStatePrepare(sessionInfo,
+//                                sessionInfo.getLastSentTime(), sessionInfo.getT2Time(), sessionInfo.getT4Time());
                     }
-                    else if (sessionInfo.getServiceState() == SessionServiceState.RELEASE) {
+                    else if (sessionInfo.getServiceState() == SessionState.RELEASE) {
                         checkSessionStateRelease(sessionInfo,
                                 sessionInfo.getLastSentTime(), sessionInfo.getT2Time(), sessionInfo.getT4Time());
                     }

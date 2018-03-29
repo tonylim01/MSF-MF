@@ -224,7 +224,8 @@ public class RmqMessageType {
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_COMMAND_DONE_REQ, RMQ_MSG_TYPE_COMMAND_DONE_REQ),
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_COMMAND_DONE_RES, RMQ_MSG_TYPE_COMMAND_DONE_RES),
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_COMMAND_END_REQ, RMQ_MSG_TYPE_COMMAND_END_REQ),
-                new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_COMMAND_END_RES, RMQ_MSG_TYPE_COMMAND_END_RES)
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_COMMAND_END_RES, RMQ_MSG_TYPE_COMMAND_END_RES),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_HEARTBEAT, RMQ_MSG_TYPE_HEARTBEAT)
                 ).collect(Collectors.toMap((e) -> e.getKey(), (e) ->e.getValue())));
     }
 
@@ -292,7 +293,8 @@ public class RmqMessageType {
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_COMMAND_STOP_REQ, "CommandStopReq"),
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_COMMAND_STOP_RES, "CommandStopRes"),
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_COMMAND_END_REQ, "CommandEndReq"),
-                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_COMMAND_END_RES, "CommandEndRes")
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_COMMAND_END_RES, "CommandEndRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_HEARTBEAT, "Heartbeat")
 
         ).collect(Collectors.toMap((e) -> e.getKey(), (e) ->e.getValue())));
     }

@@ -8,7 +8,7 @@ import x3.player.mru.rmqif.module.RmqData;
 import x3.player.mru.rmqif.types.RmqMessage;
 import x3.player.mru.rmqif.types.RmqMessageType;
 import x3.player.mru.session.SessionInfo;
-import x3.player.mru.session.SessionServiceState;
+import x3.player.mru.session.SessionState;
 
 public class RmqProcCommandStartReq extends RmqIncomingMessageHandler {
 
@@ -27,7 +27,7 @@ public class RmqProcCommandStartReq extends RmqIncomingMessageHandler {
             return false;
         }
 
-        sessionInfo.setServiceState(SessionServiceState.PLAY_B);
+        sessionInfo.setServiceState(SessionState.PLAY_B);
 
         RmqData<CommandStartReq> data = new RmqData<>(CommandStartReq.class);
         CommandStartReq req = data.parse(msg);

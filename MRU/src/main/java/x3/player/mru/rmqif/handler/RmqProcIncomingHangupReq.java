@@ -4,9 +4,10 @@ import x3.player.mru.rmqif.handler.base.RmqIncomingMessageHandler;
 import x3.player.mru.rmqif.types.RmqMessage;
 import x3.player.mru.service.ServiceManager;
 import x3.player.mru.session.SessionInfo;
-import x3.player.mru.session.SessionServiceState;
+import x3.player.mru.session.SessionState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import x3.player.mru.session.SessionStateManager;
 
 public class RmqProcIncomingHangupReq extends RmqIncomingMessageHandler {
 
@@ -26,9 +27,9 @@ public class RmqProcIncomingHangupReq extends RmqIncomingMessageHandler {
             return false;
         }
 
-        sessionInfo.setServiceState(SessionServiceState.RELEASE);
-
         ServiceManager.getInstance().releaseResource(msg.getSessionId());
+
+        SessionStateManager.getInstance().setState(msg.getSessionId(), SessionState.IDLE);
 
         sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom());
 

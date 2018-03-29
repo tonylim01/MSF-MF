@@ -3,12 +3,8 @@ package x3.player.mru.rmqif.handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import x3.player.mru.rmqif.handler.base.RmqIncomingMessageHandler;
-import x3.player.mru.rmqif.messages.CommandStopReq;
-import x3.player.mru.rmqif.module.RmqData;
 import x3.player.mru.rmqif.types.RmqMessage;
-import x3.player.mru.rmqif.types.RmqMessageType;
 import x3.player.mru.session.SessionInfo;
-import x3.player.mru.session.SessionServiceState;
 
 public class RmqProcCommandStopReq extends RmqIncomingMessageHandler {
 

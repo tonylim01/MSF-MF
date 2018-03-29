@@ -4,10 +4,9 @@ import x3.player.mru.AppInstance;
 import x3.player.mru.config.SdpConfig;
 import x3.player.mru.rmqif.handler.base.RmqIncomingMessageHandler;
 import x3.player.mru.rmqif.types.RmqMessage;
-import x3.player.mru.rmqif.types.RmqMessageType;
 import x3.player.mru.session.SessionInfo;
-import x3.player.mru.session.SessionManager;
-import x3.player.mru.session.SessionServiceState;
+import x3.player.mru.session.SessionState;
+import x3.player.mru.session.SessionStateManager;
 import x3.player.mru.simulator.UdpRelayManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +30,9 @@ public class RmqProcInboundGetAnswerReq extends RmqIncomingMessageHandler {
             return false;
         }
 
-        sessionInfo.setServiceState(SessionServiceState.ANSWER);
-
         allocLocalResource(sessionInfo);
+
+        SessionStateManager.getInstance().setState(msg.getSessionId(), SessionState.ANSWER);
 
         sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom());
 

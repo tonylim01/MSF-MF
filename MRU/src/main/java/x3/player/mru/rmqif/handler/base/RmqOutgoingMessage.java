@@ -114,7 +114,9 @@ public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
             String json = RmqBuilder.build(msg);
 
             if (json != null) {
-                logger.debug("[{}] json=[{}]", msg.getSessionId(), json);
+                if (msg.getMessageType() != RmqMessageType.RMQ_MSG_TYPE_HEARTBEAT) {
+                    logger.debug("[{}] json=[{}]", msg.getSessionId(), json);
+                }
 
                 RmqClient client = RmqClient.getInstance(target);
                 if (client != null) {
@@ -122,8 +124,10 @@ public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
 
                     if (result) {
                         if (msg.getHeader().getReason() == null) {
-                            logger.info("[{}] -> ({}) {}", msg.getSessionId(), target,
-                                    RmqMessageType.getMessageTypeStr(msg.getMessageType()));
+                            if (msg.getMessageType() != RmqMessageType.RMQ_MSG_TYPE_HEARTBEAT) {
+                                logger.info("[{}] -> ({}) {}", msg.getSessionId(), target,
+                                        RmqMessageType.getMessageTypeStr(msg.getMessageType()));
+                            }
                         }
                         else {
                             logger.info("[{}] -> ({}) {}: code=[{}] reason=[{}]", msg.getSessionId(), target,

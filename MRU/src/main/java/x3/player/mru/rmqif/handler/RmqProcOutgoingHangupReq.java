@@ -8,7 +8,8 @@ import x3.player.mru.rmqif.handler.base.RmqOutgoingMessage;
 import x3.player.mru.rmqif.types.RmqMessageType;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionManager;
-import x3.player.mru.session.SessionServiceState;
+import x3.player.mru.session.SessionState;
+import x3.player.mru.session.SessionStateManager;
 
 public class RmqProcOutgoingHangupReq extends RmqOutgoingMessage {
     private static final Logger logger = LoggerFactory.getLogger(RmqProcOutgoingHangupReq.class);
@@ -32,12 +33,7 @@ public class RmqProcOutgoingHangupReq extends RmqOutgoingMessage {
 
         boolean result = sendTo(queueName);
         if (result) {
-            if (sessionInfo.getServiceState() != SessionServiceState.RELEASE) {
-                sessionInfo.setServiceState(SessionServiceState.RELEASE);
-                sessionInfo.updateT4Time(SessionManager.TIMER_HANGUP_T4);
-            }
-            sessionInfo.setLastSentTime();
-            sessionInfo.updateT2Time(SessionManager.TIMER_HANGUP_T2);
+            SessionStateManager.getInstance().setState(getSessionId(), SessionState.RELEASE);
         }
 
         return result;

@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import x3.player.mru.rmqif.handler.base.RmqIncomingMessageHandler;
 import x3.player.mru.rmqif.types.RmqMessage;
 import x3.player.mru.session.SessionInfo;
-import x3.player.mru.session.SessionServiceState;
+import x3.player.mru.session.SessionState;
 
 public class RmqProcServiceStartRes extends RmqIncomingMessageHandler {
     private static final Logger logger = LoggerFactory.getLogger(RmqProcServiceStartRes.class);
@@ -22,7 +22,7 @@ public class RmqProcServiceStartRes extends RmqIncomingMessageHandler {
             return false;
         }
 
-        sessionInfo.setServiceState(SessionServiceState.READY);
+        sessionInfo.setServiceState(SessionState.READY);
 
         //
         // TODO

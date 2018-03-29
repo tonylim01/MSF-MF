@@ -7,7 +7,7 @@ public class SessionInfo {
     private String sessionId;
     private long createdTime;
 
-    private SessionServiceState serviceState;
+    private SessionState serviceState;
     private long lastSentTime;
     private long t2Time;
     private long t4Time;
@@ -37,11 +37,11 @@ public class SessionInfo {
         this.createdTime = createdTime;
     }
 
-    public SessionServiceState getServiceState() {
+    public SessionState getServiceState() {
         return serviceState;
     }
 
-    public void setServiceState(SessionServiceState serviceState) {
+    public void setServiceState(SessionState serviceState) {
         synchronized (this) {
             this.serviceState = serviceState;
             this.lastSentTime = 0;

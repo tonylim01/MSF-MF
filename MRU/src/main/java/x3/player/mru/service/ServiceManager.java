@@ -94,7 +94,7 @@ public class ServiceManager {
         rmqServer = new RmqServer();
         rmqServer.start();
 
-        sessionManager = new SessionManager();
+        sessionManager = SessionManager.getInstance();
         sessionManager.start();
 
         heartbeatManager = HeartbeatManager.getInstance();

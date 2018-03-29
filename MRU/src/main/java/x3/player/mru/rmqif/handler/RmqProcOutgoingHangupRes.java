@@ -6,6 +6,8 @@ import x3.player.mru.rmqif.handler.base.RmqIncomingMessageHandler;
 import x3.player.mru.rmqif.types.RmqMessage;
 import x3.player.mru.service.ServiceManager;
 import x3.player.mru.session.SessionInfo;
+import x3.player.mru.session.SessionState;
+import x3.player.mru.session.SessionStateManager;
 
 public class RmqProcOutgoingHangupRes extends RmqIncomingMessageHandler {
     private static final Logger logger = LoggerFactory.getLogger(RmqProcOutgoingHangupRes.class);
@@ -23,6 +25,8 @@ public class RmqProcOutgoingHangupRes extends RmqIncomingMessageHandler {
         }
 
         ServiceManager.getInstance().releaseResource(msg.getSessionId());
+
+        SessionStateManager.getInstance().setState(msg.getSessionId(), SessionState.IDLE);
 
         return true;
     }

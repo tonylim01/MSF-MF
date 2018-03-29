@@ -9,7 +9,8 @@ import x3.player.mru.room.RoomInfo;
 import x3.player.mru.room.RoomManager;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionManager;
-import x3.player.mru.session.SessionServiceState;
+import x3.player.mru.session.SessionState;
+import x3.player.mru.session.SessionStateManager;
 import x3.player.mru.simulator.UdpRelayManager;
 import x3.player.mru.rmqif.module.RmqData;
 import x3.player.core.sdp.SdpInfo;
@@ -33,8 +34,6 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
             return false;
         }
 
-        sessionInfo.setServiceState(SessionServiceState.PREPARE);
-
         RmqData<NegoDoneReq> data = new RmqData<>(NegoDoneReq.class);
         NegoDoneReq req = data.parse(msg);
 
@@ -55,6 +54,8 @@ public class RmqProcNegoDoneReq extends RmqIncomingMessageHandler {
 
         openLocalResource(msg.getSessionId());
         sendStartServiceReq(msg.getSessionId());
+
+        SessionStateManager.getInstance().setState(msg.getSessionId(), SessionState.PREPARE);
 
         sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom());
 
