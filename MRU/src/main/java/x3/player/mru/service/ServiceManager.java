@@ -11,6 +11,7 @@ import x3.player.mru.room.RoomManager;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionManager;
 import x3.player.mru.simulator.UdpRelayManager;
+import x3.player.mru.surfif.module.SurfConnectionManager;
 
 import javax.xml.ws.Service;
 
@@ -31,6 +32,7 @@ public class ServiceManager {
     private RmqServer rmqServer;
     private SessionManager sessionManager;
     private HeartbeatManager heartbeatManager;
+    private SurfConnectionManager surfConnectionManager;
 
     private boolean isQuit = false;
 
@@ -100,6 +102,9 @@ public class ServiceManager {
         heartbeatManager = HeartbeatManager.getInstance();
         heartbeatManager.start();
 
+        surfConnectionManager = SurfConnectionManager.getInstance();
+        surfConnectionManager.start();
+
         return true;
     }
 
@@ -107,6 +112,11 @@ public class ServiceManager {
      * Finalizes all the resources
      */
     private void stopService() {
+
+        if (surfConnectionManager != null) {
+            surfConnectionManager.stop();
+        }
+
         if (rmqServer != null) {
             rmqServer.stop();
         }

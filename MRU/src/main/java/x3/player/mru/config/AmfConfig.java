@@ -30,6 +30,9 @@ public class AmfConfig extends DefaultConfig {
     private int localUdpPortMin;
     private int localUdpPortMax;
 
+    private String surfIp;
+    private int surfPort;
+
     public AmfConfig(int instanceId) {
 
         super(CONFIG_FILE);
@@ -104,6 +107,9 @@ public class AmfConfig extends DefaultConfig {
             localUdpPortMin = getIntValue(instanceSection, "LOCAL_UDP_PORT_MIN", 0);
             localUdpPortMax = getIntValue(instanceSection, "LOCAL_UDP_PORT_MAX", 0);
 
+            surfIp = getStrValue(instanceSection, "SURF_IP", "localhost");
+            surfPort = getIntValue(instanceSection, "SURF_PORT", 0);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -151,6 +157,14 @@ public class AmfConfig extends DefaultConfig {
 
     public int getLocalUdpPortMax() {
         return localUdpPortMax;
+    }
+
+    public String getSurfIp() {
+        return surfIp;
+    }
+
+    public int getSurfPort() {
+        return surfPort;
     }
 
     private void setMediaPriority(String priorityStr) {

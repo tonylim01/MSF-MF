@@ -51,4 +51,24 @@ public class NetUtil {
 
         return ipAddress;
     }
+
+    public static byte[] getLittleEndian4Bytes(int value) {
+        byte[] buf = new byte[4];
+
+        buf[3] = (byte)((value >>> 24) & 0xff);
+        buf[2] = (byte)((value >>> 16) & 0xff);
+        buf[1] = (byte)((value >>> 8) & 0xff);
+        buf[0] = (byte)((value >>> 0) & 0xff);
+
+        return buf;
+    }
+
+    public static int getBigEndian4BytesValue(byte[] bytes) {
+        if (bytes.length < 4) {
+            return -1;
+        }
+
+        return ((bytes[3] & 0xff) << 24) + ((bytes[2] & 0xff) << 16) + ((bytes[1] & 0xff) << 8) + (bytes[0] & 0xff);
+    }
+
 }
