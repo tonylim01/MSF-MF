@@ -2,6 +2,7 @@ package x3.player.mru.surfif.module;
 
 import com.google.gson.Gson;
 import x3.player.mru.surfif.messages.*;
+import x3.player.mru.surfif.types.SurfConstant;
 import x3.player.mru.surfif.types.SurfEndpointType;
 
 public class SurfChannelBuilder {
@@ -15,7 +16,7 @@ public class SurfChannelBuilder {
 
         toolReq.setToolId(toolId);
         toolReq.setReqId(reqId);
-        toolReq.setReqType(SurfMsgToolReq.REQ_TYPE_SET_CONFIG);
+        toolReq.setReqType(SurfConstant.REQ_TYPE_SET_CONFIG);
 
     }
 
@@ -82,7 +83,7 @@ public class SurfChannelBuilder {
 
         toolReq.setToolId(1);   // TODO
         toolReq.setReqId(0);    // TODO
-        toolReq.setReqType(SurfMsgToolReq.REQ_TYPE_SET_CONFIG);
+        toolReq.setReqType(SurfConstant.REQ_TYPE_SET_CONFIG);
 
         SurfMsgToolData data = toolReq.getData();
 

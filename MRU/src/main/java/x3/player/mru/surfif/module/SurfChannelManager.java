@@ -3,6 +3,7 @@ package x3.player.mru.surfif.module;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import x3.player.mru.surfif.messages.*;
+import x3.player.mru.surfif.types.SurfConstant;
 import x3.player.mru.surfif.types.SurfEndpointType;
 
 public class SurfChannelManager {
@@ -108,7 +109,7 @@ public class SurfChannelManager {
 
         toolReq.setToolId(toolId);
         toolReq.setReqId(reqId);
-        toolReq.setReqType(SurfMsgToolReq.REQ_TYPE_SET_CONFIG);
+        toolReq.setReqType(SurfConstant.REQ_TYPE_SET_CONFIG);
 
         SurfMsgToolData data = toolReq.getData();
 

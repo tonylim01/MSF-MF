@@ -43,7 +43,7 @@ public class DefaultConfig {
 
         String value = profileSection.getOrDefault(key, defaultValue);
 
-        if (value.contains("#")) {
+        if (value != null && value.contains("#")) {
             value = value.substring(0, value.indexOf('#')).trim();
         }
 

@@ -3,8 +3,6 @@ package x3.player.mru.surfif.messages;
 import com.google.gson.annotations.SerializedName;
 
 public class SurfMsgToolReq {
-    public static final String REQ_TYPE_SET_CONFIG = "set_config";
-    public static final String REQ_TYPE_GET_CONFIG = "get_config";
 
     @SerializedName("tool_id")
     private int toolId;

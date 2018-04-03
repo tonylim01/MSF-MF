@@ -39,13 +39,14 @@ public class SurfConnectionThread extends Thread {
 
         logger.info("SurfConnectionThread start");
 
+        if (surfConnectionCallback != null) {
+            surfConnectionCallback.onConnected();
+        }
+
         String initMsg = readInitMessage();
 
         logger.debug("Read msg: {}", initMsg);
         if (initMsg != null && initMsg.equals(SurfConstant.STR_INIT_MESSAGE)) {
-            if (surfConnectionCallback != null) {
-                surfConnectionCallback.onConnected();
-            }
             sendInitResponse();
         }
 
@@ -109,7 +110,9 @@ public class SurfConnectionThread extends Thread {
 
         if (key.equals(SurfConstant.STR_CONNECT)) {
             SurfProcConnect procConnect = new SurfProcConnect(element);
-            // TODO
+            if (surfConnectionCallback != null) {
+                surfConnectionCallback.onReady();
+            }
         }
         else {
             // TODO
@@ -125,7 +128,7 @@ public class SurfConnectionThread extends Thread {
 
         byte[] buffer = new byte[BUFFER_SIZE];
 
-        int result = socket.read(buffer);
+        int result = socket.read(buffer, SurfConstant.STR_INIT_MESSAGE.length());
 
         if (result <= 0) {
             return null;
@@ -140,7 +143,11 @@ public class SurfConnectionThread extends Thread {
         SurfProcConnect proc = new SurfProcConnect();
         String jsonStr = proc.build();
 
-        return (socket.send(jsonStr.getBytes()) > 0) ? true : false;
+        if (surfConnectionCallback != null) {
+            surfConnectionCallback.onSend(jsonStr);
+        }
+
+        return true;
     }
 
     private String readSurfMessage() {

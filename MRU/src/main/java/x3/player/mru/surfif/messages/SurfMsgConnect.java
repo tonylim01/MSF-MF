@@ -3,34 +3,44 @@ package x3.player.mru.surfif.messages;
 import com.google.gson.annotations.SerializedName;
 
 public class SurfMsgConnect {
-    @SerializedName("keep_alive_time")
-    private int keeyAliveTime;
 
-    @SerializedName("api_version")
-    private int apiVersion[];
+    private Connect connect;
+
+    class Connect {
+        @SerializedName("keep_alive_timeout")
+        private int keeyAliveTime;
+
+        @SerializedName("api_version")
+        private int apiVersion[];
+
+        public Connect() {
+            apiVersion = new int[2];
+        }
+    }
 
     public SurfMsgConnect() {
-        apiVersion = new int[2];
+
+        connect = new Connect();
     }
 
     public int getKeeyAliveTime() {
-        return keeyAliveTime;
+        return connect.keeyAliveTime;
     }
 
     public void setKeeyAliveTime(int keeyAliveTime) {
-        this.keeyAliveTime = keeyAliveTime;
+        connect.keeyAliveTime = keeyAliveTime;
     }
 
     public int getMajorVersion() {
-        return apiVersion[0];
+        return connect.apiVersion[0];
     }
 
     public int getMinorVersion() {
-        return apiVersion[1];
+        return connect.apiVersion[1];
     }
 
     public void setVersion(int majorVersion, int minorVersion) {
-        this.apiVersion[0] = majorVersion;
-        this.apiVersion[1] = minorVersion;
+        connect.apiVersion[0] = majorVersion;
+        connect.apiVersion[1] = minorVersion;
     }
 }
