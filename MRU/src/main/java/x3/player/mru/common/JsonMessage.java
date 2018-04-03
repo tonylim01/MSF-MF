@@ -1,6 +1,7 @@
 package x3.player.mru.common;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 
 public class JsonMessage<T> {
     private Class<T> classType;
@@ -10,6 +11,11 @@ public class JsonMessage<T> {
     }
 
     public T parse(String json) {
+        Gson gson = new Gson();
+        return gson.fromJson(json, classType);
+    }
+
+    public T parse(JsonElement json) {
         Gson gson = new Gson();
         return gson.fromJson(json, classType);
     }

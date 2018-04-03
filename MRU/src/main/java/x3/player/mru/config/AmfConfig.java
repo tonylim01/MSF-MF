@@ -30,8 +30,7 @@ public class AmfConfig extends DefaultConfig {
     private int localUdpPortMin;
     private int localUdpPortMax;
 
-    private String surfIp;
-    private int surfPort;
+    private SurfConfig surfConfig;
 
     public AmfConfig(int instanceId) {
 
@@ -42,6 +41,7 @@ public class AmfConfig extends DefaultConfig {
 
         mediaPriorities = new ArrayList<>();
         sdpConfig = new SdpConfig();
+        surfConfig = new SurfConfig();
 
         if (result == true) {
             loadConfig(instanceId);
@@ -58,10 +58,25 @@ public class AmfConfig extends DefaultConfig {
 
     private void loadConfig(int instanceId) {
 
+        String instanceSection = String.format("INSTANCE-%d", instanceId);
+
+        loadSessionConfig();
+        loadRmqConfig(instanceSection);
+        loadSurfConfig(instanceSection);
+        loadMediaConfig(instanceSection);
+    }
+
+    private void loadSessionConfig() {
         try {
             sessionMaxSize = getIntValue("SESSION", "SESSION_MAX_SIZE", 0);
             sessionTimeout = getIntValue("SESSION", "SESSION_TIMEOUT_SEC", 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
+    private void loadRmqConfig(String instanceSection) {
+        try {
             rmqHost = getStrValue("RMQ", "RMQ_HOST", "localhost");
             rmqMcud = getStrValue("RMQ", "RMQ_MCUD", null);
             rmqAcswf = getStrValue("RMQ", "RMQ_ACSWF", null);
@@ -81,6 +96,37 @@ public class AmfConfig extends DefaultConfig {
                 rmqPass = decoded;
             }
 
+            rmqLocal = getStrValue(instanceSection, "RMQ_LOCAL", "localhost");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadSurfConfig(String instanceSection) {
+        try {
+
+            String surfIp = getStrValue(instanceSection, "SURF_IP", "localhost");
+            int surfPort = getIntValue(instanceSection, "SURF_PORT", 0);
+
+            surfConfig.setSurfIp(surfIp);
+            surfConfig.setSurfPort(surfPort);
+
+            int surfMajorVersion = getIntValue("SURF", "MAJOR_VERSION", 0);
+            int surfMinorVersion = getIntValue("SURF", "MINOR_VERSION", 0);
+            int keepAliveTime = getIntValue("SURF", "KEEP_ALIVE_TIME", 0);
+
+            surfConfig.setMajorVersion(surfMajorVersion);
+            surfConfig.setMinorVersion(surfMinorVersion);
+            surfConfig.setKeepAliveTime(keepAliveTime);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadMediaConfig(String instanceSection) {
+        try {
             String mediaPriority = getStrValue("MEDIA", "MEDIA_PRIORITY", null);
             if (mediaPriority != null) {
                 setMediaPriority(mediaPriority);
@@ -101,15 +147,8 @@ public class AmfConfig extends DefaultConfig {
                 sdpConfig.addAttribute(attr);
             }
 
-            String instanceSection = String.format("INSTANCE-%d", instanceId);
-
-            rmqLocal = getStrValue(instanceSection, "RMQ_LOCAL", "localhost");
             localUdpPortMin = getIntValue(instanceSection, "LOCAL_UDP_PORT_MIN", 0);
             localUdpPortMax = getIntValue(instanceSection, "LOCAL_UDP_PORT_MAX", 0);
-
-            surfIp = getStrValue(instanceSection, "SURF_IP", "localhost");
-            surfPort = getIntValue(instanceSection, "SURF_PORT", 0);
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -159,12 +198,16 @@ public class AmfConfig extends DefaultConfig {
         return localUdpPortMax;
     }
 
+    public SurfConfig getSurfConfig() {
+        return surfConfig;
+    }
+
     public String getSurfIp() {
-        return surfIp;
+        return surfConfig.getSurfIp();
     }
 
     public int getSurfPort() {
-        return surfPort;
+        return surfConfig.getSurfPort();
     }
 
     private void setMediaPriority(String priorityStr) {

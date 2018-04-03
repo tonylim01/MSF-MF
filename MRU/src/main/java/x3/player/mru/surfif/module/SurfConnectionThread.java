@@ -1,14 +1,19 @@
 package x3.player.mru.surfif.module;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import x3.player.core.socket.TcpSocket;
 import x3.player.mru.common.JsonMessage;
 import x3.player.mru.common.NetUtil;
+import x3.player.mru.surfif.handler.SurfProcConnect;
 import x3.player.mru.surfif.messages.SurfMsgConnect;
 import x3.player.mru.surfif.types.SurfConstant;
 
 import java.net.SocketException;
+import java.util.Set;
 
 public class SurfConnectionThread extends Thread {
 
@@ -54,14 +59,16 @@ public class SurfConnectionThread extends Thread {
             try {
                 String body = readSurfMessage();
 
-                //
-                // TODO
-                //
                 if (body == null) {
                     continue;
                 }
 
                 logger.debug("Surf msg: {}", body);
+
+                //
+                // TODO
+                //
+                handleJsonMessage(body);
 
             } catch (Exception e) {
                 logger.warn("Exception [{}] [{}]", e.getClass(), e.getMessage());
@@ -72,6 +79,43 @@ public class SurfConnectionThread extends Thread {
         }
 
         logger.info("SurfConnectionThread end");
+    }
+
+    private boolean handleJsonMessage(String jsonStr) {
+        if (jsonStr == null) {
+            return false;
+        }
+
+        JsonElement element = new JsonParser().parse(jsonStr);
+        JsonObject obj = element.getAsJsonObject();
+
+        Set<String> keySet = obj.keySet();
+        if (keySet == null) {
+            return false;
+        }
+
+        for (String key: keySet) {
+            logger.debug("Json parser: key {}", key);
+            parseJsonMessageByKey(key, obj.get(key));
+        }
+
+        return true;
+    }
+
+    private boolean parseJsonMessageByKey(String key, JsonElement element) {
+        if (key == null || element == null) {
+            return false;
+        }
+
+        if (key.equals(SurfConstant.STR_CONNECT)) {
+            SurfProcConnect procConnect = new SurfProcConnect(element);
+            // TODO
+        }
+        else {
+            // TODO
+        }
+
+        return true;
     }
 
     private String readInitMessage() {
@@ -93,15 +137,8 @@ public class SurfConnectionThread extends Thread {
     }
 
     private boolean sendInitResponse() {
-        SurfMsgConnect msg = new SurfMsgConnect();
-
-        msg.setVersion(1, 2);   // TODO
-        msg.setKeeyAliveTime(0);    // TODO
-
-        JsonMessage<SurfMsgConnect> jsonMessage = new JsonMessage<>(SurfMsgConnect.class);
-        String jsonStr = jsonMessage.build(msg);
-
-        logger.debug("Surf init json: {}", jsonStr);
+        SurfProcConnect proc = new SurfProcConnect();
+        String jsonStr = proc.build();
 
         return (socket.send(jsonStr.getBytes()) > 0) ? true : false;
     }

@@ -41,7 +41,13 @@ public class DefaultConfig {
             return defaultValue;
         }
 
-        return profileSection.getOrDefault(key, defaultValue);
+        String value = profileSection.getOrDefault(key, defaultValue);
+
+        if (value.contains("#")) {
+            value = value.substring(0, value.indexOf('#')).trim();
+        }
+
+        return value;
     }
 
     public int getIntValue(String section, String key, int defaultValue) {
