@@ -9,7 +9,9 @@ import x3.player.core.socket.TcpSocket;
 import x3.player.mru.common.JsonMessage;
 import x3.player.mru.common.NetUtil;
 import x3.player.mru.surfif.handler.SurfProcConnect;
+import x3.player.mru.surfif.handler.SurfProcSysInf;
 import x3.player.mru.surfif.messages.SurfMsgConnect;
+import x3.player.mru.surfif.messages.SurfMsgSysInf;
 import x3.player.mru.surfif.types.SurfConstant;
 
 import java.net.SocketException;
@@ -46,10 +48,6 @@ public class SurfConnectionThread extends Thread {
         String initMsg = readInitMessage();
 
         logger.debug("Read msg: {}", initMsg);
-        if (initMsg != null && initMsg.equals(SurfConstant.STR_INIT_MESSAGE)) {
-            sendInitResponse();
-        }
-
         logger.debug("SurfConnectionTread isQuit {}", isQuit);
 
         while (!isQuit) {
@@ -63,8 +61,6 @@ public class SurfConnectionThread extends Thread {
                 if (body == null) {
                     continue;
                 }
-
-                logger.debug("Surf msg: {}", body);
 
                 //
                 // TODO
@@ -108,11 +104,17 @@ public class SurfConnectionThread extends Thread {
             return false;
         }
 
-        if (key.equals(SurfConstant.STR_CONNECT)) {
-            SurfProcConnect procConnect = new SurfProcConnect(element);
+        if (key.equals(SurfMsgConnect.MSG_NAME)) {
+            SurfProcConnect connect = new SurfProcConnect();
+            connect.parse(element);
+
             if (surfConnectionCallback != null) {
                 surfConnectionCallback.onReady();
             }
+        }
+        else if (key.equals(SurfMsgSysInf.MSG_NAME)) {
+            SurfProcSysInf sysInf = new SurfProcSysInf();
+            sysInf.parser(element);
         }
         else {
             // TODO
@@ -139,17 +141,6 @@ public class SurfConnectionThread extends Thread {
         return new String(buffer, 0, result);
     }
 
-    private boolean sendInitResponse() {
-        SurfProcConnect proc = new SurfProcConnect();
-        String jsonStr = proc.build();
-
-        if (surfConnectionCallback != null) {
-            surfConnectionCallback.onSend(jsonStr);
-        }
-
-        return true;
-    }
-
     private String readSurfMessage() {
         if (socket == null) {
             return null;
@@ -165,7 +156,6 @@ public class SurfConnectionThread extends Thread {
         }
 
         int bodySize = NetUtil.getBigEndian4BytesValue(header);
-        logger.debug("<- Surf body size {}", bodySize);
 
         byte[] body = new byte[bodySize];
         result = socket.read(body, bodySize);
@@ -174,7 +164,7 @@ public class SurfConnectionThread extends Thread {
             return null;
         }
 
-        logger.debug("<- Surf read bytes {}", result);
+        logger.debug("<- Surf body size {} read bytes {}", result);
 
         String bodyStr = new String(body);
         logger.debug("<- Surf body: {}", bodyStr);

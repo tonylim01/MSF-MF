@@ -7,30 +7,25 @@ import x3.player.mru.AppInstance;
 import x3.player.mru.common.JsonMessage;
 import x3.player.mru.config.SurfConfig;
 import x3.player.mru.surfif.messages.SurfMsgConnect;
+import x3.player.mru.surfif.module.SurfJsonMessage;
 
 public class SurfProcConnect {
     private static final Logger logger = LoggerFactory.getLogger(SurfProcConnect.class);
 
-    SurfMsgConnect msg = null;
-
     public SurfProcConnect() {
     }
 
-    public SurfProcConnect(JsonElement element) {
-        if (element != null) {
-            initMessage(element);
-        }
-    }
-
-    private void initMessage(JsonElement element) {
+    public SurfMsgConnect parse(JsonElement element) {
         if (element == null) {
-            return;
+            return null;
         }
 
         JsonMessage<SurfMsgConnect> parser = new JsonMessage<>(SurfMsgConnect.class);
-        msg = parser.parse(element);
+        SurfMsgConnect msg = parser.parse(element);
 
         logger.debug("Parse connect: version {} {}", msg.getMajorVersion(), msg.getMinorVersion());
+
+        return msg;
     }
 
     public String build() {
@@ -46,8 +41,8 @@ public class SurfProcConnect {
         msg.setVersion(config.getMajorVersion(), config.getMinorVersion());
         msg.setKeeyAliveTime(config.getKeepAliveTime());
 
-        JsonMessage<SurfMsgConnect> jsonMessage = new JsonMessage<>(SurfMsgConnect.class);
-        String jsonStr = jsonMessage.build(msg);
+        SurfJsonMessage<SurfMsgConnect> jsonMessage = new SurfJsonMessage<>(SurfMsgConnect.class);
+        String jsonStr = jsonMessage.build(SurfMsgConnect.MSG_NAME, msg);
 
         logger.debug("Surf connect json: {}", jsonStr);
 

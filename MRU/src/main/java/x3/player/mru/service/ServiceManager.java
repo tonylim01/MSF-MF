@@ -19,6 +19,8 @@ public class ServiceManager {
 
     private static final Logger logger = LoggerFactory.getLogger(ServiceManager.class);
 
+    private static final boolean USE_PING = false;
+
     private static ServiceManager serviceManager = null;
 
     public static ServiceManager getInstance() {
@@ -50,7 +52,7 @@ public class ServiceManager {
     public void loop() {
         AmfConfig config = AppInstance.getInstance().getConfig();
 
-        if (!pingRmqServer(config.getRmqHost())) {
+        if (USE_PING && !pingRmqServer(config.getRmqHost())) {
             return;
         }
 

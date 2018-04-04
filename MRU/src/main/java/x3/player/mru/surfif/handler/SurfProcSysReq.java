@@ -7,16 +7,21 @@ import org.slf4j.LoggerFactory;
 import x3.player.mru.AppInstance;
 import x3.player.mru.common.JsonMessage;
 import x3.player.mru.config.SurfConfig;
+import x3.player.mru.surfif.messages.SurfMsgConnect;
+import x3.player.mru.surfif.messages.SurfMsgSetConfigStatus;
 import x3.player.mru.surfif.messages.SurfMsgSysReq;
 import x3.player.mru.surfif.module.SurfConnectionManager;
+import x3.player.mru.surfif.module.SurfJsonMessage;
 import x3.player.mru.surfif.types.SurfConstant;
 
 public class SurfProcSysReq {
     private static final Logger logger = LoggerFactory.getLogger(SurfProcSysReq.class);
 
+    private static final int STATUS_PERIOD = 1000;  // millisec
+
     private SurfMsgSysReq sysReq = null;
 
-    public String build() {
+    public String build(boolean isEnable) {
 
         SurfConfig config = AppInstance.getInstance().getConfig().getSurfConfig();
 
@@ -31,21 +36,12 @@ public class SurfProcSysReq {
         msg.setReqId(reqId);
         msg.setReqType(SurfConstant.ReqType.SET_CONFIG);
 
-        JsonArray array = new JsonArray();
-        JsonObject status = new JsonObject();
-        status.addProperty("type", "all");
-        status.addProperty("period", 1000);
-        array.add(status);
+        SurfMsgSetConfigStatus status = new SurfMsgSetConfigStatus(1);
+        status.add("all", isEnable ? STATUS_PERIOD : 0);
+        msg.setData(status);
 
-        JsonObject obj = new JsonObject();
-        obj.add("status", array);
-
-        msg.setData(obj);
-
-        JsonMessage<SurfMsgSysReq> jsonMessage = new JsonMessage<>(SurfMsgSysReq.class);
-        String jsonStr = jsonMessage.build(msg);
-
-        logger.debug("Surf sys_req json: {}", jsonStr);
+        SurfJsonMessage<SurfMsgSysReq> jsonMessage = new SurfJsonMessage<>(SurfMsgSysReq.class);
+        String jsonStr = jsonMessage.build(SurfMsgSysReq.MSG_NAME, msg);
 
         return jsonStr;
 

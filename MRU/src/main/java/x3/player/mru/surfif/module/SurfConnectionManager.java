@@ -7,6 +7,7 @@ import x3.player.mru.AppInstance;
 import x3.player.mru.common.NetUtil;
 import x3.player.mru.common.StringUtil;
 import x3.player.mru.config.AmfConfig;
+import x3.player.mru.surfif.handler.SurfProcConnect;
 import x3.player.mru.surfif.handler.SurfProcSysReq;
 import x3.player.mru.surfif.types.SurfConstant;
 
@@ -66,6 +67,10 @@ public class SurfConnectionManager {
 
         createReadThread();
 
+        sendInitMessage();
+        sendConnectMessage();
+        sendMonitorMessage();
+
         return result;
     }
 
@@ -96,9 +101,16 @@ public class SurfConnectionManager {
         return (result > 0) ? true : false;
     }
 
+    private boolean sendConnectMessage() {
+        SurfProcConnect proc = new SurfProcConnect();
+        String jsonStr = proc.build();
+
+        return (send(jsonStr) > 0) ? true : false;
+    }
+
     private boolean sendMonitorMessage() {
         SurfProcSysReq sysReq = new SurfProcSysReq();
-        String json = sysReq.build();
+        String json = sysReq.build(true);
 
         return (send(json) > 0) ? true : false;
     }
@@ -135,13 +147,11 @@ public class SurfConnectionManager {
             @Override
             public void onConnected() {
                 logger.debug("Surf onConnected");
-                sendInitMessage();
             }
 
             @Override
             public void onReady() {
                 logger.debug("Surf onReady");
-                sendMonitorMessage();
             }
 
             @Override
