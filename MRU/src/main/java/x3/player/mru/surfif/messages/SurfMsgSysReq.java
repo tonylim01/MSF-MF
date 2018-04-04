@@ -21,11 +21,6 @@ public class SurfMsgSysReq {
         this.reqType = reqType;
     }
 
-    public void setReqType(SurfConstant.ReqType reqType) {
-        this.reqType = (reqType == SurfConstant.ReqType.SET_CONFIG) ?
-                SurfConstant.REQ_TYPE_SET_CONFIG : SurfConstant.REQ_TYPE_GET_CONFIG;
-    }
-
     public int getReqId() {
         return this.reqId;
     }

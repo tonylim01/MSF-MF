@@ -1,21 +1,17 @@
 package x3.player.mru.surfif.handler;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import x3.player.mru.AppInstance;
-import x3.player.mru.common.JsonMessage;
 import x3.player.mru.config.SurfConfig;
-import x3.player.mru.surfif.messages.SurfMsgConnect;
 import x3.player.mru.surfif.messages.SurfMsgSetConfigStatus;
 import x3.player.mru.surfif.messages.SurfMsgSysReq;
 import x3.player.mru.surfif.module.SurfConnectionManager;
 import x3.player.mru.surfif.module.SurfJsonMessage;
 import x3.player.mru.surfif.types.SurfConstant;
 
-public class SurfProcSysReq {
-    private static final Logger logger = LoggerFactory.getLogger(SurfProcSysReq.class);
+public class SurfProcSetConfig {
+    private static final Logger logger = LoggerFactory.getLogger(SurfProcSetConfig.class);
 
     private static final int STATUS_PERIOD = 1000;  // millisec
 
@@ -34,7 +30,7 @@ public class SurfProcSysReq {
         SurfMsgSysReq msg = new SurfMsgSysReq();
 
         msg.setReqId(reqId);
-        msg.setReqType(SurfConstant.ReqType.SET_CONFIG);
+        msg.setReqType(SurfConstant.REQ_TYPE_SET_CONFIG);
 
         SurfMsgSetConfigStatus status = new SurfMsgSetConfigStatus(1);
         status.add("all", isEnable ? STATUS_PERIOD : 0);
