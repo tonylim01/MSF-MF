@@ -111,7 +111,8 @@ public class SurfConnectionManager {
 
     private boolean sendMonitorMessage() {
         SurfProcSetConfig sysReq = new SurfProcSetConfig();
-        String json = sysReq.build(true);
+//        String json = sysReq.build(true);
+        String json = sysReq.build(false);
 
         return (send(json) > 0) ? true : false;
     }

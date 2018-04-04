@@ -10,7 +10,7 @@ import x3.player.mru.surfif.messages.SurfMsgSysInfData;
 public class SurfProcSysInf {
     private static final Logger logger = LoggerFactory.getLogger(SurfProcSysInf.class);
 
-    public SurfMsgSysInf parser(JsonElement element) {
+    public SurfMsgSysInf parse(JsonElement element) {
         if (element == null) {
             return null;
         }

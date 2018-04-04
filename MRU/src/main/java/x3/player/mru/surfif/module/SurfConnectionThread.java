@@ -6,11 +6,12 @@ import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import x3.player.core.socket.TcpSocket;
-import x3.player.mru.common.JsonMessage;
 import x3.player.mru.common.NetUtil;
 import x3.player.mru.surfif.handler.SurfProcConnect;
+import x3.player.mru.surfif.handler.SurfProcSysAns;
 import x3.player.mru.surfif.handler.SurfProcSysInf;
 import x3.player.mru.surfif.messages.SurfMsgConnect;
+import x3.player.mru.surfif.messages.SurfMsgSysAns;
 import x3.player.mru.surfif.messages.SurfMsgSysInf;
 import x3.player.mru.surfif.types.SurfConstant;
 
@@ -114,7 +115,11 @@ public class SurfConnectionThread extends Thread {
         }
         else if (key.equals(SurfMsgSysInf.MSG_NAME)) {
             SurfProcSysInf sysInf = new SurfProcSysInf();
-            sysInf.parser(element);
+            sysInf.parse(element);
+        }
+        else if (key.equals(SurfMsgSysAns.MSG_NAME)) {
+            SurfProcSysAns sysAns = new SurfProcSysAns();
+            sysAns.parse(element);
         }
         else {
             // TODO
