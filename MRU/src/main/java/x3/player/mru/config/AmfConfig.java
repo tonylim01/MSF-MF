@@ -120,6 +120,9 @@ public class AmfConfig extends DefaultConfig {
             surfConfig.setMinorVersion(surfMinorVersion);
             surfConfig.setKeepAliveTime(keepAliveTime);
 
+            int totalChannels = getIntValue("SURF", "TOTAL_CHANNELS", 0);
+
+            surfConfig.setTotalChannels(totalChannels);
         } catch (Exception e) {
             e.printStackTrace();
         }

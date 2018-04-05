@@ -1,5 +1,6 @@
 package x3.player.mru.surfif.module;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class SurfChannelGroup {
@@ -20,6 +21,8 @@ public class SurfChannelGroup {
         }
 
         this.maxSize = size;
+
+        channels = new HashMap<>(size);
 
         for (int i = 0; i < size; i++) {
             SurfChannelInfo channelInfo = new SurfChannelInfo();

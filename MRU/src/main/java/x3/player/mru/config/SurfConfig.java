@@ -9,6 +9,8 @@ public class SurfConfig {
     private String surfIp;
     private int surfPort;
 
+    private int totalChannels;
+
     public int getMajorVersion() {
         return majorVersion;
     }
@@ -47,5 +49,13 @@ public class SurfConfig {
 
     public void setKeepAliveTime(int keepAliveTime) {
         this.keepAliveTime = keepAliveTime;
+    }
+
+    public int getTotalChannels() {
+        return totalChannels;
+    }
+
+    public void setTotalChannels(int totalChannels) {
+        this.totalChannels = totalChannels;
     }
 }

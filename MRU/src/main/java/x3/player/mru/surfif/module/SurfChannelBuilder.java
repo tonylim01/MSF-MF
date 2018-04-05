@@ -21,10 +21,10 @@ public class SurfChannelBuilder {
     }
 
     public void setToolType(SurfEndpointType endpointType) {
-        SurfMsgToolData data = msg.getToolReq().getData();
+        SurfMsgToolReqData data = msg.getToolReq().getData();
 
         data.setToolType((endpointType == SurfEndpointType.ENDPOINT_TYPE_P2P) ?
-                SurfMsgToolData.TOOL_TYPE_VOICE_P2P : SurfMsgToolData.TOOL_TYPE_VOICE_FE_IP);
+                SurfMsgToolReqData.TOOL_TYPE_VOICE_P2P : SurfMsgToolReqData.TOOL_TYPE_VOICE_FE_IP);
     }
 
     private void setVocoder(SurfMsgVocoder vocoder, String codec, String rate, String packing) {
@@ -85,9 +85,9 @@ public class SurfChannelBuilder {
         toolReq.setReqId(0);    // TODO
         toolReq.setReqType(SurfConstant.REQ_TYPE_SET_CONFIG);
 
-        SurfMsgToolData data = toolReq.getData();
+        SurfMsgToolReqData data = toolReq.getData();
 
-        data.setToolType(SurfMsgToolData.TOOL_TYPE_VOICE_P2P);
+        data.setToolType(SurfMsgToolReqData.TOOL_TYPE_VOICE_P2P);
         data.setBackendToolId(2);   // TODO: mixer's toolId
 
         SurfMsgVocoder decoder = data.getDecoder();

@@ -95,6 +95,11 @@ public class SurfConnectionThread extends Thread {
         for (String key: keySet) {
             logger.debug("Json parser: key {}", key);
             parseJsonMessageByKey(key, obj.get(key));
+
+            // Just for log
+            if (!key.equals(SurfMsgSysInf.MSG_NAME)) {
+                logger.debug("<- Surf msg: {}", jsonStr);
+            }
         }
 
         return true;
@@ -172,7 +177,7 @@ public class SurfConnectionThread extends Thread {
         logger.debug("<- Surf body size {} read bytes {}", result);
 
         String bodyStr = new String(body);
-        logger.debug("<- Surf body: {}", bodyStr);
+//        logger.debug("<- Surf body: {}", bodyStr);
 
         return bodyStr;
     }

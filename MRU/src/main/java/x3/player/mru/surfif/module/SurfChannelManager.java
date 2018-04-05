@@ -2,6 +2,8 @@ package x3.player.mru.surfif.module;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import x3.player.mru.AppInstance;
+import x3.player.mru.surfif.handler.SurfProcToolReq;
 import x3.player.mru.surfif.messages.*;
 import x3.player.mru.surfif.types.SurfConstant;
 import x3.player.mru.surfif.types.SurfEndpointType;
@@ -10,6 +12,9 @@ public class SurfChannelManager {
     private static final Logger logger = LoggerFactory.getLogger(SurfChannelManager.class);
 
     private static final int DEFAULT_GROUP_SIZE = 2;
+    private static final int DEFAULT_CHANNEL_COUNT = 10;
+
+    private static final int CHANNELS_PER_GROUP = 6;
 
     public static final int TOOL_ID_MIXER   = 0;
     public static final int TOOL_ID_CALLER  = 1;
@@ -17,6 +22,21 @@ public class SurfChannelManager {
     public static final int TOOL_ID_CALLEE  = 3;
     public static final int TOOL_ID_PLAY    = 4;
     public static final int TOOL_ID_BG      = 5;
+
+    private static SurfChannelManager surfChannelManager = null;
+
+    public static SurfChannelManager getInstance() {
+        if (surfChannelManager == null) {
+            int totalChannels = AppInstance.getInstance().getConfig().getSurfConfig().getTotalChannels();
+            if (totalChannels <= 0) {
+                totalChannels = DEFAULT_CHANNEL_COUNT;
+            }
+
+            surfChannelManager = new SurfChannelManager(totalChannels);
+        }
+
+        return surfChannelManager;
+    }
 
     private int totalChannels;
     private int groupCount;
@@ -30,7 +50,7 @@ public class SurfChannelManager {
      */
     public SurfChannelManager(int totalChannels) {
         this.totalChannels = totalChannels;
-        this.groupCount = totalChannels / 6;
+        this.groupCount = totalChannels / CHANNELS_PER_GROUP;
 
         if (groupCount <= 0) {
             groupCount = DEFAULT_GROUP_SIZE;
@@ -39,6 +59,7 @@ public class SurfChannelManager {
         channelGroups = new SurfChannelGroup[groupCount];
 
         for (int i = 0; i < groupCount; i++) {
+            channelGroups[i] = new SurfChannelGroup(CHANNELS_PER_GROUP);
             channelGroups[i].setId(i);
         }
     }
@@ -79,21 +100,42 @@ public class SurfChannelManager {
         return groupId;
     }
 
-    public boolean createVoiceChannel(int toolId, int reqId) {
+    /**
+     * Calculates a real tool id allocated in the dsp
+     * @param groupId
+     * @return
+     */
+    public int getReqToolId(int groupId, int toolId) {
+        return groupId * CHANNELS_PER_GROUP + toolId;
+    }
 
-        SurfChannelBuilder builder = new SurfChannelBuilder(toolId, reqId);
+    public String buildCreateVoiceMixer(int mixerId) {
+        SurfProcToolReq toolReq = new SurfProcToolReq(mixerId);
 
-        builder.setToolType(SurfEndpointType.ENDPOINT_TYPE_P2P);
-        builder.setDecoder(SurfMsgVocoder.VOCODER_ALAW, null, null);
-        builder.setEncoder(SurfMsgVocoder.VOCODER_ALAW, null, null);
-        builder.setLocalRtpInfo(10000, 8); // TODO
-        builder.setRemoteRtpInfo("192.168.1.30", 30000, 8); // TODO
+        toolReq.setToolType(SurfMsgToolReqData.TOOL_TYPE_VOICE_MIXER);
+        toolReq.setSamplingRate(8000);  // TODO
+        toolReq.setHangoverPeriod(500); // TODO
+        toolReq.setDominantSpeakers(5); // TODO
 
-        String json = builder.build();
+        String json = toolReq.build();
 
-        // TODO : Sends json to surf HMP
+        return json;
+    }
 
-        return false;
+    public String buildCreateVoiceChannel(int toolId, int mixerId) {
+
+        SurfProcToolReq toolReq = new SurfProcToolReq(toolId);
+
+        toolReq.setMixerId(mixerId);
+        toolReq.setToolType(SurfMsgToolReqData.TOOL_TYPE_VOICE_P2P);
+        toolReq.setDecoder(SurfMsgVocoder.VOCODER_ALAW, null, null);
+        toolReq.setEncoder(SurfMsgVocoder.VOCODER_ALAW, null, null);
+        toolReq.setLocalRtpInfo(10000, 8); // TODO
+        toolReq.setRemoteRtpInfo("192.168.1.30", 30000, 8); // TODO
+
+        String json = toolReq.build();
+
+        return json;
     }
 
     /**
@@ -111,9 +153,9 @@ public class SurfChannelManager {
         toolReq.setReqId(reqId);
         toolReq.setReqType(SurfConstant.REQ_TYPE_SET_CONFIG);
 
-        SurfMsgToolData data = toolReq.getData();
+        SurfMsgToolReqData data = toolReq.getData();
 
-        data.setToolType(SurfMsgToolData.TOOL_TYPE_VOICE_P2P);
+        data.setToolType(SurfMsgToolReqData.TOOL_TYPE_VOICE_P2P);
         data.setBackendToolId(2);   // TODO: mixer's toolId
 
         SurfMsgVocoder decoder = data.getDecoder();

@@ -4,6 +4,8 @@ import com.google.gson.annotations.SerializedName;
 
 public class SurfMsgToolReq {
 
+    public static final String MSG_NAME = "tool_req";
+    
     @SerializedName("tool_id")
     private int toolId;
     @SerializedName("req_id")
@@ -11,10 +13,10 @@ public class SurfMsgToolReq {
     @SerializedName("req_type")
     private String reqType;
     @SerializedName("data")
-    private SurfMsgToolData data;
+    private SurfMsgToolReqData data;
 
     public SurfMsgToolReq() {
-        this.data = new SurfMsgToolData();
+        this.data = new SurfMsgToolReqData();
     }
 
     public int getToolId() {
@@ -41,11 +43,11 @@ public class SurfMsgToolReq {
         this.reqType = reqType;
     }
 
-    public SurfMsgToolData getData() {
+    public SurfMsgToolReqData getData() {
         return data;
     }
 
-    public void setData(SurfMsgToolData data) {
+    public void setData(SurfMsgToolReqData data) {
         this.data = data;
     }
 }

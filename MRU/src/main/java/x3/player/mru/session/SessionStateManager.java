@@ -94,6 +94,9 @@ public class SessionStateManager {
                     if (e.getClass() == InterruptedException.class || e.getClass() == SocketException.class) {
                         isQuit = true;
                     }
+                    else {
+                        e.printStackTrace();
+                    }
                 }
             }
 
