@@ -14,14 +14,16 @@ public class SurfChannelManager {
     private static final int DEFAULT_GROUP_SIZE = 2;
     private static final int DEFAULT_CHANNEL_COUNT = 10;
 
-    private static final int CHANNELS_PER_GROUP = 6;
+    private static final int CHANNELS_PER_GROUP = 7;
+    private static final int BASE_UDP_PORT = 10000;
 
     public static final int TOOL_ID_MIXER   = 0;
-    public static final int TOOL_ID_CALLER  = 1;
-    public static final int TOOL_ID_PAR     = 2;
-    public static final int TOOL_ID_CALLEE  = 3;
-    public static final int TOOL_ID_PLAY    = 4;
-    public static final int TOOL_ID_BG      = 5;
+    public static final int TOOL_ID_CG_RX   = 1;
+    public static final int TOOL_ID_CG_TX   = 2;
+    public static final int TOOL_ID_PAR     = 3;
+    public static final int TOOL_ID_CD      = 4;
+    public static final int TOOL_ID_PLAY    = 5;
+    public static final int TOOL_ID_BG      = 6;
 
     private static SurfChannelManager surfChannelManager = null;
 
@@ -105,8 +107,21 @@ public class SurfChannelManager {
      * @param groupId
      * @return
      */
-    public int getReqToolId(int groupId, int toolId) {
+    public static int getReqToolId(int groupId, int toolId) {
         return groupId * CHANNELS_PER_GROUP + toolId;
+    }
+
+    /**
+     * Returns udp port belongs to the tool
+     * @param toolId
+     * @return
+     */
+    public static int getUdpPort(int toolId) {
+        return BASE_UDP_PORT + toolId * 2;
+    }
+
+    public static int getUdpPort(int groupId, int toolId) {
+        return getUdpPort(getReqToolId(groupId, toolId));
     }
 
     public String buildCreateVoiceMixer(int mixerId) {
@@ -122,16 +137,20 @@ public class SurfChannelManager {
         return json;
     }
 
-    public String buildCreateVoiceChannel(int toolId, int mixerId) {
+    public String buildCreateVoiceChannel(int toolId, int mixerId,
+                                          int inPayloadId, int outPayloadId,
+                                          int localPort,
+                                          String remoteIp, int remotePort) {
 
         SurfProcToolReq toolReq = new SurfProcToolReq(toolId);
 
         toolReq.setMixerId(mixerId);
-        toolReq.setToolType(SurfMsgToolReqData.TOOL_TYPE_VOICE_P2P);
+        toolReq.setToolType((mixerId < 0) ?
+                SurfMsgToolReqData.TOOL_TYPE_VOICE_P2P : SurfMsgToolReqData.TOOL_TYPE_VOICE_FE_IP);
         toolReq.setDecoder(SurfMsgVocoder.VOCODER_ALAW, null, null);
         toolReq.setEncoder(SurfMsgVocoder.VOCODER_ALAW, null, null);
-        toolReq.setLocalRtpInfo(10000, 8); // TODO
-        toolReq.setRemoteRtpInfo("192.168.1.30", 30000, 8); // TODO
+        toolReq.setLocalRtpInfo(localPort, outPayloadId);
+        toolReq.setRemoteRtpInfo(remoteIp, remotePort, inPayloadId);
 
         String json = toolReq.build();
 

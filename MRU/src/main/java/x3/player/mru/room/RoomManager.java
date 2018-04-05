@@ -50,8 +50,14 @@ public class RoomManager {
         return result;
     }
 
-    public boolean addSession(String roomId, String sessionId) {
-        boolean result = false;
+    /**
+     * Adds a session and returns a room size
+     * @param roomId
+     * @param sessionId
+     * @return
+     */
+    public int addSession(String roomId, String sessionId) {
+        int result = 0;
 
         synchronized (roomInfos) {
             RoomInfo roomInfo;
@@ -60,17 +66,18 @@ public class RoomManager {
             }
             else {
                 roomInfo = new RoomInfo();
+                roomInfo.setRoomId(roomId);
                 roomInfos.put(roomId, roomInfo);
             }
 
             if (!roomInfo.hasSession(sessionId)) {
                 roomInfo.addSession(sessionId);
-                result = true;
             }
             else {
                 logger.warn("[{}] Room already has session [{}]", roomId, sessionId);
             }
 
+            result = roomInfo.getSessionSize();
         }
 
         return result;

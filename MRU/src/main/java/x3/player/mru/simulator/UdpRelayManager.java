@@ -53,11 +53,16 @@ public class UdpRelayManager {
      * @return
      */
     public int getNextLocalPort() {
-        int result = currentUdpPort;
-        currentUdpPort += 2;
 
-        if (currentUdpPort > localUdpPortMax) {
-            currentUdpPort = localUdpPortMin;
+        int result;
+
+        synchronized (udpRelayManager) {
+            result = currentUdpPort;
+            currentUdpPort += 2;
+
+            if (currentUdpPort > localUdpPortMax) {
+                currentUdpPort = localUdpPortMin;
+            }
         }
 
         return result;

@@ -1,5 +1,6 @@
 package x3.player.mru.config;
 
+import x3.player.mru.common.NetUtil;
 import x3.player.mru.common.StringUtil;
 import x3.player.core.config.DefaultConfig;
 import org.slf4j.Logger;
@@ -29,6 +30,8 @@ public class AmfConfig extends DefaultConfig {
 
     private int localUdpPortMin;
     private int localUdpPortMax;
+    private String localNetInterface;
+    private String localIpAddress;
 
     private SurfConfig surfConfig;
 
@@ -152,6 +155,12 @@ public class AmfConfig extends DefaultConfig {
 
             localUdpPortMin = getIntValue(instanceSection, "LOCAL_UDP_PORT_MIN", 0);
             localUdpPortMax = getIntValue(instanceSection, "LOCAL_UDP_PORT_MAX", 0);
+
+            localNetInterface = getStrValue("MEDIA", "LOCAL_NET_INTERFACE", null);
+
+            if (localNetInterface != null) {
+                localIpAddress = NetUtil.getLocalIP(localNetInterface);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -240,5 +249,13 @@ public class AmfConfig extends DefaultConfig {
         }
 
         return mediaPriorities.get(index);
+    }
+
+    public String getLocalNetInterface() {
+        return localNetInterface;
+    }
+
+    public String getLocalIpAddress() {
+        return localIpAddress;
     }
 }

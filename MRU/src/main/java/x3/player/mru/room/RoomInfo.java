@@ -3,6 +3,8 @@ package x3.player.mru.room;
 import java.util.Vector;
 
 public class RoomInfo {
+    private String roomId;
+
     private Vector<String> sessions;
 
     private int groupId;
@@ -10,6 +12,8 @@ public class RoomInfo {
 
     public RoomInfo() {
         this.sessions = new Vector<>();
+        groupId = -1;
+        mixerId = -1;
     }
 
     public boolean addSession(String sessionId) {
@@ -52,6 +56,14 @@ public class RoomInfo {
             }
         }
         return otherSession;
+    }
+
+    public String getRoomId() {
+        return roomId;
+    }
+
+    public void setRoomId(String roomId) {
+        this.roomId = roomId;
     }
 
     public int getGroupId() {

@@ -56,9 +56,9 @@ public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
         // sdpInfo can be null for a no-sdp case
         SdpInfo sdpInfo = SdpParser.parseSdp(req.getSdp());
 
-        boolean result;
-        result = setRoomInfo(req.getConferenceId(), msg.getSessionId());
-        if (result == false) {
+        int parCount;
+        parCount = setRoomInfo(req.getConferenceId(), msg.getSessionId());
+        if (parCount == 0) {
             sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom(),
                     RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_FAILURE,
                     "ROOM-SESSION ERROR");
@@ -83,6 +83,7 @@ public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
         sessionInfo.setConferenceId(req.getConferenceId());
         sessionInfo.setFromNo(req.getFromNo());
         sessionInfo.setToNo(req.getToNo());
+        sessionInfo.setCaller((parCount == 1) ? true : false);
 
         //
         // TODO
@@ -115,12 +116,12 @@ public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
      * @param sessionId
      * @return
      */
-    private boolean setRoomInfo(String conferenceId, String sessionId) {
+    private int setRoomInfo(String conferenceId, String sessionId) {
         if (conferenceId == null || sessionId == null) {
-            return false;
+            return 0;
         }
 
-        boolean result = false;
+        int result = 0;
 
         RoomManager roomManager = RoomManager.getInstance();
         if (roomManager.hasSession(conferenceId,sessionId)) {
@@ -128,7 +129,7 @@ public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
         }
         else {
             result = roomManager.addSession(conferenceId, sessionId);
-            logger.debug("[{}] Room addSession [{}] result [{}]", conferenceId, sessionId, result);
+            logger.debug("[{}] Room addSession [{}] size [{}]", conferenceId, sessionId, result);
         }
 
         return result;
