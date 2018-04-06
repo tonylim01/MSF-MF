@@ -18,6 +18,8 @@ public class SurfMsgToolReqData {
     private SurfMsgVocoder encoder;
     @SerializedName("RTP")
     private SurfMsgRtp rtp;
+    @SerializedName("input_from_RTP")
+    private Boolean inputFromRtp;
 
     /**
      * Mixer
@@ -83,6 +85,14 @@ public class SurfMsgToolReqData {
 
     public void newRtp() {
         this.rtp = new SurfMsgRtp();
+    }
+
+    public Boolean getInputFromRtp() {
+        return inputFromRtp;
+    }
+
+    public void setInputFromRtp(Boolean inputFromRtp) {
+        this.inputFromRtp = inputFromRtp;
     }
 
     public int getSamplingRate() {

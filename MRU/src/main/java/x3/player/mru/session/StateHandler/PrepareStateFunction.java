@@ -9,10 +9,8 @@ import x3.player.mru.config.SurfConfig;
 import x3.player.mru.room.RoomInfo;
 import x3.player.mru.room.RoomManager;
 import x3.player.mru.session.SessionInfo;
-import x3.player.mru.session.SessionManager;
 import x3.player.mru.session.SessionState;
 import x3.player.mru.simulator.BiUdpRelayManager;
-import x3.player.mru.simulator.UdpRelayManager;
 import x3.player.mru.surfif.module.SurfChannelManager;
 import x3.player.mru.surfif.module.SurfConnectionManager;
 
@@ -46,7 +44,7 @@ public class PrepareStateFunction implements StateFunction {
             openMixerResource(roomInfo, sessionInfo.getSessionId());
 
             // Step #2) Create play & bg channels and connects them to the mixer
-            openServiceResource(sessionInfo, roomInfo);
+            openPlayResource(sessionInfo, roomInfo);
         }
 
         if (sessionInfo.isCaller()) {
@@ -91,7 +89,7 @@ public class PrepareStateFunction implements StateFunction {
         BiUdpRelayManager udpRelayManager = BiUdpRelayManager.getInstance();
 
         // srcLocalPort -> Surf par
-        int parPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_PAR);
+        int parPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_PAR_CG);
 
         udpRelayManager.openSrcServer(sessionInfo.getSessionId(), sessionInfo.getSrcLocalPort());
         udpRelayManager.openSrcClient(sessionInfo.getSessionId(),
@@ -175,14 +173,14 @@ public class PrepareStateFunction implements StateFunction {
         // Creates 3 voice channels
         int cgRxId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CG_RX);
         int cgTxId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CG_TX);
-        int parId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR);
+        int parId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_CG);
 
         int rxPort = SurfChannelManager.getUdpPort(cgRxId);
         int txPort = ((rxPort << 16) & 0xffff0000) + SurfChannelManager.getUdpPort(cgTxId);
 
 
         // Creates a caller as p2p mode (RX channel: remote -> local)
-        json = channelManager.buildCreateVoiceChannel(cgRxId, -1,
+        json = channelManager.buildCreateVoiceChannel(cgRxId, -1, true,
                 sdpInfo.getPayloadId(), // inPayloadId
                 localPayloadId,  // outpayloadId
                 rxPort,
@@ -191,7 +189,7 @@ public class PrepareStateFunction implements StateFunction {
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, cgRxId, json);
 
         // Creates a caller as p2p mode (TX channel: remote <- local)
-        json = channelManager.buildCreateVoiceChannel(cgTxId, -1,
+        json = channelManager.buildCreateVoiceChannel(cgTxId, -1, true,
                 localPayloadId, // inPayloadId
                 sdpInfo.getPayloadId(),  // outpayloadId
                 txPort,
@@ -200,7 +198,7 @@ public class PrepareStateFunction implements StateFunction {
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, cgTxId, json);
 
         // Creates a mixer's participant as ip mode
-        json = channelManager.buildCreateVoiceChannel(parId, mixerId,
+        json = channelManager.buildCreateVoiceChannel(parId, mixerId, true,
                 localPayloadId,
                 localPayloadId,
                 SurfChannelManager.getUdpPort(parId),
@@ -236,7 +234,7 @@ public class PrepareStateFunction implements StateFunction {
         int calleePort = SurfChannelManager.getUdpPort(calleeId);
 
         // Creates a callee as ip mode
-        json = channelManager.buildCreateVoiceChannel(calleeId, mixerId,
+        json = channelManager.buildCreateVoiceChannel(calleeId, mixerId, true,
                 sdpInfo.getPayloadId(), // inPayloadId
                 localPayloadId,  // outpayloadId
                 calleePort,
@@ -247,12 +245,12 @@ public class PrepareStateFunction implements StateFunction {
         return true;
     }
 
-    private boolean openServiceResource(SessionInfo sessionInfo, RoomInfo roomInfo) {
+    private boolean openPlayResource(SessionInfo sessionInfo, RoomInfo roomInfo) {
         if (sessionInfo == null) {
             return false;
         }
 
-        logger.debug("{} Allocates service DSP resources", sessionInfo.getSessionId());
+        logger.debug("{} Allocates file play DSP resources", sessionInfo.getSessionId());
 
         String json;
         int groupId = roomInfo.getGroupId();
@@ -269,21 +267,10 @@ public class PrepareStateFunction implements StateFunction {
         int localPayloadId = 8; // TODO : Internal packet's payloadId
 
         // Creates bg & play channels
-        int bgId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_BG);
-        int playId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PLAY);
-
-        int bgPort =  SurfChannelManager.getUdpPort(bgId);
+        int playId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_PLAY);
         int playPort =  SurfChannelManager.getUdpPort(playId);
 
-        json = channelManager.buildCreateVoiceChannel(bgId, mixerId,
-                localPayloadId, // inPayloadId
-                localPayloadId,  // outpayloadId
-                bgPort,
-                "0.0.0.0", 0);
-
-        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, bgId, json);
-
-        json = channelManager.buildCreateVoiceChannel(playId, mixerId,
+        json = channelManager.buildCreateVoiceChannel(playId, mixerId, false,
                 localPayloadId, // inPayloadId
                 localPayloadId,  // outpayloadId
                 playPort,
@@ -291,6 +278,18 @@ public class PrepareStateFunction implements StateFunction {
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, playId, json);
 
+        int bgId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_BG);
+        int bgPort =  SurfChannelManager.getUdpPort(playId);
+
+        json = channelManager.buildCreateVoiceChannel(bgId, mixerId, false,
+                localPayloadId, // inPayloadId
+                localPayloadId,  // outpayloadId
+                bgPort,
+                "0.0.0.0", 0);
+
+        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, bgId, json);
+
         return true;
     }
-}
+
+ }

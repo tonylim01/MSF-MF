@@ -42,6 +42,11 @@ public class SurfProcToolReq extends SurfProcRequest {
         data.setToolType(toolType);
     }
 
+    public void setInputFromRtp(boolean inputFromRtp) {
+        SurfMsgToolReqData data = msg.getData();
+        data.setInputFromRtp(inputFromRtp);
+    }
+
     private void setVocoder(SurfMsgVocoder vocoder, String codec, String rate, String packing) {
         if (vocoder == null) {
             return;

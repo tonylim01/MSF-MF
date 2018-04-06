@@ -14,16 +14,18 @@ public class SurfChannelManager {
     private static final int DEFAULT_GROUP_SIZE = 2;
     private static final int DEFAULT_CHANNEL_COUNT = 10;
 
-    private static final int CHANNELS_PER_GROUP = 7;
+    private static final int CHANNELS_PER_GROUP = 9;
     private static final int BASE_UDP_PORT = 10000;
 
     public static final int TOOL_ID_MIXER   = 0;
     public static final int TOOL_ID_CG_RX   = 1;
     public static final int TOOL_ID_CG_TX   = 2;
-    public static final int TOOL_ID_PAR     = 3;
+    public static final int TOOL_ID_PAR_CG  = 3;
     public static final int TOOL_ID_CD      = 4;
     public static final int TOOL_ID_PLAY    = 5;
     public static final int TOOL_ID_BG      = 6;
+    public static final int TOOL_ID_PAR_PLAY    = 7;
+    public static final int TOOL_ID_PAR_BG  = 8;
 
     private static SurfChannelManager surfChannelManager = null;
 
@@ -138,6 +140,7 @@ public class SurfChannelManager {
     }
 
     public String buildCreateVoiceChannel(int toolId, int mixerId,
+                                          boolean inputFromRtp,
                                           int inPayloadId, int outPayloadId,
                                           int localPort,
                                           String remoteIp, int remotePort) {
@@ -147,6 +150,9 @@ public class SurfChannelManager {
         toolReq.setMixerId(mixerId);
         toolReq.setToolType((mixerId < 0) ?
                 SurfMsgToolReqData.TOOL_TYPE_VOICE_P2P : SurfMsgToolReqData.TOOL_TYPE_VOICE_FE_IP);
+        if (!inputFromRtp) {
+            toolReq.setInputFromRtp(inputFromRtp);
+        }
         toolReq.setDecoder(SurfMsgVocoder.VOCODER_ALAW, null, null);
         toolReq.setEncoder(SurfMsgVocoder.VOCODER_ALAW, null, null);
         toolReq.setLocalRtpInfo(localPort, outPayloadId);
