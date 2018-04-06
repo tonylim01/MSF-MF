@@ -5,18 +5,36 @@ import org.slf4j.LoggerFactory;
 import x3.player.mru.AppInstance;
 import x3.player.mru.common.NetUtil;
 import x3.player.mru.config.AmfConfig;
-import x3.player.mru.rmqif.messages.HeartbeatReq;
 import x3.player.mru.rmqif.module.RmqClient;
 import x3.player.mru.rmqif.module.RmqServer;
+import x3.player.mru.room.RoomManager;
+import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionManager;
+import x3.player.mru.simulator.UdpRelayManager;
+import x3.player.mru.surfif.module.SurfConnectionManager;
+
+import javax.xml.ws.Service;
 
 public class ServiceManager {
 
     private static final Logger logger = LoggerFactory.getLogger(ServiceManager.class);
 
+    private static final boolean USE_PING = false;
+
+    private static ServiceManager serviceManager = null;
+
+    public static ServiceManager getInstance() {
+        if (serviceManager == null) {
+            serviceManager = new ServiceManager();
+        }
+
+        return serviceManager;
+    }
+
     private RmqServer rmqServer;
     private SessionManager sessionManager;
     private HeartbeatManager heartbeatManager;
+    private SurfConnectionManager surfConnectionManager;
 
     private boolean isQuit = false;
 
@@ -25,7 +43,7 @@ public class ServiceManager {
      */
     public ServiceManager() {
         AppInstance instance = AppInstance.getInstance();
-        instance.setConfig(new AmfConfig());
+        instance.setConfig(new AmfConfig(instance.getInstanceId()));
     }
 
     /**
@@ -34,7 +52,7 @@ public class ServiceManager {
     public void loop() {
         AmfConfig config = AppInstance.getInstance().getConfig();
 
-        if (!pingRmqServer(config.getRmqHost())) {
+        if (USE_PING && !pingRmqServer(config.getRmqHost())) {
             return;
         }
 
@@ -80,11 +98,14 @@ public class ServiceManager {
         rmqServer = new RmqServer();
         rmqServer.start();
 
-        sessionManager = new SessionManager();
+        sessionManager = SessionManager.getInstance();
         sessionManager.start();
 
         heartbeatManager = HeartbeatManager.getInstance();
         heartbeatManager.start();
+
+        surfConnectionManager = SurfConnectionManager.getInstance();
+        surfConnectionManager.start();
 
         return true;
     }
@@ -93,6 +114,11 @@ public class ServiceManager {
      * Finalizes all the resources
      */
     private void stopService() {
+
+        if (surfConnectionManager != null) {
+            surfConnectionManager.stop();
+        }
+
         if (rmqServer != null) {
             rmqServer.stop();
         }
@@ -105,5 +131,33 @@ public class ServiceManager {
         if (RmqClient.hasInstance(config.getMcudName())) {
             RmqClient.getInstance(config.getMcudName()).closeSender();
         }
+    }
+
+    public boolean releaseResource(String sessionId) {
+        if (sessionId == null) {
+            return false;
+        }
+
+        if (sessionManager == null) {
+            return false;
+        }
+
+        SessionInfo sessionInfo = sessionManager.getSession(sessionId);
+
+        if (sessionInfo == null) {
+            logger.warn("[{}] No session found", sessionId);
+            return false;
+        }
+
+        UdpRelayManager udpRelayManager = UdpRelayManager.getInstance();
+        udpRelayManager.close(sessionId);
+
+        if (sessionInfo.getConferenceId() != null) {
+            RoomManager.getInstance().removeSession(sessionInfo.getConferenceId(), sessionId);
+        }
+
+        sessionManager.deleteSession(sessionId);
+
+        return true;
     }
 }

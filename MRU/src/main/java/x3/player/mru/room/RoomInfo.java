@@ -5,6 +5,9 @@ import java.util.Vector;
 public class RoomInfo {
     private Vector<String> sessions;
 
+    private int groupId;
+    private int mixerId;
+
     public RoomInfo() {
         this.sessions = new Vector<>();
     }
@@ -49,5 +52,21 @@ public class RoomInfo {
             }
         }
         return otherSession;
+    }
+
+    public int getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(int groupId) {
+        this.groupId = groupId;
+    }
+
+    public int getMixerId() {
+        return mixerId;
+    }
+
+    public void setMixerId(int mixerId) {
+        this.mixerId = mixerId;
     }
 }

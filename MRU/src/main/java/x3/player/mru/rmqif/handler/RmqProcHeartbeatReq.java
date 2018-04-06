@@ -3,7 +3,6 @@ package x3.player.mru.rmqif.handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import x3.player.mru.rmqif.handler.base.RmqOutgoingMessage;
-import x3.player.mru.rmqif.messages.HangupRes;
 import x3.player.mru.rmqif.messages.HeartbeatReq;
 import x3.player.mru.rmqif.types.RmqMessageType;
 import x3.player.mru.room.RoomManager;
@@ -11,7 +10,7 @@ import x3.player.mru.session.SessionManager;
 
 public class RmqProcHeartbeatReq extends RmqOutgoingMessage {
 
-    private static final Logger logger = LoggerFactory.getLogger(RmqProcHangupRes.class);
+    private static final Logger logger = LoggerFactory.getLogger(RmqProcIncomingHangupRes.class);
 
     public RmqProcHeartbeatReq(String sessionId, String transactionId) {
         super(sessionId, transactionId);

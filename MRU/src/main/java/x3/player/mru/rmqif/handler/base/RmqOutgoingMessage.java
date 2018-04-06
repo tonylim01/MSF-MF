@@ -12,8 +12,11 @@ import x3.player.mru.rmqif.types.RmqMessage;
 import x3.player.mru.rmqif.types.RmqMessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import x3.player.mru.session.SessionInfo;
+import x3.player.mru.session.SessionManager;
 
 import java.lang.reflect.Type;
+import java.util.UUID;
 
 public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
 
@@ -32,6 +35,10 @@ public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
         this.header = new RmqHeader();
 
         setSessionId(sessionId);
+
+        if (transactionId == null) {
+            transactionId = UUID.randomUUID().toString();
+        }
         setTransactionId(transactionId);
     }
 
@@ -107,7 +114,9 @@ public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
             String json = RmqBuilder.build(msg);
 
             if (json != null) {
-                logger.debug("[{}] json=[{}]", msg.getSessionId(), json);
+                if (msg.getMessageType() != RmqMessageType.RMQ_MSG_TYPE_HEARTBEAT) {
+                    logger.debug("[{}] json=[{}]", msg.getSessionId(), json);
+                }
 
                 RmqClient client = RmqClient.getInstance(target);
                 if (client != null) {
@@ -115,8 +124,10 @@ public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
 
                     if (result) {
                         if (msg.getHeader().getReason() == null) {
-                            logger.info("[{}] -> ({}) {}", msg.getSessionId(), target,
-                                    RmqMessageType.getMessageTypeStr(msg.getMessageType()));
+                            if (msg.getMessageType() != RmqMessageType.RMQ_MSG_TYPE_HEARTBEAT) {
+                                logger.info("[{}] -> ({}) {}", msg.getSessionId(), target,
+                                        RmqMessageType.getMessageTypeStr(msg.getMessageType()));
+                            }
                         }
                         else {
                             logger.info("[{}] -> ({}) {}: code=[{}] reason=[{}]", msg.getSessionId(), target,
@@ -152,4 +163,18 @@ public class RmqOutgoingMessage implements RmqOutgoingMessageInterface {
         setReasonCode(reasonCode);
         setReasonStr(reasonStr);
     }
+
+    protected SessionInfo checkAndGetSession(String sessionId) {
+        SessionInfo sessionInfo = SessionManager.findSession(getSessionId());
+        if (sessionInfo == null) {
+            logger.error("[{}] No session found", getSessionId());
+            SessionManager.getInstance().printSessionList();
+
+            if (getHeader().getReasonCode() == RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_SUCCESS) {
+                setReason(RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_WRONG_PARAM, "NO SESSION FOUND");
+            }
+        }
+        return sessionInfo;
+    }
+
 }

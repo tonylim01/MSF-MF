@@ -14,7 +14,16 @@ public class AppInstance {
         return instance;
     }
 
+    private int instanceId = 0;
     private AmfConfig config = null;
+
+    public int getInstanceId() {
+        return instanceId;
+    }
+
+    public void setInstanceId(int instanceId) {
+        this.instanceId = instanceId;
+    }
 
     public AmfConfig getConfig() {
         return config;

@@ -1,10 +1,11 @@
 package x3.player.core.config;
 
-import java.util.Properties;
+import org.ini4j.Ini;
+import org.ini4j.Profile;
 
 public class DefaultConfig {
 
-    private Properties configs;
+    private Ini ini;
     private String fileName;
 
     public DefaultConfig(String fileName) {
@@ -14,9 +15,9 @@ public class DefaultConfig {
     protected boolean load() {
 
         boolean result = false;
-        configs = new Properties();
+        ini = new Ini();
         try {
-            configs.load(this.getClass().getClassLoader().getResourceAsStream(fileName));
+            ini.load(this.getClass().getClassLoader().getResourceAsStream(fileName));
             result = true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -26,24 +27,39 @@ public class DefaultConfig {
     }
 
     public void close() {
-        configs.clear();
+        ini.clear();
     }
 
-    public String getStrValue(String key, String defaultValue) {
-        return configs.getProperty(key, defaultValue);
+    public String getStrValue(String section, String key, String defaultValue) {
+        if (section == null) {
+            return defaultValue;
+        }
+
+        Profile.Section profileSection = ini.get(section);
+
+        if (profileSection == null) {
+            return defaultValue;
+        }
+
+        String value = profileSection.getOrDefault(key, defaultValue);
+
+        if (value != null && value.contains("#")) {
+            value = value.substring(0, value.indexOf('#')).trim();
+        }
+
+        return value;
     }
 
-    public int getIntValue(String key, int defaultValue) {
+    public int getIntValue(String section, String key, int defaultValue) {
 
         int result;
-        String value = configs.getProperty(key, null);
-
-        if (value == null) {
+        String configValue = getStrValue(section, key, null);
+        if (configValue == null) {
             result = defaultValue;
         }
         else {
             try {
-                result = Integer.valueOf(value);
+                result = Integer.valueOf(configValue);
             } catch (Exception e) {
                 result = defaultValue;
             }

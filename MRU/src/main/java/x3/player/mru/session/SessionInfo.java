@@ -5,12 +5,21 @@ import x3.player.core.sdp.SdpInfo;
 public class SessionInfo {
 
     private String sessionId;
-    private long timestamp;
+    private long createdTime;
+
+    private SessionState serviceState;
+    private long lastSentTime;
+    private long t2Time;
+    private long t4Time;
+
     private String conferenceId;
     private SdpInfo sdpInfo;
 
     private String localIpAddress;
     private int localPort;
+
+    private String fromNo;
+    private String toNo;
 
     public String getSessionId() {
         return sessionId;
@@ -20,12 +29,75 @@ public class SessionInfo {
         this.sessionId = sessionId;
     }
 
-    public long getTimestamp() {
-        return timestamp;
+    public long getCreatedTime() {
+        return createdTime;
     }
 
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
+    public void setCreatedTime(long createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public SessionState getServiceState() {
+        return serviceState;
+    }
+
+    public void setServiceState(SessionState serviceState) {
+        synchronized (this) {
+            this.serviceState = serviceState;
+            this.lastSentTime = 0;
+            this.t2Time = 0;
+            this.t4Time = 0;
+        }
+    }
+
+    public long getLastSentTime() {
+        synchronized (this) {
+            return lastSentTime;
+        }
+    }
+
+    public void setLastSentTime(long lastSentTime) {
+        synchronized (this) {
+            this.lastSentTime = lastSentTime;
+        }
+    }
+
+    public void setLastSentTime() {
+        setLastSentTime(System.currentTimeMillis());
+    }
+
+    public long getT2Time() {
+        synchronized (this) {
+            return t2Time;
+        }
+    }
+
+    public void setT2Time(long t2Time) {
+        synchronized (this) {
+            this.t2Time = t2Time;
+        }
+    }
+
+    public long getT4Time() {
+        synchronized (this) {
+            return t4Time;
+        }
+    }
+
+    public void setT4Time(long t4Time) {
+        this.t4Time = t4Time;
+    }
+
+    public void updateT2Time(long t2interval) {
+        synchronized (this) {
+            this.t2Time = System.currentTimeMillis() + t2interval;
+        }
+    }
+
+    public void updateT4Time(long t4interval) {
+        synchronized (this) {
+            this.t4Time = System.currentTimeMillis() + t4interval;
+        }
     }
 
     public String getConferenceId() {
@@ -58,5 +130,21 @@ public class SessionInfo {
 
     public void setLocalPort(int localPort) {
         this.localPort = localPort;
+    }
+
+    public String getFromNo() {
+        return fromNo;
+    }
+
+    public void setFromNo(String fromNo) {
+        this.fromNo = fromNo;
+    }
+
+    public String getToNo() {
+        return toNo;
+    }
+
+    public void setToNo(String toNo) {
+        this.toNo = toNo;
     }
 }

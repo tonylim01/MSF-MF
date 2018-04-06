@@ -1,9 +1,6 @@
 package x3.player.mru.rmqif.module;
 
-import x3.player.mru.rmqif.handler.RmqProcHangupReq;
-import x3.player.mru.rmqif.handler.RmqProcInboundGetAnswerReq;
-import x3.player.mru.rmqif.handler.RmqProcInboundSetOfferReq;
-import x3.player.mru.rmqif.handler.RmqProcNegoDoneReq;
+import x3.player.mru.rmqif.handler.*;
 import x3.player.mru.rmqif.types.RmqMessage;
 import x3.player.mru.rmqif.types.RmqMessageType;
 import org.slf4j.Logger;
@@ -92,10 +89,12 @@ public class RmqConsumer implements Runnable {
             case RmqMessageType.RMQ_MSG_TYPE_OUTBOUND_SET_ANSWER_RES:
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_HANGUP_REQ:
-                RmqProcHangupReq hangupReq= new RmqProcHangupReq();
+                RmqProcIncomingHangupReq hangupReq= new RmqProcIncomingHangupReq();
                 hangupReq.handle(msg);
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_HANGUP_RES:
+                RmqProcOutgoingHangupRes hangupRes = new RmqProcOutgoingHangupRes();
+                hangupRes.handle(msg);
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_NEGO_DONE_REQ:
                 RmqProcNegoDoneReq negoDoneReq= new RmqProcNegoDoneReq();
@@ -104,6 +103,8 @@ public class RmqConsumer implements Runnable {
             case RmqMessageType.RMQ_MSG_TYPE_NEGO_DONE_RES:
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_COMMAND_REQ:
+                RmqProcCommandStartReq commandStartReq = new RmqProcCommandStartReq();
+                commandStartReq.handle(msg);
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_COMMAND_RES:
                 break;
@@ -146,6 +147,24 @@ public class RmqConsumer implements Runnable {
             case RmqMessageType.RMQ_MSG_TYPE_PLAY_ASR_RES:
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_PLAY_ASR_ACK:
+                break;
+            case RmqMessageType.RMQ_MSG_TYPE_SERVICE_START_REQ:
+                RmqProcServiceStartReq startServiceReq = new RmqProcServiceStartReq();
+                startServiceReq.handle(msg);
+                break;
+            case RmqMessageType.RMQ_MSG_TYPE_SERVICE_START_RES:
+                break;
+            case RmqMessageType.RMQ_MSG_TYPE_COMMAND_STOP_REQ:
+                break;
+            case RmqMessageType.RMQ_MSG_TYPE_COMMAND_STOP_RES:
+                break;
+            case RmqMessageType.RMQ_MSG_TYPE_COMMAND_DONE_REQ:
+                break;
+            case RmqMessageType.RMQ_MSG_TYPE_COMMAND_DONE_RES:
+                break;
+            case RmqMessageType.RMQ_MSG_TYPE_COMMAND_END_REQ:
+                break;
+            case RmqMessageType.RMQ_MSG_TYPE_COMMAND_END_RES:
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_CREATE_CONFERENCE_REQ:
                 break;

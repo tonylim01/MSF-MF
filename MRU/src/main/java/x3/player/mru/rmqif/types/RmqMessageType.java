@@ -68,6 +68,15 @@ public class RmqMessageType {
 
     public static final String RMQ_MSG_STR_HEARTBEAT                = "mfmp_heartbeat_indi";
 
+    public static final String RMQ_MSG_STR_SERVICE_START_REQ        = "msmp_service_start_req";
+    public static final String RMQ_MSG_STR_SERVICE_START_RES        = "msmp_service_start_res";
+    public static final String RMQ_MSG_STR_COMMAND_STOP_REQ         = "msmp_command_stop_req";
+    public static final String RMQ_MSG_STR_COMMAND_STOP_RES         = "msmp_command_stop_res";
+    public static final String RMQ_MSG_STR_COMMAND_DONE_REQ         = "msmp_command_done_req";
+    public static final String RMQ_MSG_STR_COMMAND_DONE_RES         = "msmp_command_done_res";
+    public static final String RMQ_MSG_STR_COMMAND_END_REQ          = "msmp_command_end_req";
+    public static final String RMQ_MSG_STR_COMMAND_END_RES          = "msmp_command_end_res";
+
     public static final int RMQ_MSG_TYPE_UNDEFINED = 0;
     public static final int RMQ_MSG_TYPE_INBOUND_SET_OFFER_REQ = 0x0001;
     public static final int RMQ_MSG_TYPE_INBOUND_SET_OFFER_RES = 0x1001;
@@ -133,6 +142,16 @@ public class RmqMessageType {
 
     public static final int RMQ_MSG_TYPE_HEARTBEAT = 0x0091;
 
+    public static final int RMQ_MSG_TYPE_SERVICE_START_REQ = 0x0031;
+    public static final int RMQ_MSG_TYPE_SERVICE_START_RES = 0x1031;
+    public static final int RMQ_MSG_TYPE_COMMAND_STOP_REQ = 0x0032;
+    public static final int RMQ_MSG_TYPE_COMMAND_STOP_RES = 0x1032;
+    public static final int RMQ_MSG_TYPE_COMMAND_DONE_REQ = 0x0033;
+    public static final int RMQ_MSG_TYPE_COMMAND_DONE_RES = 0x1033;
+    public static final int RMQ_MSG_TYPE_COMMAND_END_REQ = 0x0034;
+    public static final int RMQ_MSG_TYPE_COMMAND_END_RES = 0x1034;
+
+
     public static final int RMQ_MSG_COMMON_REASON_CODE_SUCCESS = 0;
     public static final int RMQ_MSG_COMMON_REASON_CODE_FAILURE = -1;
     public static final int RMQ_COMMON_REASON_CODE_TIMEOUT = -2;
@@ -197,8 +216,16 @@ public class RmqMessageType {
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_DTMF_CONFERENCE_ACK, RMQ_MSG_TYPE_DTMF_CONFERENCE_ACK),
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_PLAY_CONFERENCE_REQ, RMQ_MSG_TYPE_PLAY_CONFERENCE_REQ),
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_PLAY_CONFERENCE_ACK, RMQ_MSG_TYPE_PLAY_CONFERENCE_ACK),
-                new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_PLAY_CONFERENCE_RES, RMQ_MSG_TYPE_PLAY_CONFERENCE_RES)
-
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_PLAY_CONFERENCE_RES, RMQ_MSG_TYPE_PLAY_CONFERENCE_RES),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_SERVICE_START_REQ, RMQ_MSG_TYPE_SERVICE_START_REQ),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_SERVICE_START_RES, RMQ_MSG_TYPE_SERVICE_START_RES),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_COMMAND_STOP_REQ, RMQ_MSG_TYPE_COMMAND_STOP_REQ),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_COMMAND_STOP_RES, RMQ_MSG_TYPE_COMMAND_STOP_RES),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_COMMAND_DONE_REQ, RMQ_MSG_TYPE_COMMAND_DONE_REQ),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_COMMAND_DONE_RES, RMQ_MSG_TYPE_COMMAND_DONE_RES),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_COMMAND_END_REQ, RMQ_MSG_TYPE_COMMAND_END_REQ),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_COMMAND_END_RES, RMQ_MSG_TYPE_COMMAND_END_RES),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_HEARTBEAT, RMQ_MSG_TYPE_HEARTBEAT)
                 ).collect(Collectors.toMap((e) -> e.getKey(), (e) ->e.getValue())));
     }
 
@@ -260,7 +287,14 @@ public class RmqMessageType {
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_DTMF_CONFERENCE_ACK, "DTMFConferenceAck"),
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_CONFERENCE_REQ, "PlayConferenceReq"),
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_CONFERENCE_ACK, "PlayConferenceAck"),
-                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_CONFERENCE_RES, "PlayConferenceRes")
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_PLAY_CONFERENCE_RES, "PlayConferenceRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_SERVICE_START_REQ, "ServiceStartReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_SERVICE_START_RES, "ServiceStartRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_COMMAND_STOP_REQ, "CommandStopReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_COMMAND_STOP_RES, "CommandStopRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_COMMAND_END_REQ, "CommandEndReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_COMMAND_END_RES, "CommandEndRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_HEARTBEAT, "Heartbeat")
 
         ).collect(Collectors.toMap((e) -> e.getKey(), (e) ->e.getValue())));
     }
