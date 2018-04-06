@@ -1,7 +1,6 @@
 package x3.player.mcu.mru;
 
 import EDU.oswego.cs.dl.util.concurrent.FutureResult;
-import com.google.common.collect.ImmutableMap;
 import com.rabbitmq.client.*;
 import com.rabbitmq.tools.json.JSONReader;
 import com.rabbitmq.tools.json.JSONWriter;
@@ -30,6 +29,7 @@ public class MruClient implements HeartbeatListener {
     Connection connection;
     Channel channel;
     final String EXCHANGE_NAME = "";//default exchange
+    final String MSG_FROM ="a2s_a2sd";
     Map<String, FutureResult> futureResultMap = Collections.synchronizedMap(new TimedHashMap<String, FutureResult>(60000/*1 min*/));
     private HeartbeatListener heartbeatListener;
 
@@ -51,26 +51,37 @@ public class MruClient implements HeartbeatListener {
         connection = factory.newConnection();
         channel = connection.createChannel();
 
-        channel.queueDeclare("mcu1_mcud",
+        channel.queueDeclare(MSG_FROM,
                              true,//durable
                              false,//exclusive
                              false,//autoDelete
                              null);
-        channel.basicConsume("mcu1_mcud",
+        channel.basicConsume(MSG_FROM,
                              true,
                              new DefaultConsumer(channel) {
                                  JSONReader r= new JSONReader();
                                  public void handleDelivery(String consumerTag,
                                                             Envelope envelope,
                                                             AMQP.BasicProperties properties,
-                                                            byte[] body) throws IOException {
+                                                            byte[] rawBody) throws IOException {
 //                                     String message = new String(body, "UTF-8");
 //                                     System.out.println(" [x] Received '" + envelope.getRoutingKey() + "':'" + message + "'");
-                                     log.info("MCU<--MRU "+new String(body));
-                                     Map<String,Object> m =(Map<String,Object>)r.read(new String(body));
-                                     Map<String, Object> h = (Map<String,Object>)m.get("header");//properties.getHeaders();
-                                     String tid = String.valueOf(h.get("transactionId"));
-                                     Integer rc = (Integer) h.get("reasonCode");
+                                     log.info("MCU<--MRU "+new String(rawBody));
+                                     Map<String,Object> js =(Map<String,Object>)r.read(new String(rawBody));
+                                     Map<String, Object> header = (Map<String,Object>)js.get("header");//properties.getHeaders();
+                                     Map<String, Object> body = (Map<String,Object>)js.get("body");
+                                     String type = String.valueOf(header.get("type"));
+                                     if ("mfsp_heartbeat_indi".equals(type))
+                                     {
+                                         if (heartbeatListener != null)
+                                         {
+                                             Map<String, Object> h=(Map<String, Object>)r.read(new String(rawBody));
+                                             heartbeatListener.beat(h);
+                                         }
+                                     }
+
+                                     String tid = String.valueOf(header.get("transactionId"));
+                                     Integer rc = (Integer) header.get("reasonCode");
                                      FutureResult f = futureResultMap.get(tid);
                                      if (f != null)
                                      {
@@ -79,7 +90,7 @@ public class MruClient implements HeartbeatListener {
                                          res.put("reasonCode", rc);
 //                                         if (m.get("body") != null)
 //                                         {
-                                         res.put("body", m.get("body"));
+                                         res.put("body", js.get("body"));
 //                                         }
                                          if (Integer.valueOf(0).equals(rc))
                                          {
@@ -94,28 +105,28 @@ public class MruClient implements HeartbeatListener {
                                  }
                              });
 
-        channel.queueDeclare("mcu_mcud",
-                             true,//durable
-                             false,//exclusive
-                             true,//autoDelete
-                             null);
+//        channel.queueDeclare("mcu_mcud",
+//                             true,//durable
+//                             false,//exclusive
+//                             true,//autoDelete
+//                             null);
         setHeartbeatListener(this);
-        channel.basicConsume("mcu_mcud",
-                             true,
-                             new DefaultConsumer(channel) {
-                                 JSONReader r= new JSONReader();
-                                 @Override
-                                 public void handleDelivery(String consumerTag,
-                                                            Envelope envelope,
-                                                            AMQP.BasicProperties properties,
-                                                            byte[] body) throws IOException {
-                                     if (heartbeatListener != null)
-                                     {
-                                         Map<String, Object> h=(Map<String, Object>)r.read(new String(body));
-                                         heartbeatListener.beat(h);
-                                     }
-                                 }
-                             });
+//        channel.basicConsume("mcu_mcud",
+//                             true,
+//                             new DefaultConsumer(channel) {
+//                                 JSONReader r= new JSONReader();
+//                                 @Override
+//                                 public void handleDelivery(String consumerTag,
+//                                                            Envelope envelope,
+//                                                            AMQP.BasicProperties properties,
+//                                                            byte[] body) throws IOException {
+//                                     if (heartbeatListener != null)
+//                                     {
+//                                         Map<String, Object> h=(Map<String, Object>)r.read(new String(body));
+//                                         heartbeatListener.beat(h);
+//                                     }
+//                                 }
+//                             });
     }
 
     public void close() {
@@ -150,11 +161,11 @@ public class MruClient implements HeartbeatListener {
             m.put("body", body);
         }
 //        System.out.println(new JSONWriter().write(m));
-        /*
+        //*
         try
         {
             channel.basicPublish(EXCHANGE_NAME,//exchange
-                                 "mru1_mrud",//routingKey
+                                 "amf_amfd",//"mru1_mrud",//routingKey
                                  new AMQP.BasicProperties
                                          .Builder()
 //                                         .headers(header)
@@ -206,15 +217,15 @@ public class MruClient implements HeartbeatListener {
 //        ImmutableMap.Builder<String, Object> header =
 //                ImmutableMap.<String, Object>builder().
 //                        put("type", "msfmp_inbound_set_offer_req").
-//                        put("sessionId", callId).
+//                        put("callId", callId).
 ////                put("transactionId", tid).
 //        put("msgFrom", "mcu1_mcud");
         //build();
         Map<String,Object> header=new HashMap<>();
         header.put("type", "mfmp_set_offer_req");
-        header.put("sessionId", callId);
+        header.put("callId", callId);
 //                put("transactionId", tid).
-        header.put("msgFrom", "mcu1_mcud");
+        header.put("msgFrom", MSG_FROM);
 
 //        String body = (sdp != null) ? new JSONWriter().write(ImmutableMap.<String, String>builder().
 //                put("from_no", caller).
@@ -262,15 +273,15 @@ public class MruClient implements HeartbeatListener {
 //        futureResultMap.put(tid, f);
 //        ImmutableMap.Builder<String, Object> header = ImmutableMap.<String, Object>builder().
 //                put("type", "msfmp_inbound_get_answer_req").
-//                put("sessionId", callId).
+//                put("callId", callId).
 ////                put("transactionId", tid).
 //        put("msgFrom", "mcu1_mcud");
 //                build();
         Map<String,Object> header=new HashMap<>();
         header.put("type", "mfmp_get_answer_req");
-        header.put("sessionId", callId);
+        header.put("callId", callId);
 //                put("transactionId", tid).
-        header.put("msgFrom", "mcu1_mcud");
+        header.put("msgFrom", MSG_FROM);
 //        String body="";
         FutureResult f = dispatch(//EXCHANGE_NAME,//exchange
                                   //"mru1_mrud",//routingKey
@@ -300,15 +311,15 @@ public class MruClient implements HeartbeatListener {
 //        futureResultMap.put(tid, f);
 //        ImmutableMap.Builder<String, Object> header = ImmutableMap.<String, Object>builder().
 //                put("type", "msfmp_nego_done_req").
-//                put("sessionId", callId).
+//                put("callId", callId).
 ////                put("transactionId", tid).
 //        put("msgFrom", "mcu1_mcud");
 //                build();
         Map<String,Object> header=new HashMap<>();
         header.put("type", "mfmp_nego_done_req");
-        header.put("sessionId", callId);
+        header.put("callId", callId);
 //                put("transactionId", tid).
-        header.put("msgFrom", "mcu1_mcud");
+        header.put("msgFrom", MSG_FROM);
 //        String body = (sdp != null) ? new JSONWriter().write(ImmutableMap.<String, String>builder().
 //                put("sdp", sdp).
 //                build())
@@ -339,15 +350,15 @@ public class MruClient implements HeartbeatListener {
 //        futureResultMap.put(tid, f);
 //        ImmutableMap.Builder<String, Object> header = ImmutableMap.<String, Object>builder().
 //                put("type", "msfmp_hangup_req").
-//                put("sessionId", callId).
+//                put("callId", callId).
 ////                put("transactionId", tid).
 //        put("msgFrom", "mcu1_mcud");
 //                build();
         Map<String,Object> header=new HashMap<>();
         header.put("type", "mfmp_hangup_req");
-        header.put("sessionId", callId);
+        header.put("callId", callId);
 //                put("transactionId", tid).
-        header.put("msgFrom", "mcu1_mcud");
+        header.put("msgFrom", MSG_FROM);
         FutureResult f = dispatch(//EXCHANGE_NAME,//exchange
 //                             "mru1_mrud",//routingKey
                                   header,
