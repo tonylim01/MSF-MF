@@ -1,14 +1,17 @@
 package x3.player.mru.rmqif.messages;
 
 public class CommandStartReq {
-    private int type;
-    private int xml;
 
-    public int getType() {
+    public static final String CMD_TYPE_MEDIA_PLAY = "media_play";
+
+    private String type;
+    private FileData data;
+
+    public String getType() {
         return type;
     }
 
-    public int getXml() {
-        return xml;
+    public FileData getData() {
+        return data;
     }
 }

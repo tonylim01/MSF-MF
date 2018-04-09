@@ -73,6 +73,7 @@ public class SessionStateManager {
                     new AbstractMap.SimpleEntry<>(SessionState.ANSWER, new AnswerStateFunction()),
                     new AbstractMap.SimpleEntry<>(SessionState.PREPARE, new PrepareStateFunction()),
                     new AbstractMap.SimpleEntry<>(SessionState.READY, new ReadyStateFunction()),
+                    new AbstractMap.SimpleEntry<>(SessionState.PLAY, new PlayStateFunction()),
                     new AbstractMap.SimpleEntry<>(SessionState.RELEASE, new ReleaseStateFunction())
             ).collect(Collectors.toMap((e) -> e.getKey(), (e) ->e.getValue())));
         }

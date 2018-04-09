@@ -4,11 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import x3.player.mru.rmqif.handler.base.RmqIncomingMessageHandler;
 import x3.player.mru.rmqif.messages.CommandStartReq;
+import x3.player.mru.rmqif.messages.FileData;
 import x3.player.mru.rmqif.module.RmqData;
 import x3.player.mru.rmqif.types.RmqMessage;
 import x3.player.mru.rmqif.types.RmqMessageType;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionState;
+import x3.player.mru.session.SessionStateManager;
 
 public class RmqProcCommandStartReq extends RmqIncomingMessageHandler {
 
@@ -27,8 +29,6 @@ public class RmqProcCommandStartReq extends RmqIncomingMessageHandler {
             return false;
         }
 
-        sessionInfo.setServiceState(SessionState.PLAY_B);
-
         RmqData<CommandStartReq> data = new RmqData<>(CommandStartReq.class);
         CommandStartReq req = data.parse(msg);
 
@@ -40,11 +40,34 @@ public class RmqProcCommandStartReq extends RmqIncomingMessageHandler {
             return false;
         }
 
-        logger.info("[{}] CommandReq: xml [{}]", msg.getSessionId(), req.getXml());
+        if (req.getType() == null) {
+            logger.error("[{}] CommandReq: null type", msg.getSessionId());
+            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom(),
+                    RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_FAILURE,
+                    "INVALID TYPE");
+            return false;
+        }
 
-        //
-        // TODO
-        //
+        FileData file = req.getData();
+        if (file == null) {
+            logger.error("[{}] CommandReq: no data field", msg.getSessionId());
+            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom(),
+                    RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_FAILURE,
+                    "NO DATA");
+            return false;
+        }
+
+        logger.info("[{}] CommandReq: cmd type [{}] file type [{}] file [{}] def [{}] mix [{}] media [{}]",
+                msg.getSessionId(), req.getType(),
+                file.getPlayType(), file.getPlayFile(), file.getDefVolume(), file.getMixVolume(), file.getMediaType());
+
+        if (req.getType().equals(CommandStartReq.CMD_TYPE_MEDIA_PLAY)) {
+            sessionInfo.setFileData(file);
+            SessionStateManager.getInstance().setState(msg.getSessionId(), SessionState.PLAY);
+        }
+        else {
+            logger.warn("[{}] CommandReq: Unsupported type [{}]", msg.getSessionId(), req.getType());
+        }
 
         sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom());
 

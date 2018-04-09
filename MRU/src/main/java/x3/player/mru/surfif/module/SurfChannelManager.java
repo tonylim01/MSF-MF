@@ -129,7 +129,7 @@ public class SurfChannelManager {
     public String buildCreateVoiceMixer(int mixerId) {
         SurfProcToolReq toolReq = new SurfProcToolReq(mixerId);
 
-        toolReq.setToolType(SurfMsgToolReqData.TOOL_TYPE_VOICE_MIXER);
+        toolReq.setToolType(SurfConstant.TOOL_TYPE_VOICE_MIXER);
         toolReq.setSamplingRate(8000);  // TODO
         toolReq.setHangoverPeriod(500); // TODO
         toolReq.setDominantSpeakers(5); // TODO
@@ -149,7 +149,7 @@ public class SurfChannelManager {
 
         toolReq.setMixerId(mixerId);
         toolReq.setToolType((mixerId < 0) ?
-                SurfMsgToolReqData.TOOL_TYPE_VOICE_P2P : SurfMsgToolReqData.TOOL_TYPE_VOICE_FE_IP);
+                SurfConstant.TOOL_TYPE_VOICE_P2P : SurfConstant.TOOL_TYPE_VOICE_FE_IP);
         if (!inputFromRtp) {
             toolReq.setInputFromRtp(inputFromRtp);
         }
@@ -180,7 +180,7 @@ public class SurfChannelManager {
 
         SurfMsgToolReqData data = toolReq.getData();
 
-        data.setToolType(SurfMsgToolReqData.TOOL_TYPE_VOICE_P2P);
+        data.setToolType(SurfConstant.TOOL_TYPE_VOICE_P2P);
         data.setBackendToolId(2);   // TODO: mixer's toolId
 
         SurfMsgVocoder decoder = data.getDecoder();

@@ -106,6 +106,22 @@ public class SurfProcToolReq extends SurfProcRequest {
         msg.getData().setDominantSpeakers(numDominant);
     }
 
+    public void setCmdType(String cmdType) {
+        msg.getData().setCmdType(cmdType);
+    }
+
+    public void addFile(String name, float duration, String format, int segment) {
+        msg.getData().addFile(name, duration, format, segment);
+    }
+
+    public void setRepetitions(int repetitions) {
+        msg.getData().setRepetitions(repetitions);
+    }
+
+    public void setDuration(float duration) {
+        msg.getData().setDuration(duration);
+    }
+
     /*
     public String build() {
 

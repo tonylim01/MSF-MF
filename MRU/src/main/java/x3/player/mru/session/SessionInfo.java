@@ -1,6 +1,7 @@
 package x3.player.mru.session;
 
 import x3.player.core.sdp.SdpInfo;
+import x3.player.mru.rmqif.messages.FileData;
 
 public class SessionInfo {
 
@@ -22,6 +23,8 @@ public class SessionInfo {
     private boolean isCaller;
     private String fromNo;
     private String toNo;
+
+    private FileData fileData;
 
     public String getSessionId() {
         return sessionId;
@@ -164,5 +167,13 @@ public class SessionInfo {
 
     public void setDstLocalPort(int dstLocalPort) {
         this.dstLocalPort = dstLocalPort;
+    }
+
+    public FileData getFileData() {
+        return fileData;
+    }
+
+    public void setFileData(FileData fileData) {
+        this.fileData = fileData;
     }
 }
