@@ -20,6 +20,7 @@ public class AmfConfig extends DefaultConfig {
     private String rmqMcud;
     private String rmqAcswf;
     private String rmqUser, rmqPass;
+    private String rmqAiifs[];
 
     private int sessionMaxSize;
     private int sessionTimeout;
@@ -100,6 +101,17 @@ public class AmfConfig extends DefaultConfig {
             }
 
             rmqLocal = getStrValue(instanceSection, "RMQ_LOCAL", "localhost");
+
+            String rmqAiif = getStrValue("RMQ", "RMQ_AIIF", null);
+            if (rmqAiif != null && rmqAiif.contains(",")) {
+                String[] aiifs = rmqAiif.split(",");
+                if (aiifs != null) {
+                    rmqAiifs = new String[aiifs.length];
+                    for (int i = 0; i < aiifs.length; i++) {
+                        rmqAiifs[i] = aiifs[i].trim();
+                    }
+                }
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -257,5 +269,13 @@ public class AmfConfig extends DefaultConfig {
 
     public String getLocalIpAddress() {
         return localIpAddress;
+    }
+
+    public String getRmqAiif(int index) {
+        if (rmqAiifs == null || index < 0 || index >= rmqAiifs.length) {
+            return null;
+        }
+
+        return rmqAiifs[index];
     }
 }

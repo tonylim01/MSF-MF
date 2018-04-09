@@ -23,6 +23,7 @@ public class SessionInfo {
     private boolean isCaller;
     private String fromNo;
     private String toNo;
+    private String aiifName;
 
     private FileData fileData;
 
@@ -167,6 +168,14 @@ public class SessionInfo {
 
     public void setDstLocalPort(int dstLocalPort) {
         this.dstLocalPort = dstLocalPort;
+    }
+
+    public String getAiifName() {
+        return aiifName;
+    }
+
+    public void setAiifName(String aiifName) {
+        this.aiifName = aiifName;
     }
 
     public FileData getFileData() {

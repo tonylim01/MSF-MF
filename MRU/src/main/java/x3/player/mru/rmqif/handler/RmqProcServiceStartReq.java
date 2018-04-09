@@ -3,10 +3,9 @@ package x3.player.mru.rmqif.handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import x3.player.mru.AppInstance;
-import x3.player.mru.config.AmfConfig;
 import x3.player.mru.rmqif.handler.base.RmqIncomingMessageHandler;
-import x3.player.mru.rmqif.handler.base.RmqOutgoingMessage;
 import x3.player.mru.rmqif.messages.ServiceStartReq;
+import x3.player.mru.rmqif.module.RmqData;
 import x3.player.mru.rmqif.types.RmqMessage;
 import x3.player.mru.rmqif.types.RmqMessageType;
 import x3.player.mru.session.SessionInfo;
@@ -31,6 +30,28 @@ public class RmqProcServiceStartReq extends RmqIncomingMessageHandler {
             return false;
         }
 
+        RmqData<ServiceStartReq> data = new RmqData<>(ServiceStartReq.class);
+        ServiceStartReq req = data.parse(msg);
+
+        if (req == null) {
+            logger.error("[{}] ServiceStartReq: parsing failed", msg.getSessionId());
+            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom(),
+                    RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_FAILURE,
+                    "PARSING FAILURE");
+            return false;
+        }
+
+        String aiifName = AppInstance.getInstance().getConfig().getRmqAiif(req.getAiifId());
+        if (aiifName == null) {
+            logger.error("[{}] ServiceStartReq: Invalid aiifId [{}]", msg.getSessionId(), req.getAiifId());
+            sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom(),
+                    RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_FAILURE,
+                    "INVALID AIIFID");
+            return false;
+        }
+
+        sessionInfo.setAiifName(aiifName);
+        
         SessionStateManager.getInstance().setState(msg.getSessionId(), SessionState.START);
 
         sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom());

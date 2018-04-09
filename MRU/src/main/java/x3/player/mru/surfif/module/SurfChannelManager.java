@@ -163,6 +163,16 @@ public class SurfChannelManager {
         return json;
     }
 
+    public String buildPlayListAppend(int toolId) {
+        SurfProcToolReq toolReq = new SurfProcToolReq(toolId);
+
+        //
+        // TODO
+        //
+
+        return null;
+    }
+
     /**
      * Sample code for reference
      * @param toolId
