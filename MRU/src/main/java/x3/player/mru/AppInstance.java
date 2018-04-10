@@ -5,6 +5,7 @@ import x3.player.mru.config.AmfConfig;
 public class AppInstance {
 
     private static AppInstance instance = null;
+    private static final String CONFIG_FILE = "amf.conf";
 
     public static AppInstance getInstance() {
         if (instance == null) {
@@ -15,6 +16,7 @@ public class AppInstance {
     }
 
     private int instanceId = 0;
+    private String configFile = null;
     private AmfConfig config = null;
 
     public int getInstanceId() {
@@ -31,5 +33,13 @@ public class AppInstance {
 
     public void setConfig(AmfConfig config) {
         this.config = config;
+    }
+
+    public String getConfigFile() {
+        return (configFile != null) ? configFile : CONFIG_FILE;
+    }
+
+    public void setConfigFile(String configFile) {
+        this.configFile = configFile;
     }
 }

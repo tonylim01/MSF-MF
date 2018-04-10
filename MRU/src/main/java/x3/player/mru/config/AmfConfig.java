@@ -13,7 +13,6 @@ import java.util.List;
 public class AmfConfig extends DefaultConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(AmfConfig.class);
-    private static final String CONFIG_FILE = "amf.conf";
 
     private String rmqHost;
     private String rmqLocal;
@@ -36,12 +35,12 @@ public class AmfConfig extends DefaultConfig {
 
     private SurfConfig surfConfig;
 
-    public AmfConfig(int instanceId) {
+    public AmfConfig(int instanceId, String configPath) {
 
-        super(CONFIG_FILE);
+        super(configPath);
 
         boolean result = load();
-        logger.info("Load config [{}] ... [{}]", CONFIG_FILE, StringUtil.getOkFail(result));
+        logger.info("Load config [{}] ... [{}]", configPath, StringUtil.getOkFail(result));
 
         mediaPriorities = new ArrayList<>();
         sdpConfig = new SdpConfig();

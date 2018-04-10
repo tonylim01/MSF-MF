@@ -51,7 +51,7 @@ public class RmqProcServiceStartReq extends RmqIncomingMessageHandler {
         }
 
         sessionInfo.setAiifName(aiifName);
-        
+
         SessionStateManager.getInstance().setState(msg.getSessionId(), SessionState.START);
 
         sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom());
