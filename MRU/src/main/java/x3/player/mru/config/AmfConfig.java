@@ -172,6 +172,9 @@ public class AmfConfig extends DefaultConfig {
             if (localNetInterface != null) {
                 localIpAddress = NetUtil.getLocalIP(localNetInterface);
             }
+            else {
+                logger.error("Local IP not found for [{}]", localNetInterface);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

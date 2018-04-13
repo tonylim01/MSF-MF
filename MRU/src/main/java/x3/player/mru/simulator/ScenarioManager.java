@@ -1,5 +1,6 @@
 package x3.player.mru.simulator;
 
+import x3.player.mru.AppInstance;
 import x3.player.mru.config.AmfConfig;
 import x3.player.core.rabbitmq.transport.RmqSender;
 import org.slf4j.Logger;
@@ -14,7 +15,7 @@ public class ScenarioManager {
     private RmqSender rmqSender = null;
 
     public ScenarioManager() {
-        AmfConfig config = new AmfConfig(0, null);
+        AmfConfig config = new AmfConfig(0, AppInstance.getInstance().getConfigFile());
 
         rmqSender = new RmqSender(config.getRmqHost(), config.getRmqUser(), config.getRmqPass(), config.getLocalName());
         rmqSender.connectClient();

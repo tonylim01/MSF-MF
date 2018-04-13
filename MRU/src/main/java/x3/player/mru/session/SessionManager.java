@@ -48,6 +48,7 @@ public class SessionManager {
 
     private int sessionSize;
     private int sessionTimeout;
+    private int lastSessionCount = -1;
 
     private Map<String, SessionInfo> sessionInfos;
 
@@ -229,7 +230,10 @@ public class SessionManager {
         long current = System.currentTimeMillis();
 
         synchronized (sessionInfos) {
-            logger.debug("Session count: {}", sessionInfos.size());
+            if (sessionInfos.size() != lastSessionCount) {
+                lastSessionCount = sessionInfos.size();
+                logger.debug("Session count: {}", lastSessionCount);
+            }
 
             for (Map.Entry<String, SessionInfo> entry: sessionInfos.entrySet()) {
                 SessionInfo sessionInfo = entry.getValue();

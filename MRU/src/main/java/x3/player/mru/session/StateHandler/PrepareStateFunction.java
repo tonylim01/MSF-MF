@@ -31,6 +31,7 @@ public class PrepareStateFunction implements StateFunction {
 
         //
         // TODO
+        // Callee's NegoDoneReq comes ahead of Caller's
         //
         RoomInfo roomInfo = RoomManager.getInstance().getRoomInfo(sessionInfo.getConferenceId());
         if (roomInfo == null) {
@@ -38,24 +39,25 @@ public class PrepareStateFunction implements StateFunction {
             return;
         }
 
-        if (roomInfo.getGroupId() < 0) {
-            allocateGroup(roomInfo);
-            // Step #1) Creates a voice mixer
-            openMixerResource(roomInfo, sessionInfo.getSessionId());
+        synchronized (roomInfo) {
+            if (roomInfo.getMixerId() < 0) {
+                // Step #1) Creates a voice mixer
+                openMixerResource(roomInfo, sessionInfo.getSessionId());
 
-            // Step #2) Create play & bg channels and connects them to the mixer
-            openPlayResource(sessionInfo, roomInfo);
-        }
+                // Step #2) Create play & bg channels and connects them to the mixer
+                openPlayResource(sessionInfo, roomInfo);
+            }
 
-        if (sessionInfo.isCaller()) {
-            // Step #3) Creates 3 channels used by a caller
-            openCallerResource(sessionInfo, roomInfo);
-            // Step #4) Creates local relaying resource
-            openRelayResource(sessionInfo);
-        }
-        else {
-            // Step #5) Creates one channel for a callee
-            openCalleeResource(sessionInfo, roomInfo);
+            if (sessionInfo.isCaller()) {
+                // Step #3) Creates 3 channels used by a caller
+                openCallerResource(sessionInfo, roomInfo);
+                // Step #4) Creates local relaying resource
+                openRelayResource(sessionInfo);
+            }
+            else {
+                // Step #5) Creates one channel for a callee
+                openCalleeResource(sessionInfo, roomInfo);
+            }
         }
 
     }
@@ -91,6 +93,9 @@ public class PrepareStateFunction implements StateFunction {
         // srcLocalPort -> Surf par
         int parPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_PAR_CG);
 
+        logger.debug("[{}] Relay: remote (%s:%d) <- local (%d)", sessionInfo.getSessionId(),
+                surfConfig.getSurfIp(), parPort, sessionInfo.getSrcLocalPort());
+
         udpRelayManager.openSrcServer(sessionInfo.getSessionId(), sessionInfo.getSrcLocalPort());
         udpRelayManager.openSrcClient(sessionInfo.getSessionId(),
                 surfConfig.getSurfIp(), parPort);
@@ -103,22 +108,12 @@ public class PrepareStateFunction implements StateFunction {
         // dstLocalPort -> Surf caller
         int callerPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_CG_TX);
 
+        logger.debug("[{}] Relay: remote (%s:%d) <- local (%d)", sessionInfo.getSessionId(),
+                surfConfig.getSurfIp(), callerPort, sessionInfo.getDstLocalPort());
+
         udpRelayManager.openDstServer(sessionInfo.getSessionId(), sessionInfo.getDstLocalPort());
         udpRelayManager.openDstClient(sessionInfo.getSessionId(),
                 surfConfig.getSurfIp(), callerPort);
-
-        return true;
-    }
-
-    private boolean allocateGroup(RoomInfo roomInfo) {
-        if (roomInfo == null) {
-            return false;
-        }
-
-        int groupId = roomInfo.getGroupId();
-        roomInfo.setGroupId(groupId);
-
-        logger.debug("({}) Allocates new group [{}]", roomInfo.getRoomId(), groupId);
 
         return true;
     }
@@ -137,6 +132,8 @@ public class PrepareStateFunction implements StateFunction {
             return false;
         }
 
+        logger.debug("({}) Allocates mixer on group [{}]", roomInfo.getRoomId(), groupId);
+
         // Creates a mixer
         int mixerId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_MIXER);
         roomInfo.setMixerId(mixerId);
@@ -152,7 +149,7 @@ public class PrepareStateFunction implements StateFunction {
             return false;
         }
 
-        logger.debug("{} Allocates caller DSP resources", sessionInfo.getSessionId());
+        logger.debug("[{}] Allocates caller DSP resources", sessionInfo.getSessionId());
 
         String json;
         int groupId = roomInfo.getGroupId();
@@ -176,8 +173,15 @@ public class PrepareStateFunction implements StateFunction {
         int parId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_CG);
 
         int rxPort = SurfChannelManager.getUdpPort(cgRxId);
-        int txPort = ((rxPort << 16) & 0xffff0000) + SurfChannelManager.getUdpPort(cgTxId);
+        //
+        // TODO: Below is not working
+        //
+//        int txPort = ((rxPort << 16) & 0xffff0000) + SurfChannelManager.getUdpPort(cgTxId);
+        int txPort = SurfChannelManager.getUdpPort(cgTxId);
 
+
+        logger.debug("[{}] CG_RX ptp: remote (%s:%d) -> local (%d)", sessionInfo.getSessionId(),
+                config.getLocalIpAddress(), sessionInfo.getSrcLocalPort(), rxPort);
 
         // Creates a caller as p2p mode (RX channel: remote -> local)
         json = channelManager.buildCreateVoiceChannel(cgRxId, -1, true,
@@ -188,6 +192,9 @@ public class PrepareStateFunction implements StateFunction {
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, cgRxId, json);
 
+        logger.debug("[{}] CG_TX ptp: remote (%s:%d) <- local (%d)", sessionInfo.getSessionId(),
+                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort(), txPort);
+
         // Creates a caller as p2p mode (TX channel: remote <- local)
         json = channelManager.buildCreateVoiceChannel(cgTxId, -1, true,
                 localPayloadId, // inPayloadId
@@ -197,11 +204,16 @@ public class PrepareStateFunction implements StateFunction {
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, cgTxId, json);
 
+        int parPort = SurfChannelManager.getUdpPort(parId);
+
+        logger.debug("[{}] CG_par fe: remote (%s:%d) - local (%d) - mixer (%d) ", sessionInfo.getSessionId(),
+                config.getLocalIpAddress(), sessionInfo.getDstLocalPort(), parPort, mixerId);
+
         // Creates a mixer's participant as ip mode
         json = channelManager.buildCreateVoiceChannel(parId, mixerId, true,
                 localPayloadId,
                 localPayloadId,
-                SurfChannelManager.getUdpPort(parId),
+                parPort,
                 config.getLocalIpAddress(), sessionInfo.getDstLocalPort());
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, parId, json);
 
@@ -232,6 +244,9 @@ public class PrepareStateFunction implements StateFunction {
         // Creates one voice channel
         int calleeId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CD);
         int calleePort = SurfChannelManager.getUdpPort(calleeId);
+
+        logger.debug("[{}] CD_par fe: remote (%s:%d) - local (%d) - mixer (%d) ", sessionInfo.getSessionId(),
+                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort(), calleePort, mixerId);
 
         // Creates a callee as ip mode
         json = channelManager.buildCreateVoiceChannel(calleeId, mixerId, true,
@@ -279,7 +294,7 @@ public class PrepareStateFunction implements StateFunction {
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, playId, json);
 
         int bgId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_BG);
-        int bgPort =  SurfChannelManager.getUdpPort(playId);
+        int bgPort =  SurfChannelManager.getUdpPort(bgId);
 
         json = channelManager.buildCreateVoiceChannel(bgId, mixerId, false,
                 localPayloadId, // inPayloadId

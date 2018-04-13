@@ -3,7 +3,7 @@ package x3.player.mru.rmqif.types;
 public class RmqHeader {
 
     private String type;
-    private String sessionId;
+    private String callId;
     private String transactionId;
     private String msgFrom;
     private int trxType;
@@ -14,9 +14,9 @@ public class RmqHeader {
 
     }
 
-    public RmqHeader(String type, String sessionId, String transactionId, String msgFrom, int trxType, int reasonCode, String reason) {
+    public RmqHeader(String type, String callId, String transactionId, String msgFrom, int trxType, int reasonCode, String reason) {
         this.type = type;
-        this.sessionId = sessionId;
+        this.callId = callId;
         this.transactionId = transactionId;
         this.msgFrom = msgFrom;
         this.trxType = trxType;
@@ -33,11 +33,11 @@ public class RmqHeader {
     }
 
     public String getSessionId() {
-        return sessionId;
+        return callId;
     }
 
     public void setSessionId(String sessionId) {
-        this.sessionId = sessionId;
+        this.callId = sessionId;
     }
 
     public String getTransactionId() {
@@ -84,7 +84,7 @@ public class RmqHeader {
     public String toString() {
         return "RmqHeader{" +
                 "type='" + type + '\'' +
-                ", sessionId='" + sessionId + '\'' +
+                ", sessionId='" + callId + '\'' +
                 ", transactionId=" + transactionId +
                 ", msgFrom='" + msgFrom + '\'' +
                 ", trxType=" + trxType +

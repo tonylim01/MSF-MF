@@ -1,6 +1,7 @@
 package x3.player.mru.rmqif.handler;
 
 import x3.player.mru.AppInstance;
+import x3.player.mru.config.AmfConfig;
 import x3.player.mru.config.SdpConfig;
 import x3.player.mru.rmqif.handler.base.RmqIncomingMessageHandler;
 import x3.player.mru.rmqif.types.RmqMessage;
@@ -30,7 +31,7 @@ public class RmqProcInboundGetAnswerReq extends RmqIncomingMessageHandler {
             return false;
         }
 
-        allocLocalResource(sessionInfo);
+//        allocLocalResource(sessionInfo);
 
         SessionStateManager.getInstance().setState(msg.getSessionId(), SessionState.ANSWER);
 
@@ -62,10 +63,20 @@ public class RmqProcInboundGetAnswerReq extends RmqIncomingMessageHandler {
             return false;
         }
 
-        //
-        // TODO
-        //
-        // Start of Demo Service
+        if (sessionInfo.getSdpInfo() != null) {
+            // Inbound
+            // Returns a caller's sdp
+
+        }
+        else {
+            // Outbound
+            // Returns a callee's sdp
+        }
+
+        /***
+         * Local relay demo
+         */
+        /*
         SdpConfig config = AppInstance.getInstance().getConfig().getSdpConfig();
         sessionInfo.setLocalIpAddress(config.getLocalIpAddress());
 
@@ -78,7 +89,7 @@ public class RmqProcInboundGetAnswerReq extends RmqIncomingMessageHandler {
 
         logger.debug("[{}] Alloc local media: ip [{}] srcPort [{}] dstPort [{}]", sessionInfo.getSessionId(),
                 sessionInfo.getLocalIpAddress(), sessionInfo.getSrcLocalPort(), sessionInfo.getDstLocalPort());
-        // End of Demo service
+        */
 
         return true;
     }

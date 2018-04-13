@@ -2,10 +2,13 @@ package x3.player.mru.rmqif.handler;
 
 import x3.player.core.sdp.SdpUtil;
 import x3.player.mru.AppInstance;
+import x3.player.mru.config.AmfConfig;
 import x3.player.mru.config.SdpConfig;
 import x3.player.mru.rmqif.handler.base.RmqOutgoingMessage;
 import x3.player.mru.rmqif.messages.InboundGetAnswerRes;
 import x3.player.mru.rmqif.types.RmqMessageType;
+import x3.player.mru.room.RoomInfo;
+import x3.player.mru.room.RoomManager;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionManager;
 import x3.player.core.sdp.SdpAttribute;
@@ -13,6 +16,7 @@ import x3.player.core.sdp.SdpBuilder;
 import x3.player.core.sdp.SdpInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import x3.player.mru.surfif.module.SurfChannelManager;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -69,16 +73,26 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
             return null;
         }
 
-        SdpConfig config = AppInstance.getInstance().getConfig().getSdpConfig();
+        RoomInfo roomInfo = RoomManager.getInstance().getRoomInfo(sessionInfo.getConferenceId());
+        if (roomInfo == null) {
+            return null;
+        }
+
+        AmfConfig config = AppInstance.getInstance().getConfig();
+        SdpConfig sdpConfig = AppInstance.getInstance().getConfig().getSdpConfig();
 
         SdpBuilder builder = new SdpBuilder();
-        builder.setHost(config.getLocalHost());
-        builder.setLocalIpAddress(sessionInfo.getLocalIpAddress());
-        builder.setLocalPort(sessionInfo.getSrcLocalPort());
-        builder.setSessionName("acs-mru");      // TODO
+        builder.setHost(sdpConfig.getLocalHost());
+
+        builder.setLocalIpAddress(config.getSurfIp());
+        builder.setSessionName("acs-amf");      // TODO
 
         SdpAttribute attr = selectSdp(sessionInfo);
         if (attr != null) {
+
+            int localPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_CG_RX);
+            builder.setLocalPort(localPort);
+
             builder.addRtpAttribute(attr.getPayloadId(), attr.getDescription());
 
             SdpAttribute dtmfAttr = getTelephonyEvent(sessionInfo);
@@ -93,7 +107,11 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
             }
         }
         else {  // Outbound case
-            for (String desc: config.getAttributes()) {
+
+            int localPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_CD);
+            builder.setLocalPort(localPort);
+
+            for (String desc: sdpConfig.getAttributes()) {
                 if (desc == null) {
                     continue;
                 }
