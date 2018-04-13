@@ -70,12 +70,14 @@ public class RmqProcInboundGetAnswerReq extends RmqIncomingMessageHandler {
         sessionInfo.setLocalIpAddress(config.getLocalIpAddress());
 
         UdpRelayManager udpRelayManager = UdpRelayManager.getInstance();
-        int localPort = udpRelayManager.getNextLocalPort();
+        int srcLocalPort = udpRelayManager.getNextLocalPort();
+        int dstLocalPort = udpRelayManager.getNextLocalPort();
 
-        sessionInfo.setLocalPort(localPort);
+        sessionInfo.setSrcLocalPort(srcLocalPort);
+        sessionInfo.setDstLocalPort(dstLocalPort);
 
-        logger.debug("[{}] Alloc local media: ip [{}] port [{}]", sessionInfo.getSessionId(),
-                sessionInfo.getLocalIpAddress(), sessionInfo.getLocalPort());
+        logger.debug("[{}] Alloc local media: ip [{}] srcPort [{}] dstPort [{}]", sessionInfo.getSessionId(),
+                sessionInfo.getLocalIpAddress(), sessionInfo.getSrcLocalPort(), sessionInfo.getDstLocalPort());
         // End of Demo service
 
         return true;

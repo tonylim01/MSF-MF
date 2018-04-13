@@ -16,6 +16,11 @@ public class UdpRelay {
         this.localPort = localPort;
     }
 
+    /**
+     * Transports packets received on localPort to remoteIp:remotePort
+     * @param remoteIpAddress
+     * @param remotePort
+     */
     public void openUdpClient(String remoteIpAddress, int remotePort) {
         logger.debug("Open UDP client. remote [{}:{}] lport [{}]", remoteIpAddress, remotePort, localPort);
         udpSocket = new UdpSocket(remoteIpAddress, remotePort, localPort);

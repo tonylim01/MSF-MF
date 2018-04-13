@@ -68,8 +68,8 @@ public class RmqMessageType {
 
     public static final String RMQ_MSG_STR_HEARTBEAT                = "mfmp_heartbeat_indi";
 
-    public static final String RMQ_MSG_STR_SERVICE_START_REQ        = "msmp_service_start_req";
-    public static final String RMQ_MSG_STR_SERVICE_START_RES        = "msmp_service_start_res";
+    public static final String RMQ_MSG_STR_SERVICE_START_REQ        = "mfmp_service_start_req";
+    public static final String RMQ_MSG_STR_SERVICE_START_RES        = "mfmp_service_start_res";
     public static final String RMQ_MSG_STR_COMMAND_STOP_REQ         = "msmp_command_stop_req";
     public static final String RMQ_MSG_STR_COMMAND_STOP_RES         = "msmp_command_stop_res";
     public static final String RMQ_MSG_STR_COMMAND_DONE_REQ         = "msmp_command_done_req";

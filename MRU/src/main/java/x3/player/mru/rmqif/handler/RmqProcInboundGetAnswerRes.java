@@ -74,7 +74,7 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
         SdpBuilder builder = new SdpBuilder();
         builder.setHost(config.getLocalHost());
         builder.setLocalIpAddress(sessionInfo.getLocalIpAddress());
-        builder.setLocalPort(sessionInfo.getLocalPort());
+        builder.setLocalPort(sessionInfo.getSrcLocalPort());
         builder.setSessionName("acs-mru");      // TODO
 
         SdpAttribute attr = selectSdp(sessionInfo);

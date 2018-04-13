@@ -6,13 +6,13 @@ public class ServiceStartReq {
     @SerializedName("from_no")
     private String fromNo;
     @SerializedName("aiif_id")
-    private String aiifId;
+    private int aiifId;
 
     public String getFromNo() {
         return fromNo;
     }
 
-    public String getAiifId() {
+    public int getAiifId() {
         return aiifId;
     }
 }

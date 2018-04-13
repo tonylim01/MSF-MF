@@ -8,11 +8,10 @@ package x3.player.mru.session;
  * PREPARE  - Received NegoDoneReq
  * READY    - After all channel opened
  * START    - Received ServiceStartReq
- * PLAY_B   - Received CommandReq and before playing
- * PLAY_C   - Playing state
+ * PLAY_B   - Received CommandReq(PlayReq)
  * RELEASE  - Sent HangupReq
  */
 public enum SessionState {
 
-    OOS, IDLE, OFFER, ANSWER, PREPARE, READY, START, PLAY_B, PLAY_C, RELEASE
+    OOS, IDLE, OFFER, ANSWER, PREPARE, READY, START, PLAY, RELEASE
 }

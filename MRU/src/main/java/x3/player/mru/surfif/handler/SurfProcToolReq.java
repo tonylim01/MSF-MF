@@ -42,6 +42,11 @@ public class SurfProcToolReq extends SurfProcRequest {
         data.setToolType(toolType);
     }
 
+    public void setInputFromRtp(boolean inputFromRtp) {
+        SurfMsgToolReqData data = msg.getData();
+        data.setInputFromRtp(inputFromRtp);
+    }
+
     private void setVocoder(SurfMsgVocoder vocoder, String codec, String rate, String packing) {
         if (vocoder == null) {
             return;
@@ -99,6 +104,22 @@ public class SurfProcToolReq extends SurfProcRequest {
 
     public void setDominantSpeakers(int numDominant) {
         msg.getData().setDominantSpeakers(numDominant);
+    }
+
+    public void setCmdType(String cmdType) {
+        msg.getData().setCmdType(cmdType);
+    }
+
+    public void addFile(String name, float duration, String format, int segment) {
+        msg.getData().addFile(name, duration, format, segment);
+    }
+
+    public void setRepetitions(int repetitions) {
+        msg.getData().setRepetitions(repetitions);
+    }
+
+    public void setDuration(float duration) {
+        msg.getData().setDuration(duration);
     }
 
     /*

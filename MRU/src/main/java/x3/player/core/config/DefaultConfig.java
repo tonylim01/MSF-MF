@@ -3,6 +3,8 @@ package x3.player.core.config;
 import org.ini4j.Ini;
 import org.ini4j.Profile;
 
+import java.io.File;
+
 public class DefaultConfig {
 
     private Ini ini;
@@ -14,10 +16,19 @@ public class DefaultConfig {
 
     protected boolean load() {
 
+        if (fileName == null) {
+            return false;
+        }
+
         boolean result = false;
         ini = new Ini();
         try {
-            ini.load(this.getClass().getClassLoader().getResourceAsStream(fileName));
+            if (fileName.startsWith("/")) {
+                ini.load(new File(fileName));
+            }
+            else {
+                ini.load(this.getClass().getClassLoader().getResourceAsStream(fileName));
+            }
             result = true;
         } catch (Exception e) {
             e.printStackTrace();

@@ -2,11 +2,10 @@ package x3.player.mru.surfif.messages;
 
 import com.google.gson.annotations.SerializedName;
 
-public class SurfMsgToolReqData {
-    public static final String TOOL_TYPE_VOICE_P2P = "voice_p2p";
-    public static final String TOOL_TYPE_VOICE_FE_IP = "voice_fe_ip";
-    public static final String TOOL_TYPE_VOICE_MIXER = "voice_mixer";
+import java.util.ArrayList;
+import java.util.List;
 
+public class SurfMsgToolReqData {
     /**
      * Voice channel
      */
@@ -18,6 +17,8 @@ public class SurfMsgToolReqData {
     private SurfMsgVocoder encoder;
     @SerializedName("RTP")
     private SurfMsgRtp rtp;
+    @SerializedName("input_from_RTP")
+    private Boolean inputFromRtp;
 
     /**
      * Mixer
@@ -28,6 +29,16 @@ public class SurfMsgToolReqData {
     private Integer hangoverPeriod;
     @SerializedName("dominant_speakers")
     private Integer dominantSpeakers;
+
+    /**
+     * Commands
+     * play_list_append
+     */
+    @SerializedName("cmd_type")
+    private String cmdType;
+    private List<SurfMsgFile> files;
+    private Integer repetitions;
+    private Float duration;     // Seconds
 
     public SurfMsgToolReqData() {
     }
@@ -85,6 +96,14 @@ public class SurfMsgToolReqData {
         this.rtp = new SurfMsgRtp();
     }
 
+    public Boolean getInputFromRtp() {
+        return inputFromRtp;
+    }
+
+    public void setInputFromRtp(Boolean inputFromRtp) {
+        this.inputFromRtp = inputFromRtp;
+    }
+
     public int getSamplingRate() {
         return samplingRate;
     }
@@ -107,5 +126,55 @@ public class SurfMsgToolReqData {
 
     public void setDominantSpeakers(int dominantSpeakers) {
         this.dominantSpeakers = dominantSpeakers;
+    }
+
+    public String getCmdType() {
+        return cmdType;
+    }
+
+    public void setCmdType(String cmdType) {
+        this.cmdType = cmdType;
+    }
+
+    public void addFile(String name, float duration, String format, int segment) {
+        if (this.files == null) {
+            this.files = new ArrayList<>();
+        }
+
+        SurfMsgFile file = new SurfMsgFile();
+
+        if (name != null) {
+            file.setName(name);
+        }
+
+        if (duration != 0) {
+            file.setDuration(duration);
+        }
+
+        if (format != null) {
+            file.setFormat(format);
+        }
+
+        if (segment != 0) {
+            file.setSegment(segment);
+        }
+
+        this.files.add(file);
+    }
+
+    public int getRepetitions() {
+        return repetitions;
+    }
+
+    public void setRepetitions(int repetitions) {
+        this.repetitions = repetitions;
+    }
+
+    public float getDuration() {
+        return duration;
+    }
+
+    public void setDuration(float duration) {
+        this.duration = duration;
     }
 }

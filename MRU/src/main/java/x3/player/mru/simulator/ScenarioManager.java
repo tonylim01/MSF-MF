@@ -14,7 +14,7 @@ public class ScenarioManager {
     private RmqSender rmqSender = null;
 
     public ScenarioManager() {
-        AmfConfig config = new AmfConfig(0);
+        AmfConfig config = new AmfConfig(0, null);
 
         rmqSender = new RmqSender(config.getRmqHost(), config.getRmqUser(), config.getRmqPass(), config.getLocalName());
         rmqSender.connectClient();

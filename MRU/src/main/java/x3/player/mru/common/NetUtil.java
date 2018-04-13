@@ -3,8 +3,10 @@ package x3.player.mru.common;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.util.Collections;
 import java.util.Enumeration;
 
 public class NetUtil {
@@ -25,23 +27,27 @@ public class NetUtil {
         return result;
     }
 
-    public static String getLocalIP() {
+    public static String getLocalIP(String networkName) {
         String ipAddress = null;
         try {
             Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
 
-            while ((networkInterfaces.hasMoreElements())) {
-                NetworkInterface networkInterface = networkInterfaces.nextElement();
+            for (NetworkInterface networkInterface : Collections.list(networkInterfaces)) {
+                if (networkInterface.getDisplayName().equals(networkName)) {
+                    logger.debug("Network name [{}]", networkInterface.getDisplayName());
 
-                Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
-                while ((inetAddresses.hasMoreElements())) {
+                    Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
+                    for (InetAddress inetAddress: Collections.list(inetAddresses)) {
+                        String hostAddress = inetAddress.getHostAddress();
+                        if (inetAddress instanceof Inet4Address) {
+                            logger.debug("Network address [{}]", hostAddress);
+                                ipAddress = hostAddress;
+                                break;
+                        }
+                    }
 
-                    InetAddress inetAddress = inetAddresses.nextElement();
-                    String hostAddress = inetAddress.getHostAddress();
-                    logger.debug("Network address [{}]", hostAddress);
-
-                    if (ipAddress == null) {
-                        ipAddress = hostAddress;
+                    if (ipAddress != null) {
+                        break;
                     }
                 }
             }

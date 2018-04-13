@@ -1,6 +1,7 @@
 package x3.player.mru.session;
 
 import x3.player.core.sdp.SdpInfo;
+import x3.player.mru.rmqif.messages.FileData;
 
 public class SessionInfo {
 
@@ -16,10 +17,15 @@ public class SessionInfo {
     private SdpInfo sdpInfo;
 
     private String localIpAddress;
-    private int localPort;
+    private int srcLocalPort;
+    private int dstLocalPort;
 
+    private boolean isCaller;
     private String fromNo;
     private String toNo;
+    private String aiifName;
+
+    private FileData fileData;
 
     public String getSessionId() {
         return sessionId;
@@ -124,14 +130,6 @@ public class SessionInfo {
         this.localIpAddress = localIpAddress;
     }
 
-    public int getLocalPort() {
-        return localPort;
-    }
-
-    public void setLocalPort(int localPort) {
-        this.localPort = localPort;
-    }
-
     public String getFromNo() {
         return fromNo;
     }
@@ -146,5 +144,45 @@ public class SessionInfo {
 
     public void setToNo(String toNo) {
         this.toNo = toNo;
+    }
+
+    public boolean isCaller() {
+        return isCaller;
+    }
+
+    public void setCaller(boolean caller) {
+        isCaller = caller;
+    }
+
+    public int getSrcLocalPort() {
+        return srcLocalPort;
+    }
+
+    public void setSrcLocalPort(int srcLocalPort) {
+        this.srcLocalPort = srcLocalPort;
+    }
+
+    public int getDstLocalPort() {
+        return dstLocalPort;
+    }
+
+    public void setDstLocalPort(int dstLocalPort) {
+        this.dstLocalPort = dstLocalPort;
+    }
+
+    public String getAiifName() {
+        return aiifName;
+    }
+
+    public void setAiifName(String aiifName) {
+        this.aiifName = aiifName;
+    }
+
+    public FileData getFileData() {
+        return fileData;
+    }
+
+    public void setFileData(FileData fileData) {
+        this.fileData = fileData;
     }
 }

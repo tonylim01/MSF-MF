@@ -1,5 +1,6 @@
 package x3.player.mru.config;
 
+import x3.player.mru.common.NetUtil;
 import x3.player.mru.common.StringUtil;
 import x3.player.core.config.DefaultConfig;
 import org.slf4j.Logger;
@@ -12,13 +13,13 @@ import java.util.List;
 public class AmfConfig extends DefaultConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(AmfConfig.class);
-    private static final String CONFIG_FILE = "amf.conf";
 
     private String rmqHost;
     private String rmqLocal;
     private String rmqMcud;
     private String rmqAcswf;
     private String rmqUser, rmqPass;
+    private String rmqAiifs[];
 
     private int sessionMaxSize;
     private int sessionTimeout;
@@ -29,15 +30,17 @@ public class AmfConfig extends DefaultConfig {
 
     private int localUdpPortMin;
     private int localUdpPortMax;
+    private String localNetInterface;
+    private String localIpAddress;
 
     private SurfConfig surfConfig;
 
-    public AmfConfig(int instanceId) {
+    public AmfConfig(int instanceId, String configPath) {
 
-        super(CONFIG_FILE);
+        super(configPath);
 
         boolean result = load();
-        logger.info("Load config [{}] ... [{}]", CONFIG_FILE, StringUtil.getOkFail(result));
+        logger.info("Load config [{}] ... [{}]", configPath, StringUtil.getOkFail(result));
 
         mediaPriorities = new ArrayList<>();
         sdpConfig = new SdpConfig();
@@ -98,6 +101,17 @@ public class AmfConfig extends DefaultConfig {
 
             rmqLocal = getStrValue(instanceSection, "RMQ_LOCAL", "localhost");
 
+            String rmqAiif = getStrValue("RMQ", "RMQ_AIIF", null);
+            if (rmqAiif != null && rmqAiif.contains(",")) {
+                String[] aiifs = rmqAiif.split(",");
+                if (aiifs != null) {
+                    rmqAiifs = new String[aiifs.length];
+                    for (int i = 0; i < aiifs.length; i++) {
+                        rmqAiifs[i] = aiifs[i].trim();
+                    }
+                }
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -152,6 +166,12 @@ public class AmfConfig extends DefaultConfig {
 
             localUdpPortMin = getIntValue(instanceSection, "LOCAL_UDP_PORT_MIN", 0);
             localUdpPortMax = getIntValue(instanceSection, "LOCAL_UDP_PORT_MAX", 0);
+
+            localNetInterface = getStrValue("MEDIA", "LOCAL_NET_INTERFACE", null);
+
+            if (localNetInterface != null) {
+                localIpAddress = NetUtil.getLocalIP(localNetInterface);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -240,5 +260,21 @@ public class AmfConfig extends DefaultConfig {
         }
 
         return mediaPriorities.get(index);
+    }
+
+    public String getLocalNetInterface() {
+        return localNetInterface;
+    }
+
+    public String getLocalIpAddress() {
+        return localIpAddress;
+    }
+
+    public String getRmqAiif(int index) {
+        if (rmqAiifs == null || index < 0 || index >= rmqAiifs.length) {
+            return null;
+        }
+
+        return rmqAiifs[index];
     }
 }
