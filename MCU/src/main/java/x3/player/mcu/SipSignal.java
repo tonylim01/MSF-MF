@@ -1,12 +1,12 @@
 package x3.player.mcu;
 
+import com.uangel.svc.util.TimedHashMap;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
-import x3.player.mcu.mru.MruClient;
+import x3.player.mcu.mru.Client;
 
 import javax.sip.*;
 import javax.sip.address.URI;
@@ -14,12 +14,13 @@ import javax.sip.header.*;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class McuSipSignal implements SipListener, SessionLifeCycleListener {
-    final static Logger log = LoggerFactory.getLogger(McuSipSignal.class);
+public class SipSignal implements SipListener, SessionLifeCycleListener {
+    final static Logger log = LoggerFactory.getLogger(SipSignal.class);
 
     //    MessageFactory mf;
 //    MessageFactory messageFactory;
@@ -31,6 +32,7 @@ public class McuSipSignal implements SipListener, SessionLifeCycleListener {
     SipProvider sipProvider;
     ListeningPoint udpListeningPoint;
     //    String transport = "tcp";
+    private String host;
     private int port=5070;
     String transport = "udp";
 //    Dialog outBoundDialog;//outBoundDialog
@@ -39,13 +41,22 @@ public class McuSipSignal implements SipListener, SessionLifeCycleListener {
 //    private Request inviteRequest;
 //    Response ok;
 
-    McuSessionFactory fact;
-    private MruClient client;
+    SessionFactory fact;
+    private Client client;
 
 //    JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
 //    JedisPool pool = new JedisPool(jedisPoolConfig, "localhost", 6379, 1000/*timeout*/);
     JedisPool pool;
     ThreadPoolExecutor executor;
+//    Map<String, Session> sessionMap = new ConcurrentHashMap<>();
+    Map<String, Session> sessionMap = Collections.synchronizedMap(new TimedHashMap<>(60000*60*24));
+
+    public SipSignal() {
+    }
+
+    public Map<String, Session> getSessionMap() {
+        return sessionMap;
+    }
 
     public void init() throws
             InvalidArgumentException,
@@ -100,12 +111,19 @@ public class McuSipSignal implements SipListener, SessionLifeCycleListener {
 
         try
         {
-            udpListeningPoint = sipStack.createListeningPoint("0.0.0.0",//myAddress,
+            udpListeningPoint = sipStack.createListeningPoint(host,//"192.168.2.97",//myAddress,
                                                               port,
                                                               transport);
         } catch (InvalidArgumentException e)
         {
             log.error(e.toString(),e);
+            try
+            {
+                Thread.sleep(1000);
+            } catch (InterruptedException e1)
+            {
+//                e1.printStackTrace();
+            }
             System.exit(1);
         }
 
@@ -121,13 +139,14 @@ public class McuSipSignal implements SipListener, SessionLifeCycleListener {
 //            ex.printStackTrace();
 ////            usage();
 //        }
-        fact = new McuSessionFactory();
+        fact = new SessionFactory();
         fact.setSipFactory(sipFactory);
         fact.setSipProvider(sipProvider);
         fact.setSessionLifeCycleListener(this);
         fact.setClient(client);
 //        mru=new MruClient();
 //        mru.setConnectionFactory();
+        log.info(SipSignal.class.getName()+" is initialized");
     }
 
     public void processRequest(RequestEvent e) {
@@ -211,9 +230,9 @@ a=fmtp:99 profile-level-id=3
 //        ToHeader to= (ToHeader) req.getHeader(ToHeader.NAME);
 //        log.info(fr.getAddress() + "-->" + method + "-->"+to.getAddress());
 //        log.info(Utils.toString(e.getRequest()));
-        executor.execute(()->{
+//        executor.execute(()->{
                 fact.create(e);
-        });
+//        });
 
     }
 
@@ -230,7 +249,7 @@ a=fmtp:99 profile-level-id=3
 //        ToHeader to= (ToHeader) req.getHeader(ToHeader.NAME);
 //        log.info(fr.getAddress() + "-->" + method + "-->"+to.getAddress());
 //        log.info(Utils.toString(e.getRequest()));
-        ((McuSession) e.getServerTransaction().getDialog().getApplicationData()).cancel(e);
+        ((Session) e.getServerTransaction().getDialog().getApplicationData()).cancel(e);
 
     }
 
@@ -239,7 +258,7 @@ a=fmtp:99 profile-level-id=3
         try
         {
             executor.execute(()->{
-                ((McuSession) event.getServerTransaction().getDialog().getApplicationData()).close(event);
+                ((Session) event.getServerTransaction().getDialog().getApplicationData()).close(event);
             });
             //todo:
             //failover applicationData == null
@@ -313,7 +332,7 @@ a=fmtp:99 profile-level-id=3
             {
                 try
                 {
-                    ((McuSession) event.getClientTransaction().getDialog().getApplicationData()).inviteDeclined(event);
+                    ((Session) event.getClientTransaction().getDialog().getApplicationData()).inviteDeclined(event);
                 } catch (NullPointerException e)
                 {
                     //throw e;
@@ -323,7 +342,7 @@ a=fmtp:99 profile-level-id=3
 
             } else if (Response.OK == res.getStatusCode())
             {
-                ((McuSession) event.getClientTransaction().getDialog().getApplicationData()).inviteAccepted(event);
+                ((Session) event.getClientTransaction().getDialog().getApplicationData()).inviteAccepted(event);
             }
         }
 
@@ -354,53 +373,54 @@ a=fmtp:99 profile-level-id=3
     }
 
 
-    public void sessionDeclined(McuSession s) {
+    public void sessionDeclined(Session s) {
         log.info("sessionDeclined");
     }
 
-    public void sessionCancelled(McuSession s) {
+    public void sessionCancelled(Session s) {
         log.debug("sessionCancelled");
     }
 
-    public void sessionCreated(McuSession s) {
+    public void sessionCreated(Session s) {
 //        log.debug("sessionCreated");
         log.info("sessionCreated inbound callId="+s.getInboundTr().getDialog().getCallId().getCallId()+"----outbound callId="+s.getOutboundTr().getDialog().getCallId().getCallId());
-
-        Jedis jedis = pool.getResource();
-        try
-        {
-            Map<String, String> m = new HashMap<String, String>();
-            m.put("inbound", s.getInboundTr().getDialog().getCallId().getCallId());
-            m.put("outbound", s.getOutboundTr().getDialog().getCallId().getCallId());
-
-            jedis.hmset("session:" + m.get("inbound"),
-                        m);
-            jedis.hmset("session:" + m.get("outbound"),
-                        m);
-        } finally
-        {
-            jedis.close();
-        }
+        sessionMap.put(s.inbound.getCallId(),
+                       s);
+//        Jedis jedis = pool.getResource();
+//        try
+//        {
+//            Map<String, String> m = new HashMap<String, String>();
+//            m.put("inbound", s.getInboundTr().getDialog().getCallId().getCallId());
+//            m.put("outbound", s.getOutboundTr().getDialog().getCallId().getCallId());
+//
+//            jedis.hmset("session:" + m.get("inbound"),
+//                        m);
+//            jedis.hmset("session:" + m.get("outbound"),
+//                        m);
+//        } finally
+//        {
+//            jedis.close();
+//        }
     }
 
     @Override
-    public void sessionCannotCreate(McuSession s, Exception e) {
+    public void sessionCannotCreate(Session s, Exception e) {
         log.error("sessionCannotCreate", e);
     }
 
-    public void sessionClosed(McuSession s) {
+    public void sessionClosed(Session s) {
 //        log.debug("sessionClosed");
         log.info("sessionClosed inbound="+s.getInboundTr().getDialog().getCallId().getCallId()+"--|-- outbound"+s.getOutboundTr().getDialog().getCallId().getCallId());
-
-        Jedis jedis = pool.getResource();
-        try
-        {
-            jedis.del("session:" + s.getInboundTr().getDialog().getCallId().getCallId());
-            jedis.del("session:" + s.getOutboundTr().getDialog().getCallId().getCallId());
-        } finally
-        {
-            jedis.close();
-        }
+        sessionMap.remove(s.inbound.getCallId());
+//        Jedis jedis = pool.getResource();
+//        try
+//        {
+//            jedis.del("session:" + s.getInboundTr().getDialog().getCallId().getCallId());
+//            jedis.del("session:" + s.getOutboundTr().getDialog().getCallId().getCallId());
+//        } finally
+//        {
+//            jedis.close();
+//        }
     }
 
     public void recover() {
@@ -420,12 +440,20 @@ a=fmtp:99 profile-level-id=3
         this.pool = pool;
     }
 
-    public MruClient getClient() {
+    public Client getClient() {
         return client;
     }
 
-    public void setClient(MruClient client) {
+    public void setClient(Client client) {
         this.client = client;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
     }
 
 //    public static void main(String[] args) throws Exception {

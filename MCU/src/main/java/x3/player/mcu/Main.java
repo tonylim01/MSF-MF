@@ -1,19 +1,23 @@
 package x3.player.mcu;
 
 import com.rabbitmq.client.ConnectionFactory;
+import com.uangel.svc.util.FileWatchdog;
+import com.uangel.svc.util.LocalIP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
-import x3.player.mcu.mru.MruClient;
+import x3.player.mcu.mru.Client;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Properties;
 
 public class Main {
     final static Logger log = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws Exception {
+        Thread.sleep(1000);
         Properties config=new Properties();
         FileInputStream in=new FileInputStream("config/mcu.properties");
         try
@@ -34,7 +38,35 @@ public class Main {
                                        redis_port,
                                        1000/*timeout*/);
 
-        MruClient mru = new MruClient();
+        SipSignal sip = new SipSignal();
+
+        Client client = new Client() {
+            @Override
+            protected void onServiceStarted(String callId, int aiif_id) {
+                Session s=sip.getSessionMap().get(callId);
+                if (s == null)
+                {
+                    log.warn("session is not found");
+                    return;
+                }
+                if (s.isClosed())
+                {
+                    log.warn("session is closed");
+                    return;
+                }
+//                s.setAiifId(aiif_id);
+                String mdn=s.getCaller()/*"01012341234"*/;
+                try
+                {
+                    aiif_allocated(callId,
+                                   mdn,
+                                   aiif_id);
+                } catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        };
         String mq_host = config.getProperty("rabbitmq.host", "localhost");
         String user=config.getProperty("rabbitmq.user");
         String passwd=config.getProperty("rabbitmq.passwd");
@@ -49,14 +81,42 @@ public class Main {
         {
             factory.setPassword(passwd);
         }
-        mru.setConnectionFactory(factory);
-        mru.connect();
+        client.setConnectionFactory(factory);
+        client.connect();
 
-        McuSipSignal sip = new McuSipSignal();
+
+        String localIP = LocalIP.getLocalAddress().toString().substring(1);
+        log.info("Local IP = "+localIP);
+        sip.setHost(localIP);
         sip.setPort(port);
         sip.setPool(pool);
-        sip.setClient(mru);
+        sip.setClient(client);
         sip.init();
-        log.info("MCU start");
+        log.info("MCU start,.");
+
+        //https://stackoverflow.com/questions/16251273/can-i-watch-for-single-file-change-with-watchservice-not-the-whole-directory
+        FileWatchdog wd=new FileWatchdog("lib/MCU-1.0.jar") {
+            @Override
+            protected void doOnChange() {
+                //https://stackoverflow.com/questions/3015030/how-to-programmatically-restart-a-jar
+                log.info("restart");
+                Runtime runtime = Runtime.getRuntime();
+                try
+                {
+                    Thread.sleep(1000);
+                    String cmd="java -jar lib/MCU-1.0.jar";
+                    log.info(cmd);
+                    Process proc = runtime.exec(cmd);
+                } catch (Exception e)
+                {
+                    //e.printStackTrace();
+                    log.info(e.toString(),e);
+                }
+                log.info("exit");
+                System.exit(0);
+            }
+        };//
+        wd.setDelay(5000L);
+        wd.start();
     }
 }
