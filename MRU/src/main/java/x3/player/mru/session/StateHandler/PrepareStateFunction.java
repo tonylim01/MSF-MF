@@ -13,6 +13,7 @@ import x3.player.mru.session.SessionState;
 import x3.player.mru.simulator.BiUdpRelayManager;
 import x3.player.mru.surfif.module.SurfChannelManager;
 import x3.player.mru.surfif.module.SurfConnectionManager;
+import x3.player.mru.surfif.module.SurfVoiceBuilder;
 
 public class PrepareStateFunction implements StateFunction {
     private static final Logger logger = LoggerFactory.getLogger(PrepareStateFunction.class);
@@ -73,7 +74,7 @@ public class PrepareStateFunction implements StateFunction {
             return false;
         }
 
-        logger.debug("{} Open relay resources", sessionInfo.getSessionId());
+        logger.debug("[{}] Open relay resources", sessionInfo.getSessionId());
 
         RoomInfo roomInfo = RoomManager.getInstance().getRoomInfo(sessionInfo.getConferenceId());
         if (roomInfo == null) {
@@ -138,7 +139,10 @@ public class PrepareStateFunction implements StateFunction {
         int mixerId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_MIXER);
         roomInfo.setMixerId(mixerId);
 
-        String json = channelManager.buildCreateVoiceMixer(mixerId);
+        SurfVoiceBuilder builder = new SurfVoiceBuilder(mixerId);
+        builder.setMixer(8000, 500, 5); // TODO : Temp. value
+        String json = builder.build();
+
         connectionManager.addSendQueue(sessionId, groupId, mixerId, json);
 
         return true;
@@ -184,11 +188,13 @@ public class PrepareStateFunction implements StateFunction {
                 config.getLocalIpAddress(), sessionInfo.getSrcLocalPort(), rxPort);
 
         // Creates a caller as p2p mode (RX channel: remote -> local)
-        json = channelManager.buildCreateVoiceChannel(cgRxId, -1, true,
+        SurfVoiceBuilder rxBuilder = new SurfVoiceBuilder(cgRxId);
+        rxBuilder.setChannel(-1, true,
                 sdpInfo.getPayloadId(), // inPayloadId
                 localPayloadId,  // outpayloadId
                 rxPort,
                 config.getLocalIpAddress(), sessionInfo.getSrcLocalPort());
+        json = rxBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, cgRxId, json);
 
@@ -196,11 +202,13 @@ public class PrepareStateFunction implements StateFunction {
                 sdpInfo.getRemoteIp(), sdpInfo.getRemotePort(), txPort);
 
         // Creates a caller as p2p mode (TX channel: remote <- local)
-        json = channelManager.buildCreateVoiceChannel(cgTxId, -1, true,
+        SurfVoiceBuilder txBuilder = new SurfVoiceBuilder(cgTxId);
+        txBuilder.setChannel(-1, true,
                 localPayloadId, // inPayloadId
                 sdpInfo.getPayloadId(),  // outpayloadId
                 txPort,
                 sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
+        json = txBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, cgTxId, json);
 
@@ -210,11 +218,14 @@ public class PrepareStateFunction implements StateFunction {
                 config.getLocalIpAddress(), sessionInfo.getDstLocalPort(), parPort, mixerId);
 
         // Creates a mixer's participant as ip mode
-        json = channelManager.buildCreateVoiceChannel(parId, mixerId, true,
+        SurfVoiceBuilder parBuilder = new SurfVoiceBuilder(parId);
+        parBuilder.setChannel(mixerId, true,
                 localPayloadId,
                 localPayloadId,
                 parPort,
                 config.getLocalIpAddress(), sessionInfo.getDstLocalPort());
+        json = parBuilder.build();
+
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, parId, json);
 
         return true;
@@ -249,11 +260,13 @@ public class PrepareStateFunction implements StateFunction {
                 sdpInfo.getRemoteIp(), sdpInfo.getRemotePort(), calleePort, mixerId);
 
         // Creates a callee as ip mode
-        json = channelManager.buildCreateVoiceChannel(calleeId, mixerId, true,
+        SurfVoiceBuilder builder = new SurfVoiceBuilder(calleeId);
+        builder.setChannel(mixerId, true,
                 sdpInfo.getPayloadId(), // inPayloadId
                 localPayloadId,  // outpayloadId
                 calleePort,
                 sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
+        json = builder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, calleeId, json);
 
@@ -285,22 +298,26 @@ public class PrepareStateFunction implements StateFunction {
         int playId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_PLAY);
         int playPort =  SurfChannelManager.getUdpPort(playId);
 
-        json = channelManager.buildCreateVoiceChannel(playId, mixerId, false,
+        SurfVoiceBuilder playBuilder = new SurfVoiceBuilder(playId);
+        playBuilder.setChannel(mixerId, false,
                 localPayloadId, // inPayloadId
                 localPayloadId,  // outpayloadId
                 playPort,
                 "0.0.0.0", 0);
+        json = playBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, playId, json);
 
         int bgId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_BG);
         int bgPort =  SurfChannelManager.getUdpPort(bgId);
 
-        json = channelManager.buildCreateVoiceChannel(bgId, mixerId, false,
+        SurfVoiceBuilder bgBuilder = new SurfVoiceBuilder(bgId);
+        bgBuilder.setChannel(mixerId, false,
                 localPayloadId, // inPayloadId
                 localPayloadId,  // outpayloadId
                 bgPort,
                 "0.0.0.0", 0);
+        json = bgBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, bgId, json);
 

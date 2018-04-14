@@ -57,8 +57,8 @@ public class RmqProcCommandStartReq extends RmqIncomingMessageHandler {
             return false;
         }
 
-        logger.info("[{}] CommandReq: cmd type [{}] file type [{}] file [{}] def [{}] mix [{}] media [{}]",
-                msg.getSessionId(), req.getType(),
+        logger.info("[{}] CommandReq: cmd type [{}] channel [{}] file type [{}] file [{}] def [{}] mix [{}] media [{}]",
+                msg.getSessionId(), req.getType(), req.getChannel(),
                 file.getPlayType(), file.getPlayFile(), file.getDefVolume(), file.getMixVolume(), file.getMediaType());
 
         if (req.getType().equals(CommandStartReq.CMD_TYPE_MEDIA_PLAY)) {

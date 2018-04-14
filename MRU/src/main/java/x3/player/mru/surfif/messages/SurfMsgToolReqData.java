@@ -31,6 +31,14 @@ public class SurfMsgToolReqData {
     private Integer dominantSpeakers;
 
     /**
+     * file_reader
+     */
+    @SerializedName("audio_enabled")
+    private Boolean audioEnabled;
+    @SerializedName("audio_dst_tool_ids")
+    private List<Integer> audioDstToolIds;
+
+    /**
      * Commands
      * play_list_append
      */
@@ -39,6 +47,9 @@ public class SurfMsgToolReqData {
     private List<SurfMsgFile> files;
     private Integer repetitions;
     private Float duration;     // Seconds
+
+    @SerializedName("AGC")
+    private SurfMsgAgc agc;
 
     public SurfMsgToolReqData() {
     }
@@ -176,5 +187,71 @@ public class SurfMsgToolReqData {
 
     public void setDuration(float duration) {
         this.duration = duration;
+    }
+
+    public boolean getAudioEnabled() {
+        return audioEnabled;
+    }
+
+    public void setAudioEnabled(boolean audioEnabled) {
+        this.audioEnabled = audioEnabled;
+    }
+
+    public List<Integer> getAudioDstToolIds() {
+        return audioDstToolIds;
+    }
+
+    public void setAudioDstToolId(int audioDstToolId) {
+        if (this.audioDstToolIds == null) {
+            this.audioDstToolIds = new ArrayList<>();
+        }
+
+        this.audioDstToolIds.add(audioDstToolId);
+    }
+
+    public void setAgcEncoder(boolean enabled,
+                              int energyAvgWindow, int minSignalLevel, int maxSignalLevel, int stepLevel,
+                              int silenceThreshold, boolean limitGain, int maxGain) {
+
+        SurfMsgAgcData data = getAgcData(enabled, energyAvgWindow, minSignalLevel, maxSignalLevel, stepLevel,
+                silenceThreshold, limitGain, maxGain);
+
+        if (this.agc == null) {
+            this.agc = new SurfMsgAgc();
+        }
+
+        this.agc.setEncoderSide(data);
+    }
+
+    public void setAgcDecoder(boolean enabled,
+                              int energyAvgWindow, int minSignalLevel, int maxSignalLevel, int stepLevel,
+                              int silenceThreshold, boolean limitGain, int maxGain) {
+
+        SurfMsgAgcData data = getAgcData(enabled, energyAvgWindow, minSignalLevel, maxSignalLevel, stepLevel,
+                silenceThreshold, limitGain, maxGain);
+
+        if (this.agc == null) {
+            this.agc = new SurfMsgAgc();
+        }
+
+        this.agc.setDecoderSide(data);
+    }
+
+
+    private SurfMsgAgcData getAgcData(boolean enabled,
+                                      int energyAvgWindow, int minSignalLevel, int maxSignalLevel, int stepLevel,
+                                      int silenceThreshold, boolean limitGain, int maxGain) {
+        SurfMsgAgcData data = new SurfMsgAgcData();
+
+        data.setEnabled(enabled);
+        data.setEnergyAvgWindow(energyAvgWindow);
+        data.setMinSignalLevel(minSignalLevel);
+        data.setMaxSignalLevel(maxSignalLevel);
+        data.setStepLevel(stepLevel);
+        data.setSilenceThreshold(silenceThreshold);
+        data.setLimitGain(limitGain);
+        data.setMaxGain(maxGain);
+
+        return data;
     }
 }

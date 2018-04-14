@@ -12,7 +12,7 @@ public class FileData {
     @SerializedName("Mix_volume")
     private int mixVolume;
     @SerializedName("Play_Type")
-    private String playType;
+    private String playType;    // "Caller_Only" or "both"
 
     public String getMediaType() {
         return mediaType;

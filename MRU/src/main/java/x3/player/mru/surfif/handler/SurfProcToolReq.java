@@ -106,6 +106,14 @@ public class SurfProcToolReq extends SurfProcRequest {
         msg.getData().setDominantSpeakers(numDominant);
     }
 
+    public void setAudioEnabled(boolean audioEnabled) {
+        msg.getData().setAudioEnabled(audioEnabled);
+    }
+
+    public void setAudioDstToolId(int audioDstToolId) {
+        msg.getData().setAudioDstToolId(audioDstToolId);
+    }
+
     public void setCmdType(String cmdType) {
         msg.getData().setCmdType(cmdType);
     }
