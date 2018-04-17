@@ -10,7 +10,7 @@ public class IdleStateFunction implements StateFunction {
     private static final Logger logger = LoggerFactory.getLogger(IdleStateFunction.class);
 
     @Override
-    public void run(SessionInfo sessionInfo) {
+    public void run(SessionInfo sessionInfo, Object arg) {
         if (sessionInfo == null) {
             return;
         }

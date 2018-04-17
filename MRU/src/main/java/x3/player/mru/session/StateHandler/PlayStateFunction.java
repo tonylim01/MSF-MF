@@ -2,7 +2,6 @@ package x3.player.mru.session.StateHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import x3.player.core.sdp.SdpInfo;
 import x3.player.mru.rmqif.messages.FileData;
 import x3.player.mru.room.RoomInfo;
 import x3.player.mru.room.RoomManager;
@@ -10,49 +9,23 @@ import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionState;
 import x3.player.mru.surfif.module.SurfChannelManager;
 import x3.player.mru.surfif.module.SurfConnectionManager;
+import x3.player.mru.surfif.module.SurfPlayBuilder;
 
-public class PlayStateFunction implements StateFunction {
+public class PlayStateFunction {
     private static final Logger logger = LoggerFactory.getLogger(PlayStateFunction.class);
 
-    @Override
-    public void run(SessionInfo sessionInfo) {
+    protected boolean stopPlay(SessionInfo sessionInfo, RoomInfo roomInfo, int toolId) {
         if (sessionInfo == null) {
-            return;
+            logger.error("No session");
+            return false;
         }
 
-        logger.debug("{} PLAY state", sessionInfo.getSessionId());
-
-        if (sessionInfo.getServiceState() != SessionState.PLAY) {
-            sessionInfo.setServiceState(SessionState.PLAY);
-        }
-
-        RoomInfo roomInfo = RoomManager.getInstance().getRoomInfo(sessionInfo.getConferenceId());
         if (roomInfo == null) {
-            logger.error("[{}] No roomInfo found", sessionInfo.getSessionId());
-            return;
-        }
-
-        if (roomInfo.getGroupId() < 0) {
-            logger.error("[{}] No channel group found", sessionInfo.getSessionId());
-            return;
-        }
-
-        playFile(sessionInfo, roomInfo);
-    }
-
-    private boolean playFile(SessionInfo sessionInfo, RoomInfo roomInfo) {
-        if (sessionInfo == null) {
+            logger.error("[{}] Invalid argument", sessionInfo.getSessionId());
             return false;
         }
 
-        FileData fileData = sessionInfo.getFileData();
-
-        if (fileData == null) {
-            logger.warn("[{}] No file data", sessionInfo.getSessionId());
-            return false;
-        }
-
-        logger.debug("[{}] Play file", sessionInfo.getSessionId());
+        logger.debug("[{}] Stop play: toolId [{}]", sessionInfo.getSessionId(), toolId);
 
         String json;
         int groupId = roomInfo.getGroupId();
@@ -63,35 +36,23 @@ public class PlayStateFunction implements StateFunction {
         }
 
         SurfConnectionManager connectionManager = SurfConnectionManager.getInstance();
-        SurfChannelManager channelManager = SurfChannelManager.getInstance();
 
+        // Pauses playing
+        int stopId = SurfChannelManager.getReqToolId(groupId, toolId);
 
+        SurfPlayBuilder stopBuilder = new SurfPlayBuilder(stopId);
+        stopBuilder.setPlayPause();
+        json = stopBuilder.build();
 
-        // Creates bg & play channels
-        /*
-        int playId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_PLAY);
-        int playPort =  SurfChannelManager.getUdpPort(playId);
+        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, stopId, json);
 
-        json = channelManager.buildCreateVoiceChannel(playId, mixerId, false,
-                localPayloadId, // inPayloadId
-                localPayloadId,  // outpayloadId
-                playPort,
-                "0.0.0.0", 0);
+        // Clears play state
+        SurfPlayBuilder clearBuilder = new SurfPlayBuilder(stopId);
+        clearBuilder.setPlayListClear();
+        json = clearBuilder.build();
 
-        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, playId, json);
+        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, stopId, json);
 
-        int bgId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_BG);
-        int bgPort =  SurfChannelManager.getUdpPort(playId);
-
-        json = channelManager.buildCreateVoiceChannel(bgId, mixerId, false,
-                localPayloadId, // inPayloadId
-                localPayloadId,  // outpayloadId
-                bgPort,
-                "0.0.0.0", 0);
-
-        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, bgId, json);
-        */
         return true;
     }
-
 }

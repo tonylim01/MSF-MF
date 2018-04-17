@@ -19,7 +19,7 @@ public class PrepareStateFunction implements StateFunction {
     private static final Logger logger = LoggerFactory.getLogger(PrepareStateFunction.class);
 
     @Override
-    public void run(SessionInfo sessionInfo) {
+    public void run(SessionInfo sessionInfo, Object arg) {
         if (sessionInfo == null) {
             return;
         }
@@ -295,7 +295,7 @@ public class PrepareStateFunction implements StateFunction {
         int localPayloadId = 8; // TODO : Internal packet's payloadId
 
         // Creates bg & play channels
-        int playId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_PLAY);
+        int playId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_MENT);
         int playPort =  SurfChannelManager.getUdpPort(playId);
 
         SurfVoiceBuilder playBuilder = new SurfVoiceBuilder(playId);

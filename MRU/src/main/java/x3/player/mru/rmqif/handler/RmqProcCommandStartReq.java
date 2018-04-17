@@ -61,9 +61,13 @@ public class RmqProcCommandStartReq extends RmqIncomingMessageHandler {
                 msg.getSessionId(), req.getType(), req.getChannel(),
                 file.getPlayType(), file.getPlayFile(), file.getDefVolume(), file.getMixVolume(), file.getMediaType());
 
+        file.setChannel(req.getChannel());
+
         if (req.getType().equals(CommandStartReq.CMD_TYPE_MEDIA_PLAY)) {
-            sessionInfo.setFileData(file);
-            SessionStateManager.getInstance().setState(msg.getSessionId(), SessionState.PLAY);
+            SessionStateManager.getInstance().setState(msg.getSessionId(), SessionState.PLAY_START, file);
+        }
+        else if (req.getType().equals(CommandStartReq.CMD_TYPE_MEDIA_STOP)) {
+            SessionStateManager.getInstance().setState(msg.getSessionId(), SessionState.PLAY_STOP, file);
         }
         else {
             logger.warn("[{}] CommandReq: Unsupported type [{}]", msg.getSessionId(), req.getType());

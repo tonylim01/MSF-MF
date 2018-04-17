@@ -4,13 +4,15 @@ public class SessionStateMessage {
 
     private String sessionId;
     private SessionState state;
+    private Object data;
 
     public SessionStateMessage() {
     }
 
-    public SessionStateMessage(String sessionId, SessionState state) {
+    public SessionStateMessage(String sessionId, SessionState state, Object data) {
         this.sessionId = sessionId;
         this.state = state;
+        this.data = data;
     }
 
     public String getSessionId() {
@@ -27,5 +29,13 @@ public class SessionStateMessage {
 
     public void setState(SessionState state) {
         this.state = state;
+    }
+
+    public Object getData() {
+        return data;
+    }
+
+    public void setData(Object data) {
+        this.data = data;
     }
 }

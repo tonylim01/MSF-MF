@@ -22,9 +22,9 @@ public class SurfChannelManager {
     public static final int TOOL_ID_CG_TX   = 2;
     public static final int TOOL_ID_PAR_CG  = 3;
     public static final int TOOL_ID_CD      = 4;
-    public static final int TOOL_ID_PLAY    = 5;
+    public static final int TOOL_ID_MENT    = 5;
     public static final int TOOL_ID_BG      = 6;
-    public static final int TOOL_ID_PAR_PLAY    = 7;
+    public static final int TOOL_ID_PAR_MENT    = 7;
     public static final int TOOL_ID_PAR_BG  = 8;
 
     private static SurfChannelManager surfChannelManager = null;

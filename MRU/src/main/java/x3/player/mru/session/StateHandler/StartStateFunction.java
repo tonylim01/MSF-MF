@@ -9,7 +9,7 @@ public class StartStateFunction implements StateFunction {
     private static final Logger logger = LoggerFactory.getLogger(StartStateFunction.class);
 
     @Override
-    public void run(SessionInfo sessionInfo) {
+    public void run(SessionInfo sessionInfo, Object arg) {
         if (sessionInfo == null) {
             return;
         }

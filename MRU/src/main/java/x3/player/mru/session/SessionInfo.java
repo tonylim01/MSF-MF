@@ -25,6 +25,9 @@ public class SessionInfo {
     private String toNo;
     private String aiifName;
 
+    private boolean isBgmPlaying;
+    private boolean isMentPlaying;
+
     private FileData fileData;
 
     public String getSessionId() {
@@ -176,6 +179,22 @@ public class SessionInfo {
 
     public void setAiifName(String aiifName) {
         this.aiifName = aiifName;
+    }
+
+    public boolean isBgmPlaying() {
+        return isBgmPlaying;
+    }
+
+    public void setBgmPlaying(boolean bgmPlaying) {
+        isBgmPlaying = bgmPlaying;
+    }
+
+    public boolean isMentPlaying() {
+        return isMentPlaying;
+    }
+
+    public void setMentPlaying(boolean mentPlaying) {
+        isMentPlaying = mentPlaying;
     }
 
     public FileData getFileData() {
