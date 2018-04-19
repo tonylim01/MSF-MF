@@ -104,6 +104,12 @@ public class SurfProcToolReq extends SurfProcRequest {
         rtp.setInPayloadType(inPayloadId);
     }
 
+    public void setOverrideSrcPort(int srcPort) {
+        if (msg.getData().getRtp() != null) {
+            msg.getData().getRtp().setOverrideUdpSrcPort(srcPort);
+        }
+    }
+
     public void setSamplingRate(int sampleRate) {
         msg.getData().setSamplingRate(sampleRate);
     }

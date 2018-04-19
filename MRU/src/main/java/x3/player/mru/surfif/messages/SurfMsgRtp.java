@@ -7,6 +7,8 @@ public class SurfMsgRtp {
     private int localUdpPort;
     @SerializedName("remote_udp_port")
     private int remoteUdpPort;
+    @SerializedName("override_udp_src_port")
+    private Integer overrideUdpSrcPort;
     @SerializedName("remote_ip")
     private String remoteIp;
     @SerializedName("in_payload_type")
@@ -28,6 +30,10 @@ public class SurfMsgRtp {
 
     public void setRemoteUdpPort(int remoteUdpPort) {
         this.remoteUdpPort = remoteUdpPort;
+    }
+
+    public void setOverrideUdpSrcPort(int overrideUdpSrcPort) {
+        this.overrideUdpSrcPort = overrideUdpSrcPort;
     }
 
     public String getRemoteIp() {

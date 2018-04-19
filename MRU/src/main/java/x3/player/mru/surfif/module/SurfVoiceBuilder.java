@@ -48,11 +48,16 @@ public class SurfVoiceBuilder {
         if (!inputFromRtp) {
             toolReq.setInputFromRtp(inputFromRtp);
         }
-        toolReq.setDecoder(SurfMsgVocoder.VOCODER_ALAW, null, null);
+        toolReq.setDecoder(inputFromRtp ? SurfMsgVocoder.VOCODER_ALAW : SurfMsgVocoder.VOCODER_LINEAR,
+                null, null);
         toolReq.setEncoder(SurfMsgVocoder.VOCODER_ALAW, null, null,
                 !inputFromRtp ? 20 : 0);    // TODO
         toolReq.setLocalRtpInfo(localPort, outPayloadId);
         toolReq.setRemoteRtpInfo(remoteIp, remotePort, inPayloadId);
+    }
+
+    public void setOverrideSrcPort(int srcPort) {
+        toolReq.setOverrideSrcPort(srcPort);
     }
 
     public String build() {

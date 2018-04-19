@@ -215,6 +215,7 @@ public class PrepareStateFunction implements StateFunction {
                 sdpInfo.getPayloadId(),  // outpayloadId
                 txPort,
                 sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
+        txBuilder.setOverrideSrcPort(rxPort);
         json = txBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, cgTxId, json);
