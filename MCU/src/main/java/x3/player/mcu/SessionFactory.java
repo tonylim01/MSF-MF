@@ -1,6 +1,6 @@
 package x3.player.mcu;
 
-import x3.player.mcu.mru.MruClient;
+import x3.player.mcu.mru.Client;
 
 import javax.sip.*;
 import javax.sip.address.AddressFactory;
@@ -10,7 +10,7 @@ import javax.sip.message.MessageFactory;
 /**
  * Created by hwaseob on 2018-02-26.
  */
-public class McuSessionFactory {
+public class SessionFactory {
 
     private SipFactory sipFactory;
 
@@ -23,17 +23,17 @@ public class McuSessionFactory {
     private AddressFactory addressFactory;
     //    static ListeningPoint udpListeningPoint = 5070;
 //    String transport = "udp";
-    private MruClient client;
+    private Client client;
 
 //    private ListeningPoint udpListeningPoint;
     private SessionLifeCycleListener sessionLifeCycleListener = new NullSessionLifeCycleListener();
 
-    public McuSessionFactory() {
+    public SessionFactory() {
     }
 
-    public McuSession create(RequestEvent e) {
+    public Session create(RequestEvent e) {
 //        return MrfcSession.create(this, e);
-        McuSession s = new McuSession(this);
+        Session s = new Session(this);
         s.processInvite(e);
         return s;
     }
@@ -114,11 +114,11 @@ public class McuSessionFactory {
         this.sessionLifeCycleListener = sessionLifeCycleListener;
     }
 
-    public MruClient getClient() {
+    public Client getClient() {
         return client;
     }
 
-    public void setClient(MruClient client) {
+    public void setClient(Client client) {
         this.client = client;
     }
 }

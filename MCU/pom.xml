@@ -4,7 +4,7 @@
     <groupId>x3.player.mcu</groupId>
     <artifactId>MCU</artifactId>
     <packaging>jar</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <name>MCU</name>
     <url>http://maven.apache.org</url>
     <dependencies>
@@ -98,6 +98,75 @@
                     <showDeprecation>true</showDeprecation>
                     <encoding>UTF-8</encoding>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <!--<addExtensions>true</addExtensions>-->
+                            <mainClass>x3.player.mcu.Main</mainClass>
+                            <!--<classpathPrefix>lib/</classpathPrefix>-->
+                        </manifest>
+                        <manifestEntries>
+                            <Class-Path>.</Class-Path>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <id>server-copy</id>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <target>
+                                <!--<echo message="Push to server/home/"/>-->
+                                <scp trust="yes"
+                                     todir="a2s:a2s.123@TB@192.168.7.81:/home/a2s/MCU/lib">
+                                    <fileset dir="${basedir}/target">
+                                        <include name="MCU-1.0.jar"/>
+                                    </fileset>
+                                </scp>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.ant</groupId>
+                        <artifactId>ant-jsch</artifactId>
+                        <version>1.8.2</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
 

@@ -2,9 +2,10 @@ package x3.player.mcu;
 
 import EDU.oswego.cs.dl.util.concurrent.FutureResult;
 import EDU.oswego.cs.dl.util.concurrent.TimeoutException;
+import com.uangel.svc.util.LocalIP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import x3.player.mcu.mru.MruSession;
+import x3.player.mcu.mru.MediaSession;
 
 import javax.sip.*;
 import javax.sip.address.Address;
@@ -22,25 +23,36 @@ import java.util.UUID;
 /**
  * Created by hwaseob on 2018-02-26.
  */
-public class McuSession {
-    final static Logger log = LoggerFactory.getLogger(McuSession.class);
+public class Session {
+    final static Logger log = LoggerFactory.getLogger(Session.class);
 
+    String conferenceID;
+//    String callId;
     Request inviteRequest;
     //control plane
-    ServerTransaction inbound;//inboundTr, inviteTr
-    ClientTransaction outbound;
-    McuSessionFactory fact;
+    ServerTransaction serverTransaction;//inboundTr, inviteTr serverTransaction
+    ClientTransaction clientTransaction; //clientTransaction
+    SessionFactory fact;
 
     final static String transport = "udp";
     byte[] inbound_sdp;
-    String caller;
-    String callee;
+    private String caller;
+    private String callee;
     //user plane
-    MruSession is;//inbound_mru  userplain i o  is os  inbound_rtp
-    MruSession os;
+    MediaSession inbound;//inbound_mru  userplain i o  is os  inbound_rtp
+    MediaSession outbound;
+    boolean closed=false;
+//    private Integer aiifId;
+//    static String localIP;
+//    static
+//    {
+//        localIP = LocalIP.getLocalAddress().toString().substring(1);
+//        log.info("Local IP = "+localIP);
+//    }
 
-    protected McuSession(McuSessionFactory fact) {
+    protected Session(SessionFactory fact) {
         this.fact = fact;
+        this.conferenceID=UUID.randomUUID().toString();
 //        if (sipFactory == null)
 //            try
 //            {
@@ -86,7 +98,7 @@ public class McuSession {
             {
                 tr = fact.getSipProvider().getNewServerTransaction(req);
 //                log.info("processInvite getBranchId = "+tr.getBranchId());
-                inbound = tr;
+                serverTransaction = tr;
                 inviteRequest = req;
 //                tr.setApplicationData(this);
                 tr.getDialog().setApplicationData(this);
@@ -95,6 +107,7 @@ public class McuSession {
 //            this.inviteTid = tr;
 //            this.inviteRequest = req;
 //            System.out.println("mrfc: getDialog");
+//            callId=tr.getDialog().getCallId().getCallId();
             tr.sendResponse(res);
 //            Request req = e.getRequest();
 //            String method = req.getMethod();
@@ -113,23 +126,23 @@ public class McuSession {
             tr.sendResponse(res);
             log.info(Utils.toString(res));
 
-            is = new MruSession("INBOUND",
-                                UUID.randomUUID().toString(),
-                                tr.getDialog().getCallId().getCallId());
-            is.setClient(fact.getClient());
+            inbound = new MediaSession("INBOUND",
+                                conferenceID,//UUID.randomUUID().toString(),
+                                /*callId*/tr.getDialog().getCallId().getCallId());
+            inbound.setClient(fact.getClient());
 //            MruClient mru = fact.getClient();
 
             FutureResult f;
             try
             {
-                f = is.offer(//"INBOUND",
+                f = inbound.offer(//"INBOUND",
                               //tr.getDialog().getCallId().getCallId(),
                               caller,
                               callee,
                               sdp);
             } catch (IOException e1)
             {
-                is = null;
+                inbound = null;
                 e1.printStackTrace();
                 Response nok = fact.getMessageFactory().createResponse(Response.SERVER_INTERNAL_ERROR, req);
                 tr.sendResponse(nok);
@@ -152,7 +165,7 @@ public class McuSession {
             //MCU-->MRU inbound answer
             try
             {
-                FutureResult g = is.answer(/*"INBOUND",
+                FutureResult g = inbound.answer(/*"INBOUND",
                                             inbound.getDialog().getCallId().getCallId()*/);
                 Map<String, Object> h = (Map<String, Object>) g.timedGet(1000L);
                 Map<String, String> body = (Map<String, String>) h.get("body");
@@ -179,20 +192,44 @@ public class McuSession {
 //                e1.printStackTrace();
             }
 
+//            /*ClientTransaction outbound = */invite(
+//                "ACS",//fromName
+//                "192.168.2.97",//fromSipAddress
+//                "ACService",//fromDisplayName
+//                "whaworld",//toUser
+//                "172.0.0.2",//toSipAddress
+//                "whaworld",//toDisplayName
+//                "172.0.0.2:5060",//peerHostPort
+//                "192.168.2.97",
+//                req.getRawContent()
+//        );
+//            String toIP="192.168.2.97";
+//            String fromIP="10.10.10.163";
+//            /*ClientTransaction outbound = */invite(
+//                "ACS",//fromName
+//                fromIP,//fromSipAddress
+//                "ACService",//fromDisplayName
+//                "hwaseob",//toUser
+//                toIP,//toSipAddress
+//                "hwaseob",//toDisplayName
+//                toIP+":5060",//peerHostPort
+//                fromIP,
+//                req.getRawContent()
+//        );
+//            String toIP="192.168.2.97";
+//            String fromIP="10.10.10.163";
+            String localIP=fact.getSipProvider().getListeningPoint(transport).getIPAddress();
             /*ClientTransaction outbound = */invite(
-                    "ACS",//fromName
-//                     "192.168.56.1",//fromSipAddress
-                    "192.168.2.97",//fromSipAddress
-                    "ACService",//fromDisplayName
-                    "whaworld",//toUser
-                    "172.0.0.3",//toSipAddress
-                    "whaworld",//toDisplayName
-//                     "192.168.56.101:15060;transport=tcp",//peerHostPort
-//                     "192.168.56.101:5060",//peerHostPort
-                    "172.0.0.3:5060",//peerHostPort
-                    "192.168.2.97",
-                    req.getRawContent()
-            );
+                "ACS",//fromName
+                localIP,//fromSipAddress
+                "ACService",//fromDisplayName
+                callee,//toUser
+                callee,//toSipAddress
+                null,//toDisplayName
+                callee+":5060",//peerHostPort
+                localIP, //host    contactUrl=fromName + host
+                req.getRawContent()
+        );
 
         } catch (Exception ex)
         {
@@ -232,7 +269,10 @@ public class McuSession {
             // create To Header
             SipURI toAddress = fact.getAddressFactory().createSipURI(toUser, toSipAddress);
             Address toNameAddress = fact.getAddressFactory().createAddress(toAddress);
-            toNameAddress.setDisplayName(toDisplayName);
+            if (toDisplayName != null)
+            {
+                toNameAddress.setDisplayName(toDisplayName);
+            }
             ToHeader toHeader = fact.getHeaderFactory().createToHeader(toNameAddress, null/*tag*/);
 
             CallIdHeader callId = fact.getSipProvider().getNewCallId();
@@ -293,7 +333,7 @@ public class McuSession {
         try
         {
             tr = fact.getSipProvider().getNewClientTransaction(req);
-            this.outbound = tr;
+            this.clientTransaction = tr;
 //            tr.setApplicationData(this);
             tr.getDialog().setApplicationData(this);
 //            log.info("************ state = "+tr.getDialog().getState());
@@ -305,10 +345,10 @@ public class McuSession {
             return /*null*/;
         }
 
-        os = new MruSession("OUTBOUND",
-                             is.getConferenceID(),
-                             tr.getDialog().getCallId().getCallId());
-        os.setClient(fact.getClient());
+        outbound = new MediaSession("OUTBOUND",
+                             conferenceID,//inbound.getConferenceID(),
+                             /*callId*/tr.getDialog().getCallId().getCallId());
+        outbound.setClient(fact.getClient());
 //        MruClient mru = fact.getClient();
 //        String caller="";
 //        String callee="";
@@ -316,13 +356,13 @@ public class McuSession {
         String sdp/*inbound_offer_sdp*/ = new String(content);//sdp for INBOUND
         try
         {
-            FutureResult f = os.offer(//"OUTBOUND",
+            FutureResult f = outbound.offer(//"OUTBOUND",
                                        //tr.getDialog().getCallId().getCallId(),
                                        caller,
                                        callee,
                                        null);
             f.timedGet(1000L);
-            f = os.answer(/*"OUTBOUND",
+            f = outbound.answer(/*"OUTBOUND",
                            tr.getDialog().getCallId().getCallId()*/);
             Map<String, Object> res = (Map<String, Object>) f.timedGet(1000L);
             //if (res != null)
@@ -337,7 +377,7 @@ public class McuSession {
             try
             {
                 Response nok = fact.getMessageFactory().createResponse(Response.SERVER_INTERNAL_ERROR, inviteRequest);
-                inbound.sendResponse(nok);
+                serverTransaction.sendResponse(nok);
             } catch (ParseException e1)
             {
                 e1.printStackTrace();
@@ -377,7 +417,7 @@ public class McuSession {
         try
         {
             tr.sendRequest();
-            log.info(Utils.toString(req));
+            log.info(Utils.toString(req)+"\n"+sdp);
 //            outBoundDialog = tr.getDialog();
 //            outBoundTr = tr;
 //            log.info("************** state = "+tr.getDialog().getState());
@@ -391,11 +431,11 @@ public class McuSession {
     }
 
     public ServerTransaction getInboundTr() {
-        return inbound;
+        return serverTransaction;
     }
 
     public ClientTransaction getOutboundTr() {
-        return outbound;
+        return clientTransaction;
     }
 
     public void inviteDeclined(ResponseEvent event) {
@@ -416,7 +456,7 @@ public class McuSession {
         {
             e.printStackTrace();
         }
-        */
+        //*/
 //                System.out.println("Sending ACK");
 
         //inbound<-- 300~699 <--MCU
@@ -431,7 +471,7 @@ public class McuSession {
 //            ContentTypeHeader callerContentTypeHeader = fact.getHeaderFactory().createContentTypeHeader("application", "sdp");
 //            nok.setContent(res.getRawContent(), callerContentTypeHeader);
 //                    ok.addHeader(headerFactory.createContentTypeHeader("application", "sdp"));
-            inbound/*inviteTid*/.sendResponse(nok);
+            serverTransaction/*inviteTid*/.sendResponse(nok);
         } catch (ParseException e)
         {
             e.printStackTrace();
@@ -449,7 +489,7 @@ public class McuSession {
 
     public void inviteAccepted(ResponseEvent event) {
         Response res = event.getResponse();
-        Dialog d =/*outBoundTr*/outbound.getDialog();
+        Dialog d =/*outBoundTr*/clientTransaction.getDialog();
         byte[] outbound_sdp = res.getRawContent();//sdp for OUTBOUND
         //MCU-->CSCF:outbound SIP:ACK
         try
@@ -468,7 +508,7 @@ public class McuSession {
 //        MruClient mru = fact.getClient();
         try
         {
-            FutureResult f = os.negoDone(//"OUTBOUND",
+            FutureResult f = outbound.negoDone(//"OUTBOUND",
                                           //d.getCallId().getCallId(),
                                           new String(outbound_sdp));
             f.timedGet(1000L);
@@ -492,19 +532,21 @@ public class McuSession {
         {
             Response ok = fact.getMessageFactory().createResponse(Response.OK, inviteRequest);
 //            Address address = addressFactory.createAddress("mrfc <sip:"+ "192.168.56.1" + ":" + udpListeningPoint.getPort() + ">");
-            Address address = fact.getAddressFactory().createAddress("mrfc <sip:" + "192.168.2.97" + ":" + fact.getSipProvider().getListeningPoint(transport).getPort() + ">");
+            Address address = fact.getAddressFactory().createAddress("mrfc <sip:" + fact.getSipProvider().getListeningPoint(transport).getIPAddress() + ":" + fact.getSipProvider().getListeningPoint(transport).getPort() + ">");
             ContactHeader contactHeader = fact.getHeaderFactory().createContactHeader(address);
             ok.addHeader(contactHeader);
 
+            byte[] sdp=inbound_sdp == null ? outbound_sdp : inbound_sdp;
             ContentTypeHeader callerContentTypeHeader = fact.getHeaderFactory().createContentTypeHeader("application", "sdp");
-            ok.setContent(/*res.getRawContent()*/inbound_sdp == null ? outbound_sdp : inbound_sdp, callerContentTypeHeader);
+            ok.setContent(sdp/*res.getRawContent()*/, callerContentTypeHeader);
 //                    ok.addHeader(headerFactory.createContentTypeHeader("application", "sdp"));
-            inbound/*inviteTid*/.sendResponse(ok);
+            log.info(Utils.toString(ok)+"\n"+new String(sdp));
+            serverTransaction/*inviteTid*/.sendResponse(ok);
 
             //inbound: MCU-->MRU negoDone
             try
             {
-                FutureResult f = is.negoDone(/*"INBOUND",
+                FutureResult f = inbound.negoDone(/*"INBOUND",
                                               inbound.getDialog().getCallId().getCallId()*/
                                             null);
                 f.timedGet(1000L);
@@ -522,6 +564,8 @@ public class McuSession {
                 e.printStackTrace();
             }
 
+            fact.getClient().serviceStart(inbound.getCallId(),
+                                          caller/*"01012341234"*/);
             fact.getSessionLifeCycleListener().sessionCreated(this);
         } catch (ParseException e)
         {
@@ -530,6 +574,9 @@ public class McuSession {
         {
             e.printStackTrace();
         } catch (SipException e)
+        {
+            e.printStackTrace();
+        } catch (IOException e)
         {
             e.printStackTrace();
         }
@@ -555,7 +602,7 @@ public class McuSession {
             {
                 res = fact.getMessageFactory().createResponse(Response.REQUEST_TERMINATED/*487*/, inviteRequest);
                 /*inviteTid*/
-                inbound.sendResponse(res);
+                serverTransaction.sendResponse(res);
                 log.info(Utils.toString(res));
             }
             //todo:
@@ -575,7 +622,7 @@ public class McuSession {
         try
         {
             Request cancel =/*outBoundTr*/null;
-            cancel = outbound.createCancel();
+            cancel = clientTransaction.createCancel();
             ClientTransaction ct = fact.getSipProvider().getNewClientTransaction(cancel);
             ct.sendRequest();
             log.info(Utils.toString(cancel));
@@ -589,9 +636,10 @@ public class McuSession {
     }
 
     public void close(RequestEvent event) {//bye
+        closed=true;
         Request req = event.getRequest();
         String callId = event.getServerTransaction().getDialog().getCallId().getCallId(); //fromWhich
-        boolean dir = (callId.equals(inbound.getDialog().getCallId().getCallId()));
+        boolean dir = (callId.equals(serverTransaction.getDialog().getCallId().getCallId()));
         //dir == true, inbound
         //else outbound
         try
@@ -640,10 +688,10 @@ public class McuSession {
 //            if (callId.equals(inbound.getDialog().getCallId().getCallId()))
             if (dir)
             {
-                tr = outbound;
+                tr = clientTransaction;
             } else
             {
-                tr = inbound;
+                tr = serverTransaction;
             }
 
             Dialog d = /*outBoundTr*//*outbound*/tr.getDialog();
@@ -685,12 +733,36 @@ public class McuSession {
         fact.getSessionLifeCycleListener().sessionClosed(this);
     }
 
+    public boolean isClosed() {
+        return closed;
+    }
+
     protected void onClosed() {
         try
         {
-            if (is != null)
+            if (inbound != null)
             {
-                is.hangup().timedGet(1000L);
+                inbound.hangup().timedGet(1000L);
+            }
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+        } catch (TimeoutException e)
+        {
+//            e.printStackTrace();
+        } catch (InterruptedException e)
+        {
+//            e.printStackTrace();
+        } catch (InvocationTargetException e)
+        {
+//            e.printStackTrace();
+        }
+
+        try
+        {
+            if (outbound != null)
+            {
+                outbound.hangup().timedGet(1000L);
             }
         } catch (IOException e)
         {
@@ -706,24 +778,38 @@ public class McuSession {
             e.printStackTrace();
         }
 
-        try
-        {
-            if (os != null)
+//        if (aiifId != null)
+            try
             {
-                os.hangup().timedGet(1000L);
+                fact.getClient().serviceStop(inbound.getCallId(),
+                                              caller/*"01012341234"*/);
+            } catch (IOException e)
+            {
+                e.printStackTrace();
             }
-        } catch (IOException e)
-        {
-            e.printStackTrace();
-        } catch (TimeoutException e)
-        {
-            e.printStackTrace();
-        } catch (InterruptedException e)
-        {
-            e.printStackTrace();
-        } catch (InvocationTargetException e)
-        {
-            e.printStackTrace();
-        }
     }
+
+    public String getCaller() {
+        return caller;
+    }
+
+    public void setCaller(String caller) {
+        this.caller = caller;
+    }
+
+    public String getCallee() {
+        return callee;
+    }
+
+    public void setCallee(String callee) {
+        this.callee = callee;
+    }
+
+//    public Integer getAiifId() {
+//        return aiifId;
+//    }
+//
+//    public void setAiifId(Integer aiifId) {
+//        this.aiifId = aiifId;
+//    }
 }

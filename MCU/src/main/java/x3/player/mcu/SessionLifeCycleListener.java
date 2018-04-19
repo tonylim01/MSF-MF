@@ -5,9 +5,9 @@ package x3.player.mcu;
  */
 public interface SessionLifeCycleListener {
 
-    void sessionDeclined(McuSession s);
-    void sessionCancelled(McuSession s);
-    void sessionCreated(McuSession s);
-    void sessionClosed(McuSession s);
-    void sessionCannotCreate(McuSession s, Exception e);
+    void sessionDeclined(Session s);
+    void sessionCancelled(Session s);
+    void sessionCreated(Session s);
+    void sessionClosed(Session s);
+    void sessionCannotCreate(Session s, Exception e);
 }

@@ -1,29 +1,27 @@
 package x3.player.mcu.mru;
 
 import EDU.oswego.cs.dl.util.concurrent.FutureResult;
-import EDU.oswego.cs.dl.util.concurrent.TimeoutException;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * Created by hwaseob on 2018-03-15.
  */
-public class MruSession {
+public class MediaSession {
     private String conferenceID;
-    private String sessionID;
+    private String callId;//=callId
     private String dir;
-    private MruClient client;
+    private Client client;
 
 //    public MruSession() {
 //    }
 
-    public MruSession(String dir,
-                      String conferenceID,
-                      String sessionID) {
+    public MediaSession(String dir,
+                        String conferenceID,
+                        String callId) {
         this.dir = dir;
         this.conferenceID = conferenceID;
-        this.sessionID = sessionID;
+        this.callId = callId;
     }
 
     public FutureResult offer(String caller,
@@ -36,29 +34,29 @@ public class MruSession {
         {
 //            e.printStackTrace();
         }
-        throw new IOException("df");
-//        return client.offer(dir,
-//                            conferenceID,
-//                            sessionID,
-//                            caller,
-//                            callee,
-//                            sdp);
+//        throw new IOException("df");
+        return client.offer(dir,
+                            conferenceID,
+                            callId,
+                            caller,
+                            callee,
+                            sdp);
     }
 
     public FutureResult answer() throws IOException {
         return client.answer(dir,
-                             sessionID);
+                             callId);
     }
 
     public FutureResult negoDone(String sdp) throws IOException {
         return client.negoDone(dir,
-                               sessionID,
+                               callId,
                                sdp);
     }
 
     public FutureResult hangup() throws IOException {
         return client.hangup(dir,
-                            sessionID);
+                             callId);
 //        MruClient mru = fact.getClient();
 //        try
 //        {
@@ -89,12 +87,12 @@ public class MruSession {
         this.conferenceID = conferenceID;
     }
 
-    public String getSessionID() {
-        return sessionID;
+    public String getCallId() {
+        return callId;
     }
 
-    public void setSessionID(String sessionID) {
-        this.sessionID = sessionID;
+    public void setCallId(String callId) {
+        this.callId = callId;
     }
 
     public String getDir() {
@@ -105,11 +103,11 @@ public class MruSession {
         this.dir = dir;
     }
 
-    public MruClient getClient() {
+    public Client getClient() {
         return client;
     }
 
-    public void setClient(MruClient client) {
+    public void setClient(Client client) {
         this.client = client;
     }
 }

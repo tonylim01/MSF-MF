@@ -13,8 +13,7 @@ public class TimedHashMap<K,V> implements Map<K,V> {
         E value;
 
 
-        transient
-        TimerTask timeoutTask = new TimerTask() {
+        transient TimerTask timeoutTask = new TimerTask() {
             public void run() {
                 synchronized ( TimedHashMap.this ) {
                     if ( containsKey(key) &&
