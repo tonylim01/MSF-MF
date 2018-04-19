@@ -20,6 +20,7 @@ public class AmfConfig extends DefaultConfig {
     private String rmqAcswf;
     private String rmqUser, rmqPass;
     private String rmqAiifs[];
+    private String rmqAiifFmt;
 
     private int sessionMaxSize;
     private int sessionTimeout;
@@ -111,6 +112,8 @@ public class AmfConfig extends DefaultConfig {
                     }
                 }
             }
+
+            rmqAiifFmt = getStrValue("RMQ", "RMQ_AIIF_FMT", null);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -279,5 +282,9 @@ public class AmfConfig extends DefaultConfig {
         }
 
         return rmqAiifs[index];
+    }
+
+    public String getRmqAiifFmt() {
+        return this.rmqAiifFmt;
     }
 }

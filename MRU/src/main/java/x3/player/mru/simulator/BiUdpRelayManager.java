@@ -78,7 +78,8 @@ public class BiUdpRelayManager {
     }
 
     public boolean openSrcClient(String sessionId, String remoteIpAddress, int remotePort) {
-        logger.debug("Open src UDP client. remote [{}:{}]", remoteIpAddress, remotePort);
+        logger.debug("[{}] Open src UDP client. remote [{}:{}]", sessionId,
+                remoteIpAddress, remotePort);
 
         BiUdpRelay udpRelay = getUdpRelay(sessionId);
         udpRelay.openSrcUdpClient(remoteIpAddress, remotePort);
@@ -87,10 +88,20 @@ public class BiUdpRelayManager {
     }
 
     public boolean openDstClient(String sessionId, String remoteIpAddress, int remotePort) {
-        logger.debug("Open dst UDP client. remote [{}:{}]", remoteIpAddress, remotePort);
+        logger.debug("[{}] Open dst UDP client. remote [{}:{}]", sessionId,
+                remoteIpAddress, remotePort);
 
         BiUdpRelay udpRelay = getUdpRelay(sessionId);
         udpRelay.openDstUdpClient(remoteIpAddress, remotePort);
+
+        return true;
+    }
+
+    public boolean openDstDupQueue(String sessionId, String queueName) {
+        logger.debug("[{}] Open dst DUP queue. name [{}]", sessionId, queueName);
+
+        BiUdpRelay udpRelay = getUdpRelay(sessionId);
+        udpRelay.setDupUdpQueue(queueName);
 
         return true;
     }

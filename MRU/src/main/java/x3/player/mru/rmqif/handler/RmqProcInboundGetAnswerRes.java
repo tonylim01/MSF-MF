@@ -156,6 +156,7 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
                 for (Integer priority : mediaPriorities) {
                     attr = sdpInfo.getAttribute(priority);
                     if (attr != null) { // SDP found
+                        sdpInfo.setPayloadId(priority);
                         break;
                     }
                 }

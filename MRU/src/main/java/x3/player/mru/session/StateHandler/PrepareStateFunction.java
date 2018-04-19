@@ -6,10 +6,12 @@ import x3.player.core.sdp.SdpInfo;
 import x3.player.mru.AppInstance;
 import x3.player.mru.config.AmfConfig;
 import x3.player.mru.config.SurfConfig;
+import x3.player.mru.rmqif.messages.FileData;
 import x3.player.mru.room.RoomInfo;
 import x3.player.mru.room.RoomManager;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionState;
+import x3.player.mru.session.SessionStateManager;
 import x3.player.mru.simulator.BiUdpRelayManager;
 import x3.player.mru.surfif.module.SurfChannelManager;
 import x3.player.mru.surfif.module.SurfConnectionManager;
@@ -47,6 +49,11 @@ public class PrepareStateFunction implements StateFunction {
 
                 // Step #2) Create play & bg channels and connects them to the mixer
                 openPlayResource(sessionInfo, roomInfo);
+
+                //
+                // TODO: DEMO
+                //
+                playDemoAudio(sessionInfo, roomInfo);
             }
 
             if (sessionInfo.isCaller()) {
@@ -94,7 +101,7 @@ public class PrepareStateFunction implements StateFunction {
         // srcLocalPort -> Surf par
         int parPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_PAR_CG);
 
-        logger.debug("[{}] Relay: remote (%s:%d) <- local (%d)", sessionInfo.getSessionId(),
+        logger.debug("[{}] Relay: remote ({}:{}) <- local ({})", sessionInfo.getSessionId(),
                 surfConfig.getSurfIp(), parPort, sessionInfo.getSrcLocalPort());
 
         udpRelayManager.openSrcServer(sessionInfo.getSessionId(), sessionInfo.getSrcLocalPort());
@@ -109,7 +116,7 @@ public class PrepareStateFunction implements StateFunction {
         // dstLocalPort -> Surf caller
         int callerPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_CG_TX);
 
-        logger.debug("[{}] Relay: remote (%s:%d) <- local (%d)", sessionInfo.getSessionId(),
+        logger.debug("[{}] Relay: remote ({}:{}) <- local ({})", sessionInfo.getSessionId(),
                 surfConfig.getSurfIp(), callerPort, sessionInfo.getDstLocalPort());
 
         udpRelayManager.openDstServer(sessionInfo.getSessionId(), sessionInfo.getDstLocalPort());
@@ -184,7 +191,7 @@ public class PrepareStateFunction implements StateFunction {
         int txPort = SurfChannelManager.getUdpPort(cgTxId);
 
 
-        logger.debug("[{}] CG_RX ptp: remote (%s:%d) -> local (%d)", sessionInfo.getSessionId(),
+        logger.debug("[{}] CG_RX ptp: remote ({}:{}) -> local ({})", sessionInfo.getSessionId(),
                 config.getLocalIpAddress(), sessionInfo.getSrcLocalPort(), rxPort);
 
         // Creates a caller as p2p mode (RX channel: remote -> local)
@@ -198,7 +205,7 @@ public class PrepareStateFunction implements StateFunction {
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, cgRxId, json);
 
-        logger.debug("[{}] CG_TX ptp: remote (%s:%d) <- local (%d)", sessionInfo.getSessionId(),
+        logger.debug("[{}] CG_TX ptp: remote ({}:{}) <- local ({})", sessionInfo.getSessionId(),
                 sdpInfo.getRemoteIp(), sdpInfo.getRemotePort(), txPort);
 
         // Creates a caller as p2p mode (TX channel: remote <- local)
@@ -214,7 +221,7 @@ public class PrepareStateFunction implements StateFunction {
 
         int parPort = SurfChannelManager.getUdpPort(parId);
 
-        logger.debug("[{}] CG_par fe: remote (%s:%d) - local (%d) - mixer (%d) ", sessionInfo.getSessionId(),
+        logger.debug("[{}] CG_par fe: remote ({}:{}) - local ({}) - mixer ({})", sessionInfo.getSessionId(),
                 config.getLocalIpAddress(), sessionInfo.getDstLocalPort(), parPort, mixerId);
 
         // Creates a mixer's participant as ip mode
@@ -227,6 +234,13 @@ public class PrepareStateFunction implements StateFunction {
         json = parBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, parId, json);
+
+        // Add participants
+        SurfVoiceBuilder addBuilder = new SurfVoiceBuilder(mixerId);
+        addBuilder.setParticipant(parId, parId);
+        json = addBuilder.build();
+
+        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, mixerId, json);
 
         return true;
     }
@@ -256,7 +270,7 @@ public class PrepareStateFunction implements StateFunction {
         int calleeId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CD);
         int calleePort = SurfChannelManager.getUdpPort(calleeId);
 
-        logger.debug("[{}] CD_par fe: remote (%s:%d) - local (%d) - mixer (%d) ", sessionInfo.getSessionId(),
+        logger.debug("[{}] CD_par fe: remote ({}:{}) - local ({}) - mixer ({})", sessionInfo.getSessionId(),
                 sdpInfo.getRemoteIp(), sdpInfo.getRemotePort(), calleePort, mixerId);
 
         // Creates a callee as ip mode
@@ -269,6 +283,14 @@ public class PrepareStateFunction implements StateFunction {
         json = builder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, calleeId, json);
+
+        // Add participants
+        SurfVoiceBuilder addBuilder = new SurfVoiceBuilder(mixerId);
+        addBuilder.setParticipant(calleeId, calleeId);
+        json = addBuilder.build();
+
+        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, mixerId, json);
+
 
         return true;
     }
@@ -303,10 +325,19 @@ public class PrepareStateFunction implements StateFunction {
                 localPayloadId, // inPayloadId
                 localPayloadId,  // outpayloadId
                 playPort,
-                "0.0.0.0", 0);
+                "127.0.0.1",
+                SurfChannelManager.getUdpPort(groupId, SurfChannelManager.TOOL_ID_MENT));
+
         json = playBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, playId, json);
+
+        // Add participants
+        SurfVoiceBuilder par1Builder = new SurfVoiceBuilder(mixerId);
+        par1Builder.setParticipant(playId, playId);
+        json = par1Builder.build();
+
+        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, mixerId, json);
 
         int bgId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_BG);
         int bgPort =  SurfChannelManager.getUdpPort(bgId);
@@ -316,12 +347,43 @@ public class PrepareStateFunction implements StateFunction {
                 localPayloadId, // inPayloadId
                 localPayloadId,  // outpayloadId
                 bgPort,
-                "0.0.0.0", 0);
+                "127.0.0.1",
+                SurfChannelManager.getUdpPort(groupId, SurfChannelManager.TOOL_ID_BG));
+
         json = bgBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, bgId, json);
 
+        // Add participants
+        SurfVoiceBuilder par2Builder = new SurfVoiceBuilder(mixerId);
+        par2Builder.setParticipant(bgId, bgId);
+        json = par2Builder.build();
+
+        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, mixerId, json);
+
         return true;
     }
 
+    private boolean playDemoAudio(SessionInfo sessionInfo, RoomInfo roomInfo) {
+        if (sessionInfo == null) {
+            return false;
+        }
+
+        logger.debug("[{}] Play demo audio", sessionInfo.getSessionId());
+
+        String json;
+        int groupId = roomInfo.getGroupId();
+        int mixerId = roomInfo.getMixerId();
+
+        if (groupId < 0 || mixerId < 0) {
+            return false;
+        }
+
+        FileData file = new FileData();
+        file.setChannel(FileData.CHANNEL_BGM);
+        file.setPlayFile("/home/amf/bin/Heize_rain_and.wav");
+        SessionStateManager.getInstance().setState(sessionInfo.getSessionId(), SessionState.PLAY_START, file);
+
+        return true;
+    }
  }

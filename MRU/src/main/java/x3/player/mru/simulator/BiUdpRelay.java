@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import x3.player.core.socket.UdpCallback;
 import x3.player.core.socket.UdpSocket;
+import x3.player.mru.rmqif.module.RmqClient;
 
 public class BiUdpRelay {
 
@@ -19,6 +20,9 @@ public class BiUdpRelay {
 
     private int srcLocalPort;
     private int dstLocalPort;
+
+    private String dstQueueName = null;
+    private RmqClient dstRmqClient = null;
 
     public void setSrcLocalPort(int localPort) {
         srcLocalPort = localPort;
@@ -47,6 +51,10 @@ public class BiUdpRelay {
         dstUdpSocket.start();
     }
 
+    public void setDupUdpQueue(String dstQueueName) {
+        this.dstQueueName = dstQueueName;
+        dstRmqClient = RmqClient.getInstance(dstQueueName);
+    }
 
     public void closeUdpSocket() {
         if (srcUdpSocket != null) {
@@ -69,6 +77,11 @@ public class BiUdpRelay {
         public void onReceived(byte[] srcAddress, int srcPort, byte[] buf, int length) {
 //            logger.debug("UDP received: size [{}]", length);
             udpSocket.send(buf, length);
+
+            if (dstRmqClient != null && dstRmqClient.isConnected() &&
+                    buf != null && length > 0) {
+                dstRmqClient.send(new String(buf, 0, length));
+            }
         }
     }
 }

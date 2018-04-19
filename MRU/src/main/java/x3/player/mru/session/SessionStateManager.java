@@ -82,6 +82,7 @@ public class SessionStateManager {
                     new AbstractMap.SimpleEntry<>(SessionState.OFFER, new OfferStateFunction()),
                     new AbstractMap.SimpleEntry<>(SessionState.ANSWER, new AnswerStateFunction()),
                     new AbstractMap.SimpleEntry<>(SessionState.PREPARE, new PrepareStateFunction()),
+                    new AbstractMap.SimpleEntry<>(SessionState.START, new StartStateFunction()),
                     new AbstractMap.SimpleEntry<>(SessionState.READY, new ReadyStateFunction()),
                     new AbstractMap.SimpleEntry<>(SessionState.PLAY_START, new PlayStartStateFunction()),
                     new AbstractMap.SimpleEntry<>(SessionState.PLAY_STOP, new PlayStopStateFunction()),

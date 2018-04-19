@@ -18,19 +18,23 @@ public class SurfPlayBuilder {
     }
 
     public void setPlayListAppend(String filename) {
+        toolReq.setReqType(SurfConstant.REQ_TYPE_COMMAND);
         toolReq.setCmdType(SurfConstant.CMD_TYPE_PLAY_LIST_APPEND);
         toolReq.addFile(filename, 0, null, 0);
     }
 
     public void setPlayListClear() {
+        toolReq.setReqType(SurfConstant.REQ_TYPE_COMMAND);
         toolReq.setCmdType(SurfConstant.CMD_TYPE_PLAY_LIST_CLEAR);
     }
 
     public void setPlayStart() {
+        toolReq.setReqType(SurfConstant.REQ_TYPE_COMMAND);
         toolReq.setCmdType(SurfConstant.CMD_TYPE_PLAY);
     }
 
     public void setPlayPause() {
+        toolReq.setReqType(SurfConstant.REQ_TYPE_COMMAND);
         toolReq.setCmdType(SurfConstant.CMD_TYPE_PAUSE);
     }
 

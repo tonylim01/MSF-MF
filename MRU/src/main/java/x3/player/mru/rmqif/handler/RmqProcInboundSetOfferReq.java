@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import x3.player.mru.session.SessionState;
 import x3.player.mru.session.SessionStateManager;
+import x3.player.mru.simulator.BiUdpRelayManager;
 import x3.player.mru.surfif.module.SurfChannelManager;
 
 public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
@@ -104,6 +105,12 @@ public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
         sessionInfo.setToNo(req.getToNo());
         sessionInfo.setCaller((parCount == 1) ? true : false);
 
+        BiUdpRelayManager udpRelayManager = BiUdpRelayManager.getInstance();
+        sessionInfo.setSrcLocalPort(udpRelayManager.getNextLocalPort());
+        sessionInfo.setDstLocalPort(udpRelayManager.getNextLocalPort());
+
+        logger.debug("[{}] Local port: src [{}] dst [{{]", msg.getSessionId(),
+                sessionInfo.getSrcLocalPort(), sessionInfo.getDstLocalPort());
         //
         // TODO
         //

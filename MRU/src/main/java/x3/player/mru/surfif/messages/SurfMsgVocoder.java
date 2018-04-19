@@ -52,6 +52,8 @@ public class SurfMsgVocoder {
     private String vocoder;
     private String rate;
     private String packing;
+    @SerializedName("packet_duration")
+    private Integer packetDuration;
 
     public String getVocoder() {
         return vocoder;
@@ -75,5 +77,15 @@ public class SurfMsgVocoder {
 
     public void setPacking(String packing) {
         this.packing = packing;
+    }
+
+    public int getPacketDuration() {
+        return packetDuration;
+    }
+
+    public void setPacketDuration(int packetDuration) {
+        if (packetDuration > 0) {
+            this.packetDuration = packetDuration;
+        }
     }
 }

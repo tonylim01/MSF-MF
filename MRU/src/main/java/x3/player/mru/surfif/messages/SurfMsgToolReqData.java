@@ -51,6 +51,8 @@ public class SurfMsgToolReqData {
     @SerializedName("AGC")
     private SurfMsgAgc agc;
 
+    private List<SurfMsgParticipant> participants;
+
     public SurfMsgToolReqData() {
     }
 
@@ -171,6 +173,29 @@ public class SurfMsgToolReqData {
         }
 
         this.files.add(file);
+    }
+
+    public void addParticipant(int id, String type, int toolId, int whisperTo, String action) {
+        if (this.participants == null) {
+            this.participants = new ArrayList<>();
+        }
+
+        SurfMsgParticipant par = new SurfMsgParticipant();
+
+        par.setId(id);
+        if (type != null) {
+            par.setType(type);
+        }
+
+        par.setToolId(toolId);
+        if (whisperTo >= 0) {
+            par.setWhisperTo(whisperTo);
+        }
+        if (action != null) {
+            par.setAction(action);
+        }
+
+        this.participants.add(par);
     }
 
     public int getRepetitions() {

@@ -16,6 +16,8 @@ public class RmqProcServiceStartReq extends RmqIncomingMessageHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(RmqProcServiceStartReq.class);
 
+    private static final String DEFAULT_AIIF_QUEUE_FMT = "aiif%d_aiifd_u";
+
     @Override
     public boolean handle(RmqMessage msg) {
         if (msg == null || msg.getHeader() == null) {
@@ -41,6 +43,7 @@ public class RmqProcServiceStartReq extends RmqIncomingMessageHandler {
             return false;
         }
 
+        /*
         String aiifName = AppInstance.getInstance().getConfig().getRmqAiif(req.getAiifId());
         if (aiifName == null) {
             logger.error("[{}] ServiceStartReq: Invalid aiifId [{}]", msg.getSessionId(), req.getAiifId());
@@ -49,6 +52,13 @@ public class RmqProcServiceStartReq extends RmqIncomingMessageHandler {
                     "INVALID AIIFID");
             return false;
         }
+        */
+        String aiifFmt = AppInstance.getInstance().getConfig().getRmqAiifFmt();
+        if (aiifFmt == null) {
+            aiifFmt = DEFAULT_AIIF_QUEUE_FMT;
+        }
+
+        String aiifName = String.format(aiifFmt, req.getAiifId());
 
         sessionInfo.setAiifName(aiifName);
 

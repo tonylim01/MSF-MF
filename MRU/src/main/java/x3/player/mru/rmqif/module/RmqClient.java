@@ -63,7 +63,11 @@ public class RmqClient {
         }
    }
 
-   public boolean send(String msg) {
+    public boolean isConnected() {
+        return isConnected;
+    }
+
+    public boolean send(String msg) {
         if (sender == null) {
             if (createSender(queueName) == false) {
                 return false;

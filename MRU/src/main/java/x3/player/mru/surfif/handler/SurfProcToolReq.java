@@ -32,6 +32,10 @@ public class SurfProcToolReq extends SurfProcRequest {
         data.setBackendToolId(-1);  // -1 = Not defined
     }
 
+    public void setReqType(String reqType) {
+        msg.setReqType(reqType);
+    }
+
     public void setMixerId(int mixerId) {
         SurfMsgToolReqData data = new SurfMsgToolReqData();
         data.setBackendToolId(mixerId);
@@ -40,6 +44,11 @@ public class SurfProcToolReq extends SurfProcRequest {
     public void setToolType(String toolType) {
         SurfMsgToolReqData data = msg.getData();
         data.setToolType(toolType);
+    }
+
+    public void setBackendToolId(int toolId) {
+        SurfMsgToolReqData data = msg.getData();
+        data.setBackendToolId(toolId);
     }
 
     public void setInputFromRtp(boolean inputFromRtp) {
@@ -61,11 +70,12 @@ public class SurfProcToolReq extends SurfProcRequest {
         }
     }
 
-    public void setEncoder(String codec, String rate, String packing) {
+    public void setEncoder(String codec, String rate, String packing, int packetDuration) {
         if (msg.getData().getEncoder() == null) {
             msg.getData().newEncoder();
         }
         setVocoder(msg.getData().getEncoder(), codec, rate, packing);
+        msg.getData().getEncoder().setPacketDuration(packetDuration);
     }
 
     public void setDecoder(String codec, String rate, String packing) {
@@ -120,6 +130,10 @@ public class SurfProcToolReq extends SurfProcRequest {
 
     public void addFile(String name, float duration, String format, int segment) {
         msg.getData().addFile(name, duration, format, segment);
+    }
+
+    public void addParticipant(int id, String type, int toolId, int whisperTo, String action) {
+        msg.getData().addParticipant(id, type, toolId, whisperTo, action);
     }
 
     public void setRepetitions(int repetitions) {

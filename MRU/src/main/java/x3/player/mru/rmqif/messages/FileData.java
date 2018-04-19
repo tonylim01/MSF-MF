@@ -39,6 +39,9 @@ public class FileData {
         return playFile;
     }
 
+    public void setPlayFile(String playFile) {
+        this.playFile = playFile;
+    }
     public int getDefVolume() {
         return defVolume;
     }
@@ -50,4 +53,5 @@ public class FileData {
     public String getPlayType() {
         return playType;
     }
+
 }
