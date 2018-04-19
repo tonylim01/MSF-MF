@@ -110,6 +110,20 @@ public class SurfProcToolReq extends SurfProcRequest {
         }
     }
 
+    public void setAgc(int minLevel, int maxLevel) {
+        msg.getData().setAgcDecoder(true,  1000,
+                minLevel, maxLevel,
+                -1, 0);
+    }
+
+    public void setVad(boolean enable) {
+        msg.getData().setVad(enable);
+    }
+
+    public void addEvent(String type, boolean enabled) {
+        msg.getData().addEvent(type, enabled);
+    }
+
     public void setSamplingRate(int sampleRate) {
         msg.getData().setSamplingRate(sampleRate);
     }

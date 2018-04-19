@@ -98,6 +98,7 @@ public class PlayStartStateFunction extends PlayStateFunction implements StateFu
 
         SurfPlayBuilder channelBuilder = new SurfPlayBuilder(fileId);
         channelBuilder.setFileReader(parId);
+
         json = channelBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, fileId, json);

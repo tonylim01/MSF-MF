@@ -200,7 +200,8 @@ public class PrepareStateFunction implements StateFunction {
                 sdpInfo.getPayloadId(), // inPayloadId
                 localPayloadId,  // outpayloadId
                 rxPort,
-                config.getLocalIpAddress(), sessionInfo.getSrcLocalPort());
+                config.getLocalIpAddress(), sessionInfo.getSrcLocalPort(),
+                false);
         json = rxBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, cgRxId, json);
@@ -214,7 +215,8 @@ public class PrepareStateFunction implements StateFunction {
                 localPayloadId, // inPayloadId
                 sdpInfo.getPayloadId(),  // outpayloadId
                 txPort,
-                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
+                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort(),
+                false);
         txBuilder.setOverrideSrcPort(rxPort);
         json = txBuilder.build();
 
@@ -231,7 +233,8 @@ public class PrepareStateFunction implements StateFunction {
                 localPayloadId,
                 localPayloadId,
                 parPort,
-                config.getLocalIpAddress(), sessionInfo.getDstLocalPort());
+                config.getLocalIpAddress(), sessionInfo.getDstLocalPort(),
+                true);
         json = parBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, parId, json);
@@ -280,7 +283,8 @@ public class PrepareStateFunction implements StateFunction {
                 sdpInfo.getPayloadId(), // inPayloadId
                 localPayloadId,  // outpayloadId
                 calleePort,
-                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
+                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort(),
+                true);
         json = builder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, calleeId, json);
@@ -312,7 +316,6 @@ public class PrepareStateFunction implements StateFunction {
         }
 
         SurfConnectionManager connectionManager = SurfConnectionManager.getInstance();
-        SurfChannelManager channelManager = SurfChannelManager.getInstance();
 
         SdpInfo sdpInfo = sessionInfo.getSdpInfo();
         int localPayloadId = 8; // TODO : Internal packet's payloadId
@@ -327,7 +330,8 @@ public class PrepareStateFunction implements StateFunction {
                 localPayloadId,  // outpayloadId
                 playPort,
                 "127.0.0.1",
-                SurfChannelManager.getUdpPort(groupId, SurfChannelManager.TOOL_ID_MENT));
+                SurfChannelManager.getUdpPort(groupId, SurfChannelManager.TOOL_ID_MENT),
+                false);
 
         json = playBuilder.build();
 
@@ -349,8 +353,10 @@ public class PrepareStateFunction implements StateFunction {
                 localPayloadId,  // outpayloadId
                 bgPort,
                 "127.0.0.1",
-                SurfChannelManager.getUdpPort(groupId, SurfChannelManager.TOOL_ID_BG));
+                SurfChannelManager.getUdpPort(groupId, SurfChannelManager.TOOL_ID_BG),
+                false);
 
+//        bgBuilder.setAgc(-29, -28);   // TODO: TEST
         json = bgBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, bgId, json);

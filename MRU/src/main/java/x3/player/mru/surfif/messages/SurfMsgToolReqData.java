@@ -21,6 +21,11 @@ public class SurfMsgToolReqData {
     private Boolean inputFromRtp;
 
     /**
+     * Events
+     */
+    private List<SurfMsgEvent> events;
+
+    /**
      * Mixer
      */
     @SerializedName("sampling_rate")
@@ -236,10 +241,10 @@ public class SurfMsgToolReqData {
 
     public void setAgcEncoder(boolean enabled,
                               int energyAvgWindow, int minSignalLevel, int maxSignalLevel, int stepLevel,
-                              int silenceThreshold, boolean limitGain, int maxGain) {
+                              int silenceThreshold) {
 
         SurfMsgAgcData data = getAgcData(enabled, energyAvgWindow, minSignalLevel, maxSignalLevel, stepLevel,
-                silenceThreshold, limitGain, maxGain);
+                silenceThreshold);
 
         if (this.agc == null) {
             this.agc = new SurfMsgAgc();
@@ -250,10 +255,10 @@ public class SurfMsgToolReqData {
 
     public void setAgcDecoder(boolean enabled,
                               int energyAvgWindow, int minSignalLevel, int maxSignalLevel, int stepLevel,
-                              int silenceThreshold, boolean limitGain, int maxGain) {
+                              int silenceThreshold) {
 
         SurfMsgAgcData data = getAgcData(enabled, energyAvgWindow, minSignalLevel, maxSignalLevel, stepLevel,
-                silenceThreshold, limitGain, maxGain);
+                silenceThreshold);
 
         if (this.agc == null) {
             this.agc = new SurfMsgAgc();
@@ -262,21 +267,48 @@ public class SurfMsgToolReqData {
         this.agc.setDecoderSide(data);
     }
 
+    public void setVad(boolean enabled) {
+        if (this.getEncoder() != null) {
+            this.getEncoder().setVad(enabled, null, false);
+        }
+    }
 
     private SurfMsgAgcData getAgcData(boolean enabled,
                                       int energyAvgWindow, int minSignalLevel, int maxSignalLevel, int stepLevel,
-                                      int silenceThreshold, boolean limitGain, int maxGain) {
+                                      int silenceThreshold) {
         SurfMsgAgcData data = new SurfMsgAgcData();
 
         data.setEnabled(enabled);
-        data.setEnergyAvgWindow(energyAvgWindow);
-        data.setMinSignalLevel(minSignalLevel);
-        data.setMaxSignalLevel(maxSignalLevel);
-        data.setStepLevel(stepLevel);
-        data.setSilenceThreshold(silenceThreshold);
-        data.setLimitGain(limitGain);
-        data.setMaxGain(maxGain);
+        if (energyAvgWindow != 0) {
+            data.setEnergyAvgWindow(energyAvgWindow);
+        }
+        if (minSignalLevel != 0) {
+            data.setMinSignalLevel(minSignalLevel);
+        }
+        if (maxSignalLevel != 0) {
+            data.setMaxSignalLevel(maxSignalLevel);
+        }
+        if (stepLevel > 0) {
+            data.setStepLevel(stepLevel);
+        }
+        if (silenceThreshold != 0) {
+            data.setSilenceThreshold(silenceThreshold);
+        }
+//        data.setLimitGain(limitGain);
+//        data.setMaxGain(maxGain);
 
         return data;
+    }
+
+    public void addEvent(String type, boolean enabled) {
+        if (this.events == null) {
+            this.events = new ArrayList<>();
+        }
+
+        SurfMsgEvent event = new SurfMsgEvent();
+        event.setType(type);
+        event.setEnabled(enabled);
+
+        this.events.add(event);
     }
 }

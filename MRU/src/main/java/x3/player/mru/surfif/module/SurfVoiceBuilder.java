@@ -35,7 +35,8 @@ public class SurfVoiceBuilder {
     public void setChannel(int mixerId, boolean inputFromRtp,
                            int inPayloadId, int outPayloadId,
                            int localPort,
-                           String remoteIp, int remotePort)
+                           String remoteIp, int remotePort,
+                           boolean enableVad)
     {
         toolReq.setMixerId(mixerId);
         if (mixerId < 0) {
@@ -54,10 +55,19 @@ public class SurfVoiceBuilder {
                 !inputFromRtp ? 20 : 0);    // TODO
         toolReq.setLocalRtpInfo(localPort, outPayloadId);
         toolReq.setRemoteRtpInfo(remoteIp, remotePort, inPayloadId);
+
+        if (enableVad) {
+            toolReq.setVad(true);
+            toolReq.addEvent("all", true);  // TODO
+        }
     }
 
     public void setOverrideSrcPort(int srcPort) {
         toolReq.setOverrideSrcPort(srcPort);
+    }
+
+    public void setAgc(int minLevel, int maxLevel) {
+        toolReq.setAgc(minLevel, maxLevel);
     }
 
     public String build() {
