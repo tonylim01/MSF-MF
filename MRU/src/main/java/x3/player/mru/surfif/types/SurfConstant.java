@@ -8,6 +8,7 @@ public class SurfConstant {
     public static final String REQ_TYPE_SET_CONFIG = "set_config";
     public static final String REQ_TYPE_GET_CONFIG = "get_config";
     public static final String REQ_TYPE_COMMAND = "command";
+    public static final String REQ_TYPE_REMOVE = "remove";
 
     public static final String STR_INIT_MESSAGE = "surfapi";
 

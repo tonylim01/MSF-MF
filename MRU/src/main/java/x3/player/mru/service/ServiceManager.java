@@ -7,10 +7,13 @@ import x3.player.mru.common.NetUtil;
 import x3.player.mru.config.AmfConfig;
 import x3.player.mru.rmqif.module.RmqClient;
 import x3.player.mru.rmqif.module.RmqServer;
+import x3.player.mru.room.RoomInfo;
 import x3.player.mru.room.RoomManager;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionManager;
 import x3.player.mru.simulator.UdpRelayManager;
+import x3.player.mru.surfif.module.SurfChannelBuilder;
+import x3.player.mru.surfif.module.SurfChannelManager;
 import x3.player.mru.surfif.module.SurfConnectionManager;
 
 import javax.xml.ws.Service;
@@ -149,15 +152,68 @@ public class ServiceManager {
             return false;
         }
 
+        int groupId = -1;
+        int mixerId = -1;
+        RoomInfo roomInfo = RoomManager.getInstance().getRoomInfo(sessionInfo.getConferenceId());
+        if (roomInfo == null) {
+            logger.error("[{}] No roomInfo found", sessionInfo.getSessionId());
+        }
+        else {
+            groupId = roomInfo.getGroupId();
+            mixerId = roomInfo.getMixerId();
+        }
+
+        // Closes local udp resources
         UdpRelayManager udpRelayManager = UdpRelayManager.getInstance();
         udpRelayManager.close(sessionId);
 
+        // Closes Surf resources
+        if (sessionInfo.isCaller()) {
+            int cgRxId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CG_RX);
+            int cgTxId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CG_TX);
+            int parId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_CG);
+
+            removeSurfResource(sessionId, groupId, cgRxId);
+            removeSurfResource(sessionId, groupId, cgTxId);
+            removeSurfResource(sessionId, groupId, parId);
+        }
+        else {
+            int calleeId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CD);
+
+            removeSurfResource(sessionId, groupId, calleeId);
+        }
+
+        // Closes room info
         if (sessionInfo.getConferenceId() != null) {
             RoomManager.getInstance().removeSession(sessionInfo.getConferenceId(), sessionId);
+
+            // Closes the mixer
+            if (roomInfo.getSessionSize() == 0) {
+                removeSurfResource(sessionId, groupId, mixerId);
+                removeSurfResource(sessionId, groupId,
+                        SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_BG));
+                removeSurfResource(sessionId, groupId,
+                        SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_MENT));
+                removeSurfResource(sessionId, groupId,
+                        SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_BG));
+                removeSurfResource(sessionId, groupId,
+                        SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_MENT));
+            }
+
+
         }
 
         sessionManager.deleteSession(sessionId);
 
         return true;
+    }
+
+    private void removeSurfResource(String sessionId, int groupId, int toolId) {
+        SurfChannelBuilder builder = new SurfChannelBuilder(toolId);
+        builder.setRemove();
+
+        String json = builder.build();
+
+        SurfConnectionManager.getInstance().addSendQueue(sessionId, groupId, toolId, json);
     }
 }

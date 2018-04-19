@@ -70,7 +70,7 @@ public class UdpSocket {
             return false;
         }
 
-        logger.debug("Remote port {} size {}", remotePort, size);
+//        logger.debug("Remote port {} size {}", remotePort, size);
         boolean result = false;
         DatagramPacket packet = new DatagramPacket(buf, size, address, remotePort);
         try {
