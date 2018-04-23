@@ -32,7 +32,7 @@ public class SurfVoiceBuilder {
                 SurfMsgParticipant.PAR_ACTION_ADD);
     }
 
-    public void setChannel(int mixerId, boolean inputFromRtp,
+    public void setChannel(int mixerId,
                            int inPayloadId, int outPayloadId,
                            int localPort,
                            String remoteIp, int remotePort,
@@ -46,19 +46,29 @@ public class SurfVoiceBuilder {
             toolReq.setToolType(SurfConstant.TOOL_TYPE_VOICE_FE_IP);
             toolReq.setBackendToolId(mixerId);
         }
-        if (!inputFromRtp) {
-            toolReq.setInputFromRtp(inputFromRtp);
-        }
-        toolReq.setDecoder(inputFromRtp ? SurfMsgVocoder.VOCODER_ALAW : SurfMsgVocoder.VOCODER_LINEAR,
-                null, null);
-        toolReq.setEncoder(SurfMsgVocoder.VOCODER_ALAW, null, null,
-                !inputFromRtp ? 20 : 0);    // TODO
+//        if (!inputFromRtp) {
+//            toolReq.setInputFromRtp(inputFromRtp);
+//        }
+//        toolReq.setDecoder(inputFromRtp ? SurfMsgVocoder.VOCODER_ALAW : SurfMsgVocoder.VOCODER_LINEAR,
+//                null, null);
+//        toolReq.setEncoder(SurfMsgVocoder.VOCODER_ALAW, null, null,
+//                !inputFromRtp ? 20 : 0);    // TODO
         toolReq.setLocalRtpInfo(localPort, outPayloadId);
         toolReq.setRemoteRtpInfo(remoteIp, remotePort, inPayloadId);
 
         if (enableVad) {
             toolReq.setVad(true);
             toolReq.addEvent("all", true);  // TODO
+        }
+    }
+
+    public void setCoder(String encoder, String decoder, boolean inputFromRtp) {
+        toolReq.setDecoder(decoder, null, null);
+        toolReq.setEncoder(encoder, null, null,
+                !inputFromRtp ? 20 : 0);    // TODO
+
+        if (!inputFromRtp) {
+            toolReq.setInputFromRtp(inputFromRtp);
         }
     }
 

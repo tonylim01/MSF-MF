@@ -3,9 +3,9 @@ package x3.player.mru.rmqif.messages;
 import com.google.gson.annotations.SerializedName;
 
 public class ServiceStartReq {
-    @SerializedName("from_no")
+    @SerializedName("MDN")
     private String fromNo;
-    @SerializedName("aiif_id")
+    @SerializedName("AIIF ID")
     private int aiifId;
 
     public String getFromNo() {

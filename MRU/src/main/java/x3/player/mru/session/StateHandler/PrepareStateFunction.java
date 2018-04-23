@@ -13,6 +13,7 @@ import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionState;
 import x3.player.mru.session.SessionStateManager;
 import x3.player.mru.simulator.BiUdpRelayManager;
+import x3.player.mru.surfif.messages.SurfMsgVocoder;
 import x3.player.mru.surfif.module.SurfChannelManager;
 import x3.player.mru.surfif.module.SurfConnectionManager;
 import x3.player.mru.surfif.module.SurfVoiceBuilder;
@@ -146,8 +147,10 @@ public class PrepareStateFunction implements StateFunction {
         int mixerId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_MIXER);
         roomInfo.setMixerId(mixerId);
 
+        SurfConfig config = AppInstance.getInstance().getConfig().getSurfConfig();
+
         SurfVoiceBuilder builder = new SurfVoiceBuilder(mixerId);
-        builder.setMixer(8000, 500, 5); // TODO : Temp. value
+        builder.setMixer(config.getInternalSampleRate(), 500, 5); // TODO : Temp. value
         String json = builder.build();
 
         connectionManager.addSendQueue(sessionId, groupId, mixerId, json);
@@ -176,7 +179,7 @@ public class PrepareStateFunction implements StateFunction {
         SurfChannelManager channelManager = SurfChannelManager.getInstance();
 
         SdpInfo sdpInfo = sessionInfo.getSdpInfo();
-        int localPayloadId = 8; // TODO : Internal packet's payloadId
+        SurfConfig surfConfig = AppInstance.getInstance().getConfig().getSurfConfig();
 
         // Creates 3 voice channels
         int cgRxId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CG_RX);
@@ -184,24 +187,20 @@ public class PrepareStateFunction implements StateFunction {
         int parId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_CG);
 
         int rxPort = SurfChannelManager.getUdpPort(cgRxId);
-        //
-        // TODO: Below is not working
-        //
-//        int txPort = ((rxPort << 16) & 0xffff0000) + SurfChannelManager.getUdpPort(cgTxId);
         int txPort = SurfChannelManager.getUdpPort(cgTxId);
-
 
         logger.debug("[{}] CG_RX ptp: remote ({}:{}) -> local ({})", sessionInfo.getSessionId(),
                 config.getLocalIpAddress(), sessionInfo.getSrcLocalPort(), rxPort);
 
         // Creates a caller as p2p mode (RX channel: remote -> local)
         SurfVoiceBuilder rxBuilder = new SurfVoiceBuilder(cgRxId);
-        rxBuilder.setChannel(-1, true,
+        rxBuilder.setChannel(-1,
                 sdpInfo.getPayloadId(), // inPayloadId
-                localPayloadId,  // outpayloadId
+                surfConfig.getInternalPayload(),  // outpayloadId
                 rxPort,
                 config.getLocalIpAddress(), sessionInfo.getSrcLocalPort(),
                 false);
+        rxBuilder.setCoder(surfConfig.getInternalCodec(), SurfMsgVocoder.VOCODER_ALAW, true);
         json = rxBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, cgRxId, json);
@@ -211,12 +210,13 @@ public class PrepareStateFunction implements StateFunction {
 
         // Creates a caller as p2p mode (TX channel: remote <- local)
         SurfVoiceBuilder txBuilder = new SurfVoiceBuilder(cgTxId);
-        txBuilder.setChannel(-1, true,
-                localPayloadId, // inPayloadId
+        txBuilder.setChannel(-1,
+                surfConfig.getInternalPayload(), // inPayloadId
                 sdpInfo.getPayloadId(),  // outpayloadId
                 txPort,
                 sdpInfo.getRemoteIp(), sdpInfo.getRemotePort(),
                 false);
+        txBuilder.setCoder(SurfMsgVocoder.VOCODER_ALAW, surfConfig.getInternalCodec(), true);
         txBuilder.setOverrideSrcPort(rxPort);
         json = txBuilder.build();
 
@@ -229,12 +229,13 @@ public class PrepareStateFunction implements StateFunction {
 
         // Creates a mixer's participant as ip mode
         SurfVoiceBuilder parBuilder = new SurfVoiceBuilder(parId);
-        parBuilder.setChannel(mixerId, true,
-                localPayloadId,
-                localPayloadId,
+        parBuilder.setChannel(mixerId,
+                surfConfig.getInternalPayload(),
+                surfConfig.getInternalPayload(),
                 parPort,
                 config.getLocalIpAddress(), sessionInfo.getDstLocalPort(),
                 true);
+        parBuilder.setCoder(surfConfig.getInternalCodec(), surfConfig.getInternalCodec(), true);
         json = parBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, parId, json);
@@ -265,10 +266,9 @@ public class PrepareStateFunction implements StateFunction {
         }
 
         SurfConnectionManager connectionManager = SurfConnectionManager.getInstance();
-        SurfChannelManager channelManager = SurfChannelManager.getInstance();
 
         SdpInfo sdpInfo = sessionInfo.getSdpInfo();
-        int localPayloadId = 8; // TODO : Internal packet's payloadId
+        SurfConfig surfConfig = AppInstance.getInstance().getConfig().getSurfConfig();
 
         // Creates one voice channel
         int calleeId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CD);
@@ -279,12 +279,14 @@ public class PrepareStateFunction implements StateFunction {
 
         // Creates a callee as ip mode
         SurfVoiceBuilder builder = new SurfVoiceBuilder(calleeId);
-        builder.setChannel(mixerId, true,
+        builder.setChannel(mixerId,
+                surfConfig.getInternalPayload(),  // outpayloadId
                 sdpInfo.getPayloadId(), // inPayloadId
-                localPayloadId,  // outpayloadId
                 calleePort,
                 sdpInfo.getRemoteIp(), sdpInfo.getRemotePort(),
                 true);
+//        builder.setCoder(surfConfig.getInternalCodec(), SurfMsgVocoder.VOCODER_ALAW, true);
+        builder.setCoder(SurfMsgVocoder.VOCODER_ALAW, surfConfig.getInternalCodec(), true);
         json = builder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, calleeId, json);
@@ -318,21 +320,21 @@ public class PrepareStateFunction implements StateFunction {
         SurfConnectionManager connectionManager = SurfConnectionManager.getInstance();
 
         SdpInfo sdpInfo = sessionInfo.getSdpInfo();
-        int localPayloadId = 8; // TODO : Internal packet's payloadId
+        SurfConfig surfConfig = AppInstance.getInstance().getConfig().getSurfConfig();
 
         // Creates bg & play channels
         int playId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_MENT);
         int playPort =  SurfChannelManager.getUdpPort(playId);
 
         SurfVoiceBuilder playBuilder = new SurfVoiceBuilder(playId);
-        playBuilder.setChannel(mixerId, false,
-                localPayloadId, // inPayloadId
-                localPayloadId,  // outpayloadId
+        playBuilder.setChannel(mixerId,
+                surfConfig.getInternalPayload(), // inPayloadId
+                surfConfig.getInternalPayload(),  // outpayloadId
                 playPort,
                 "127.0.0.1",
                 SurfChannelManager.getUdpPort(groupId, SurfChannelManager.TOOL_ID_MENT),
                 false);
-
+        playBuilder.setCoder(surfConfig.getInternalCodec(), surfConfig.getInternalCodec(), false);
         json = playBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, playId, json);
@@ -348,14 +350,14 @@ public class PrepareStateFunction implements StateFunction {
         int bgPort =  SurfChannelManager.getUdpPort(bgId);
 
         SurfVoiceBuilder bgBuilder = new SurfVoiceBuilder(bgId);
-        bgBuilder.setChannel(mixerId, false,
-                localPayloadId, // inPayloadId
-                localPayloadId,  // outpayloadId
+        bgBuilder.setChannel(mixerId,
+                surfConfig.getInternalPayload(), // inPayloadId
+                surfConfig.getInternalPayload(),  // outpayloadId
                 bgPort,
                 "127.0.0.1",
                 SurfChannelManager.getUdpPort(groupId, SurfChannelManager.TOOL_ID_BG),
                 false);
-
+        bgBuilder.setCoder(surfConfig.getInternalCodec(), surfConfig.getInternalCodec(), false);
 //        bgBuilder.setAgc(-29, -28);   // TODO: TEST
         json = bgBuilder.build();
 

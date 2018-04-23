@@ -140,6 +140,17 @@ public class AmfConfig extends DefaultConfig {
             int totalChannels = getIntValue("SURF", "TOTAL_CHANNELS", 0);
 
             surfConfig.setTotalChannels(totalChannels);
+
+            String internalCodec = getStrValue("SURF", "INTERNAL_CODEC",
+                    SurfConfig.DEFAULT_INTERNAL_CODEC);
+            int internalPayload = getIntValue("SURF", "INTERNAL_PAYLOAD", 0);
+            int internalSampleRate = getIntValue("SURF", "INTERNAL_SAMPLE_RATE",
+                    SurfConfig.DEFAULT_INTERNAL_SAMPLE_RATE);
+
+            surfConfig.setInternalCodec(internalCodec);
+            surfConfig.setInternalPayload(internalPayload);
+            surfConfig.setInternalSampleRate(internalSampleRate);
+
         } catch (Exception e) {
             e.printStackTrace();
         }

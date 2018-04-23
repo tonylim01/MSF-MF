@@ -4,8 +4,10 @@ import gov.nist.javax.sdp.SessionDescriptionImpl;
 import gov.nist.javax.sdp.parser.SDPAnnounceParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import x3.player.mru.AppInstance;
 
 import javax.sdp.*;
+import java.util.List;
 import java.util.Vector;
 
 public class SdpParser {
@@ -27,6 +29,18 @@ public class SdpParser {
         try {
             sdpInfo = sdpParser.parse(sdp);
 
+            if (sdpInfo.getAttributes() != null) {
+                List<Integer> mediaPriorities = AppInstance.getInstance().getConfig().getMediaPriorities();
+
+                if (mediaPriorities != null && mediaPriorities.size() > 0) {
+                    for (Integer priority : mediaPriorities) {
+                        if (sdpInfo.getAttribute(priority) != null) {
+                            sdpInfo.setPayloadId(priority);
+                            break;
+                        }
+                    }
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

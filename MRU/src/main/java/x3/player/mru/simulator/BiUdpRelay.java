@@ -10,6 +10,7 @@ public class BiUdpRelay {
 
     private static final Logger logger = LoggerFactory.getLogger(BiUdpRelay.class);
 
+    private static final int RTP_HEADER_SIZE = 12;
     /**
      * Working like below:
      *   srcLocalPort -> dstUdpSocket
@@ -52,6 +53,7 @@ public class BiUdpRelay {
     }
 
     public void setDupUdpQueue(String dstQueueName) {
+        logger.debug("Open UDP relay queue [{}]", dstQueueName);
         this.dstQueueName = dstQueueName;
         dstRmqClient = RmqClient.getInstance(dstQueueName);
     }
@@ -75,12 +77,13 @@ public class BiUdpRelay {
 
         @Override
         public void onReceived(byte[] srcAddress, int srcPort, byte[] buf, int length) {
-//            logger.debug("UDP received: size [{}]", length);
             udpSocket.send(buf, length);
 
             if (dstRmqClient != null && dstRmqClient.isConnected() &&
                     buf != null && length > 0) {
-                dstRmqClient.send(new String(buf, 0, length));
+
+//                logger.debug("UDP relay: size [{}]", length);
+                dstRmqClient.send(new String(buf, RTP_HEADER_SIZE, length - RTP_HEADER_SIZE));
             }
         }
     }
