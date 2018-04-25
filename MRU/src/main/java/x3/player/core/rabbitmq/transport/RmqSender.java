@@ -11,23 +11,37 @@ public class RmqSender extends RmqTransport {
         super(host, userName, password, queueName);
     }
 
-    public boolean send(String msg) {
+    public boolean send(byte[] msg, int size) {
 
         if (getChannel().isOpen() == false) {
             logger.error("RMQ channel is NOT opened");
             return false;
         }
 
+        if ((size <= 0) || (msg == null) || (msg.length < size)) {
+            logger.error("Send error: wrong param. size [{}] msg [{}]", size,
+                    (msg != null) ? msg.length : 0);
+            return false;
+        }
+
         boolean result = false;
 
         try {
-            getChannel().basicPublish("", getQueueName(), null, msg.getBytes());
+            byte[] data = new byte[size];
+            System.arraycopy(msg, 0, data, 0, size);
+            getChannel().basicPublish("", getQueueName(), null, data);
             result = true;
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         return result;
+    }
+
+
+    public boolean send(String msg) {
+
+        return send(msg.getBytes(), msg.length());
     }
 
     public boolean isOpened() {

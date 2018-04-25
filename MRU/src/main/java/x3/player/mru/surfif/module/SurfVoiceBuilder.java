@@ -35,8 +35,7 @@ public class SurfVoiceBuilder {
     public void setChannel(int mixerId,
                            int inPayloadId, int outPayloadId,
                            int localPort,
-                           String remoteIp, int remotePort,
-                           boolean enableVad)
+                           String remoteIp, int remotePort)
     {
         toolReq.setMixerId(mixerId);
         if (mixerId < 0) {
@@ -55,22 +54,27 @@ public class SurfVoiceBuilder {
 //                !inputFromRtp ? 20 : 0);    // TODO
         toolReq.setLocalRtpInfo(localPort, outPayloadId);
         toolReq.setRemoteRtpInfo(remoteIp, remotePort, inPayloadId);
-
-        if (enableVad) {
-            toolReq.setVad(true);
-            toolReq.addEvent("all", true);  // TODO
-        }
     }
 
-    public void setCoder(String encoder, String decoder, boolean inputFromRtp) {
-        toolReq.setDecoder(decoder, null, null);
+    public void setCoder(String encoder, String decoder, int encSampleRate, int decSampleRate, boolean inputFromRtp) {
+        // TODO:
+        toolReq.setDecoder(decoder, null, null, decSampleRate);
         toolReq.setEncoder(encoder, null, null,
-                !inputFromRtp ? 20 : 0);    // TODO
+                !inputFromRtp ? 20 : 0, encSampleRate);    // TODO
 
         if (!inputFromRtp) {
             toolReq.setInputFromRtp(inputFromRtp);
         }
     }
+
+    public void setVad(boolean enabled) {
+        toolReq.setVad(enabled);
+        if (enabled) {
+            toolReq.addEvent("all", true);
+            toolReq.addStatus("all", 10000);
+        }
+    }
+
 
     public void setOverrideSrcPort(int srcPort) {
         toolReq.setOverrideSrcPort(srcPort);

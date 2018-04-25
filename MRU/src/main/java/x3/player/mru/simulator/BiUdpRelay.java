@@ -6,11 +6,12 @@ import x3.player.core.socket.UdpCallback;
 import x3.player.core.socket.UdpSocket;
 import x3.player.mru.rmqif.module.RmqClient;
 
+import java.io.FileOutputStream;
+
 public class BiUdpRelay {
 
     private static final Logger logger = LoggerFactory.getLogger(BiUdpRelay.class);
 
-    private static final int RTP_HEADER_SIZE = 12;
     /**
      * Working like below:
      *   srcLocalPort -> dstUdpSocket
@@ -23,7 +24,6 @@ public class BiUdpRelay {
     private int dstLocalPort;
 
     private String dstQueueName = null;
-    private RmqClient dstRmqClient = null;
 
     public void setSrcLocalPort(int localPort) {
         srcLocalPort = localPort;
@@ -55,7 +55,10 @@ public class BiUdpRelay {
     public void setDupUdpQueue(String dstQueueName) {
         logger.debug("Open UDP relay queue [{}]", dstQueueName);
         this.dstQueueName = dstQueueName;
-        dstRmqClient = RmqClient.getInstance(dstQueueName);
+        if (srcUdpSocket != null) {
+            srcUdpSocket.setRelayQueue(dstQueueName);
+            srcUdpSocket.saveToFile("/tmp/aiif.pcm");
+        }
     }
 
     public void closeUdpSocket() {
@@ -78,13 +81,6 @@ public class BiUdpRelay {
         @Override
         public void onReceived(byte[] srcAddress, int srcPort, byte[] buf, int length) {
             udpSocket.send(buf, length);
-
-            if (dstRmqClient != null && dstRmqClient.isConnected() &&
-                    buf != null && length > 0) {
-
-//                logger.debug("UDP relay: size [{}]", length);
-                dstRmqClient.send(new String(buf, RTP_HEADER_SIZE, length - RTP_HEADER_SIZE));
-            }
         }
     }
 }

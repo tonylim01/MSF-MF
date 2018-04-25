@@ -56,33 +56,60 @@ public class SurfProcToolReq extends SurfProcRequest {
         data.setInputFromRtp(inputFromRtp);
     }
 
-    private void setVocoder(SurfMsgVocoder vocoder, String codec, String rate, String packing) {
+    private void setVocoder(SurfMsgVocoder vocoder, String codec, String rate, String packing, int sampleRate) {
         if (vocoder == null) {
             return;
         }
 
         vocoder.setVocoder(codec);
+
+        if (rate == null) {
+            if (codec.equals(SurfMsgVocoder.VOCODER_EVS)) {
+                rate = SurfMsgVocoder.RATE_EVS_960;
+            }
+        }
+
+        if (packing == null) {
+            if (codec.equals(SurfMsgVocoder.VOCODER_AMR_WB)) {
+                packing = SurfMsgVocoder.PACKING_AMR_OA;
+            }
+        }
+
         if (rate != null) {
             vocoder.setRate(rate);
         }
         if (packing != null) {
             vocoder.setPacking(packing);
         }
+        if (sampleRate > 0) {
+            vocoder.setSampleRate(sampleRate);
+        }
     }
 
-    public void setEncoder(String codec, String rate, String packing, int packetDuration) {
+    public void setEncoder(String codec, String rate, String packing, int packetDuration, int sampleRate) {
+        if (codec == null) {
+            logger.error("setEncoder error. Null codec");
+            return;
+        }
+
         if (msg.getData().getEncoder() == null) {
             msg.getData().newEncoder();
         }
-        setVocoder(msg.getData().getEncoder(), codec, rate, packing);
+        setVocoder(msg.getData().getEncoder(), codec, rate, packing, sampleRate);
         msg.getData().getEncoder().setPacketDuration(packetDuration);
     }
 
-    public void setDecoder(String codec, String rate, String packing) {
+    public void setDecoder(String codec, String rate, String packing, int sampleRate) {
+        if (codec == null) {
+            logger.error("setDecoder error. Null codec");
+            return;
+        }
+
         if (msg.getData().getDecoder() == null) {
             msg.getData().newDecoder();
         }
-        setVocoder(msg.getData().getDecoder(), codec, rate, packing);
+
+        setVocoder(msg.getData().getDecoder(), codec, rate, packing, sampleRate);
     }
 
     public void setLocalRtpInfo(int localPort, int outPayloadId) {
@@ -111,17 +138,25 @@ public class SurfProcToolReq extends SurfProcRequest {
     }
 
     public void setAgc(int minLevel, int maxLevel) {
-        msg.getData().setAgcDecoder(true,  1000,
+//        msg.getData().setAgcDecoder(true,  1000,
+        msg.getData().setAgcEncoder(true,  1000,
                 minLevel, maxLevel,
                 -1, 0);
     }
 
-    public void setVad(boolean enable) {
-        msg.getData().setVad(enable);
+    public void setVad(boolean enabled) {
+        msg.getData().setVad(enabled);
+        if (enabled) {
+            setAgc(0, 0);
+        }
     }
 
     public void addEvent(String type, boolean enabled) {
         msg.getData().addEvent(type, enabled);
+    }
+
+    public void addStatus(String type, int period) {
+        msg.getData().addStatus(type, period);
     }
 
     public void setSamplingRate(int sampleRate) {

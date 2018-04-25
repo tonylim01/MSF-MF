@@ -1,6 +1,6 @@
 package x3.player.mru.rmqif.handler;
 
-import x3.player.core.sdp.SdpUtil;
+import x3.player.core.sdp.*;
 import x3.player.mru.AppInstance;
 import x3.player.mru.config.AmfConfig;
 import x3.player.mru.config.SdpConfig;
@@ -11,9 +11,6 @@ import x3.player.mru.room.RoomInfo;
 import x3.player.mru.room.RoomManager;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionManager;
-import x3.player.core.sdp.SdpAttribute;
-import x3.player.core.sdp.SdpBuilder;
-import x3.player.core.sdp.SdpInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import x3.player.mru.surfif.module.SurfChannelManager;
@@ -149,16 +146,38 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
             return null;
         }
 
+//        SdpParser.selectAttribute(sdpInfo);
+
         if (sdpInfo.getAttributes() != null) {
             List<Integer> mediaPriorities = AppInstance.getInstance().getConfig().getMediaPriorities();
 
             if (mediaPriorities != null && mediaPriorities.size() > 0) {
                 for (Integer priority : mediaPriorities) {
                     attr = sdpInfo.getAttribute(priority);
-                    if (attr != null) { // SDP found
+
+                    if (attr != null) {
+                        String desc = attr.getDescription();
+                        if (desc != null && desc.contains("/")) {
+                            String codec = desc.substring(0, desc.indexOf('/')).trim();
+                            String sampleRate = desc.substring(desc.indexOf('/' + 1)).trim();
+
+                            if (codec != null) {
+                                sdpInfo.setCodecStr(SdpUtil.getCodecStr(codec));
+                            }
+                        }
                         sdpInfo.setPayloadId(priority);
+                        if (sdpInfo.getCodecStr() == null) {
+                            sdpInfo.setCodecStr(SdpUtil.getCodecStr(priority));
+                        }
                         break;
                     }
+
+//                    attr = sdpInfo.getAttribute(priority);
+//                    if (attr != null) { // SDP found
+//                        sdpInfo.setPayloadId(priority);
+//                        sdpInfo.setCodecStr(SdpUtil.getCodecStr(priority));
+//                        break;
+//                    }
                 }
             }
         }

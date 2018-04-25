@@ -198,9 +198,9 @@ public class PrepareStateFunction implements StateFunction {
                 sdpInfo.getPayloadId(), // inPayloadId
                 surfConfig.getInternalPayload(),  // outpayloadId
                 rxPort,
-                config.getLocalIpAddress(), sessionInfo.getSrcLocalPort(),
-                false);
-        rxBuilder.setCoder(surfConfig.getInternalCodec(), SurfMsgVocoder.VOCODER_ALAW, true);
+                config.getLocalIpAddress(), sessionInfo.getSrcLocalPort());
+        rxBuilder.setCoder(surfConfig.getInternalCodec(), sdpInfo.getCodecStr(),
+                surfConfig.getInternalSampleRate(), 0,true);
         json = rxBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, cgRxId, json);
@@ -214,9 +214,9 @@ public class PrepareStateFunction implements StateFunction {
                 surfConfig.getInternalPayload(), // inPayloadId
                 sdpInfo.getPayloadId(),  // outpayloadId
                 txPort,
-                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort(),
-                false);
-        txBuilder.setCoder(SurfMsgVocoder.VOCODER_ALAW, surfConfig.getInternalCodec(), true);
+                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
+        txBuilder.setCoder(sdpInfo.getCodecStr(), surfConfig.getInternalCodec(),
+                0, surfConfig.getInternalSampleRate(), true);
         txBuilder.setOverrideSrcPort(rxPort);
         json = txBuilder.build();
 
@@ -233,9 +233,10 @@ public class PrepareStateFunction implements StateFunction {
                 surfConfig.getInternalPayload(),
                 surfConfig.getInternalPayload(),
                 parPort,
-                config.getLocalIpAddress(), sessionInfo.getDstLocalPort(),
-                true);
-        parBuilder.setCoder(surfConfig.getInternalCodec(), surfConfig.getInternalCodec(), true);
+                config.getLocalIpAddress(), sessionInfo.getDstLocalPort());
+        parBuilder.setCoder(surfConfig.getInternalCodec(), surfConfig.getInternalCodec(),
+                surfConfig.getInternalSampleRate(), surfConfig.getInternalSampleRate(), true);
+        parBuilder.setVad(true);
         json = parBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, parId, json);
@@ -283,10 +284,11 @@ public class PrepareStateFunction implements StateFunction {
                 surfConfig.getInternalPayload(),  // outpayloadId
                 sdpInfo.getPayloadId(), // inPayloadId
                 calleePort,
-                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort(),
-                true);
+                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
 //        builder.setCoder(surfConfig.getInternalCodec(), SurfMsgVocoder.VOCODER_ALAW, true);
-        builder.setCoder(SurfMsgVocoder.VOCODER_ALAW, surfConfig.getInternalCodec(), true);
+        builder.setCoder(sdpInfo.getCodecStr(), surfConfig.getInternalCodec(),
+                0, surfConfig.getInternalSampleRate(), true);
+        builder.setVad(true);
         json = builder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, calleeId, json);
@@ -332,9 +334,10 @@ public class PrepareStateFunction implements StateFunction {
                 surfConfig.getInternalPayload(),  // outpayloadId
                 playPort,
                 "127.0.0.1",
-                SurfChannelManager.getUdpPort(groupId, SurfChannelManager.TOOL_ID_MENT),
+                SurfChannelManager.getUdpPort(groupId, SurfChannelManager.TOOL_ID_MENT));
+        playBuilder.setCoder(surfConfig.getInternalCodec(), surfConfig.getInternalCodec(),
+                surfConfig.getInternalSampleRate(), surfConfig.getInternalSampleRate(),
                 false);
-        playBuilder.setCoder(surfConfig.getInternalCodec(), surfConfig.getInternalCodec(), false);
         json = playBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, playId, json);
@@ -355,9 +358,10 @@ public class PrepareStateFunction implements StateFunction {
                 surfConfig.getInternalPayload(),  // outpayloadId
                 bgPort,
                 "127.0.0.1",
-                SurfChannelManager.getUdpPort(groupId, SurfChannelManager.TOOL_ID_BG),
+                SurfChannelManager.getUdpPort(groupId, SurfChannelManager.TOOL_ID_BG));
+        bgBuilder.setCoder(surfConfig.getInternalCodec(), surfConfig.getInternalCodec(),
+                surfConfig.getInternalSampleRate(), surfConfig.getInternalSampleRate(),
                 false);
-        bgBuilder.setCoder(surfConfig.getInternalCodec(), surfConfig.getInternalCodec(), false);
 //        bgBuilder.setAgc(-29, -28);   // TODO: TEST
         json = bgBuilder.build();
 

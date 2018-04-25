@@ -38,6 +38,14 @@ public class SurfMsgVocoder {
     public static final String RATE_G726_16     = "16";
     public static final String RATE_G726_32     = "32";
 
+    public static final String RATE_EVS_96      = "9.60";
+    public static final String RATE_EVS_164     = "16.40";
+    public static final String RATE_EVS_244     = "24.40";
+    public static final String RATE_EVS_320     = "32.00";
+    public static final String RATE_EVS_480     = "48.00";
+    public static final String RATE_EVS_640     = "64.00";
+    public static final String RATE_EVS_960     = "96.00";
+
     /**
      * Packing:
      * AMR_NB, AMR_WB   : OA, BE (Default: OA)
@@ -62,8 +70,10 @@ public class SurfMsgVocoder {
     private String packing;
     @SerializedName("packet_duration")
     private Integer packetDuration;
-    @SerializedName("vad")
+    @SerializedName("VAD")
     private SurfVad vad;
+    @SerializedName("sample_rate")
+    private Integer sampleRate;
 
     public String getVocoder() {
         return vocoder;
@@ -97,6 +107,14 @@ public class SurfMsgVocoder {
         if (packetDuration > 0) {
             this.packetDuration = packetDuration;
         }
+    }
+
+    public int getSampleRate() {
+        return sampleRate;
+    }
+
+    public void setSampleRate(int sampleRate) {
+        this.sampleRate = sampleRate;
     }
 
     public void setVad(boolean enabled, String type, boolean enableSid) {

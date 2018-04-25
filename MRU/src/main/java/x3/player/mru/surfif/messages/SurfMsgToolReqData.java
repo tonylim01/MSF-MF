@@ -26,6 +26,11 @@ public class SurfMsgToolReqData {
     private List<SurfMsgEvent> events;
 
     /**
+     * Status
+     */
+    private List<SurfMsgStatus> status;
+
+    /**
      * Mixer
      */
     @SerializedName("sampling_rate")
@@ -310,5 +315,17 @@ public class SurfMsgToolReqData {
         event.setEnabled(enabled);
 
         this.events.add(event);
+    }
+
+    public void addStatus(String type, int period) {
+        if (this.status == null) {
+            this.status= new ArrayList<>();
+        }
+
+        SurfMsgStatus status = new SurfMsgStatus();
+        status.setType(type);
+        status.setPeriod(period);
+
+        this.status.add(status);
     }
 }

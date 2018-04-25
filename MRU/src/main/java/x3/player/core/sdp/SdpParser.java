@@ -14,6 +14,38 @@ public class SdpParser {
 
     private static final Logger logger = LoggerFactory.getLogger(SdpParser.class);
 
+    public static SdpInfo selectAttribute(SdpInfo sdpInfo) {
+        if (sdpInfo == null || sdpInfo.getAttributes() == null) {
+            return null;
+        }
+
+        List<Integer> mediaPriorities = AppInstance.getInstance().getConfig().getMediaPriorities();
+
+        if (mediaPriorities != null && mediaPriorities.size() > 0) {
+            for (Integer priority : mediaPriorities) {
+                SdpAttribute attr = sdpInfo.getAttribute(priority);
+
+                if (attr != null) {
+                    String desc = attr.getDescription();
+                    if (desc != null && desc.contains("/")) {
+                        String codec = desc.substring(0, desc.indexOf('/')).trim();
+                        String sampleRate = desc.substring(desc.indexOf('/' + 1)).trim();
+
+                        if (codec != null) {
+                            sdpInfo.setCodecStr(SdpUtil.getCodecStr(codec));
+                        }
+                    }
+                    sdpInfo.setPayloadId(priority);
+                    if (sdpInfo.getCodecStr() == null) {
+                        sdpInfo.setCodecStr(SdpUtil.getCodecStr(priority));
+                    }
+                    break;
+                }
+            }
+        }
+
+        return sdpInfo;
+    }
     /**
      * Simple static parser to call the parse() of SdpParser
      * @param sdp
@@ -34,8 +66,22 @@ public class SdpParser {
 
                 if (mediaPriorities != null && mediaPriorities.size() > 0) {
                     for (Integer priority : mediaPriorities) {
-                        if (sdpInfo.getAttribute(priority) != null) {
+                        SdpAttribute attr = sdpInfo.getAttribute(priority);
+
+                        if (attr != null) {
+                            String desc = attr.getDescription();
+                            if (desc != null && desc.contains("/")) {
+                                String codec = desc.substring(0, desc.indexOf('/')).trim();
+                                String sampleRate = desc.substring(desc.indexOf('/' + 1)).trim();
+
+                                if (codec != null) {
+                                    sdpInfo.setCodecStr(SdpUtil.getCodecStr(codec));
+                                }
+                            }
                             sdpInfo.setPayloadId(priority);
+                            if (sdpInfo.getCodecStr() == null) {
+                                sdpInfo.setCodecStr(SdpUtil.getCodecStr(priority));
+                            }
                             break;
                         }
                     }
