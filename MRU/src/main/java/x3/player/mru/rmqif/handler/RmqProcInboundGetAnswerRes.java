@@ -81,13 +81,15 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
         SdpBuilder builder = new SdpBuilder();
         builder.setHost(sdpConfig.getLocalHost());
 
-        builder.setLocalIpAddress(config.getSurfIp());
+//        builder.setLocalIpAddress(config.getSurfIp());
+        builder.setLocalIpAddress(config.getLocalIpAddress());
         builder.setSessionName("acs-amf");      // TODO
 
         SdpAttribute attr = selectSdp(sessionInfo);
         if (attr != null) {
 
-            int localPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_CG_RX);
+//            int localPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_CG_RX);
+            int localPort = sessionInfo.getSrcLocalPort();
             builder.setLocalPort(localPort);
 
             builder.addRtpAttribute(attr.getPayloadId(), attr.getDescription());
@@ -171,13 +173,6 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
                         }
                         break;
                     }
-
-//                    attr = sdpInfo.getAttribute(priority);
-//                    if (attr != null) { // SDP found
-//                        sdpInfo.setPayloadId(priority);
-//                        sdpInfo.setCodecStr(SdpUtil.getCodecStr(priority));
-//                        break;
-//                    }
                 }
             }
         }

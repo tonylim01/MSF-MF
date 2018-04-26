@@ -2,10 +2,12 @@ package x3.player.core.socket;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import x3.player.mru.common.ShellUtil;
 import x3.player.mru.rmqif.module.RmqClient;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -25,8 +27,17 @@ public class UdpSocket {
     private int localPort;
     private int remotePort;
 
+    private UdpSocket remoteSocket;
+
     private RmqClient rmqClient = null;
     private FileOutputStream fileStream = null;
+    private RandomAccessFile inputPipeFile = null;
+    private RandomAccessFile outputPipeFile = null;
+    private boolean pipeOpened = false;
+    private Thread ffmpegThread = null;
+    private Thread rmqThread = null;
+    private String inputPipeName;
+    private String outputPipeName;
 
     public UdpSocket(String ipAddress, int remotePort, int localPort) {
         try {
@@ -59,6 +70,28 @@ public class UdpSocket {
     }
 
     public void stop() {
+        if (pipeOpened) {
+            pipeOpened = false;
+            if (inputPipeFile != null) {
+
+                logger.info("Close input pipe ({})", inputPipeName);
+                try {
+                    inputPipeFile.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            if (outputPipeFile != null) {
+
+                logger.info("Close output pipe ({})", outputPipeName);
+                try {
+                    outputPipeFile.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
         if (fileStream != null) {
             try {
                 fileStream.close();
@@ -67,12 +100,25 @@ public class UdpSocket {
             }
         }
 
+        if (rmqThread != null) {
+            rmqThread.interrupt();
+            rmqThread = null;
+        }
+
         if (thread != null) {
             thread.interrupt();
             thread = null;
         }
 
         socket.close();
+    }
+
+    public UdpSocket getRemoteSocket() {
+        return remoteSocket;
+    }
+
+    public void setRemoteSocket(UdpSocket remoteSocket) {
+        this.remoteSocket = remoteSocket;
     }
 
     public boolean send(byte[] buf, int size) {
@@ -84,7 +130,6 @@ public class UdpSocket {
             return false;
         }
 
-//        logger.debug("Remote port {} size {}", remotePort, size);
         boolean result = false;
         DatagramPacket packet = new DatagramPacket(buf, size, address, remotePort);
         try {
@@ -94,25 +139,51 @@ public class UdpSocket {
             e.printStackTrace();
         }
 
-        if (rmqClient != null && rmqClient.isConnected() &&
-                buf != null && size > 0) {
-
-            rmqClient.send(buf, size);
-
-            if (fileStream != null) {
+        if (buf != null && size > 0) {
+            if (inputPipeFile != null) {
                 try {
-                    fileStream.write(buf, RTP_HEADER_SIZE, size - RTP_HEADER_SIZE);
+                    inputPipeFile.write(buf, RTP_HEADER_SIZE, size - RTP_HEADER_SIZE);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }
+
         return result;
     }
 
     public void setRelayQueue(String queueName) {
+        createPipe(queueName);
         rmqClient = RmqClient.getInstance(queueName);
     }
+
+    private static final byte[] AMR_HEADER = { 0x23, 0x21, 0x41, 0x4D, 0x52, 0x2D, 0x57, 0x42, 0x0A };
+
+    private void createPipe(String queueName) {
+        inputPipeName = String.format("/tmp/%s_i", queueName);
+        outputPipeName = String.format("/tmp/%s_o.wav", queueName);
+        ShellUtil.createNamedPipe(inputPipeName);
+        ShellUtil.createNamedPipe(outputPipeName);
+
+        ffmpegThread = new Thread(new FfmpegRunnable());
+        ffmpegThread.start();
+
+        try {
+            inputPipeFile = new RandomAccessFile(inputPipeName, "rw");
+            inputPipeFile.write(AMR_HEADER);
+
+            outputPipeFile = new RandomAccessFile(outputPipeName, "r");
+
+            pipeOpened = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        rmqThread = new Thread(new RmqRelayRunnable());
+        rmqThread.start();
+
+    }
+
 
     public void saveToFile(String filename) {
         try {
@@ -136,12 +207,61 @@ public class UdpSocket {
                     }
                 } catch (Exception e) {
                     logger.warn("Exception [{}] [{}]", e.getClass(), e.getMessage());
+                    e.printStackTrace();
                     if (e.getClass() != IOException.class) {
                         isQuit = true;
                     }
                 }
             }
             logger.info("UdpServer server ({}) end", localPort);
+        }
+    }
+
+    class FfmpegRunnable implements Runnable {
+        @Override
+        public void run() {
+
+            logger.info("Ffmpeg proc ({}) start", inputPipeName);
+
+            ShellUtil.startAMRTranscoding(inputPipeName, outputPipeName);
+
+            logger.info("Ffmpeg proc ({}) end", inputPipeName);
+        }
+    }
+
+    private static final int LINEAR_PAYLOAD_SIZE = 320;
+
+    class RmqRelayRunnable implements Runnable {
+        @Override
+        public void run() {
+            logger.info("Rmq relay proc ({}) start", outputPipeName);
+
+            byte[] pipeBuf = new byte[LINEAR_PAYLOAD_SIZE];
+            try {
+                logger.info("Rmq relay proc ({}) ready. isQuit [{}]", outputPipeName, isQuit);
+
+                while (!isQuit) {
+                    int size = outputPipeFile.read(pipeBuf);
+                    if (size > 0 && rmqClient != null && rmqClient.isConnected()) {
+
+                        rmqClient.send(pipeBuf, size);
+
+                        // Just for log
+                        if (fileStream != null) {
+                            try {
+                                fileStream.write(pipeBuf, 0, size);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            logger.info("Rmq relay proc ({}) end", outputPipeName);
         }
     }
 }

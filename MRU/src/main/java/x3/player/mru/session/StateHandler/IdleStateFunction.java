@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import x3.player.mru.service.ServiceManager;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionState;
+import x3.player.mru.simulator.BiUdpRelayManager;
 
 public class IdleStateFunction implements StateFunction {
     private static final Logger logger = LoggerFactory.getLogger(IdleStateFunction.class);
@@ -16,6 +17,8 @@ public class IdleStateFunction implements StateFunction {
         }
 
         logger.debug("[{}] IdleStateFunction", sessionInfo.getSessionId());
+
+        BiUdpRelayManager.getInstance().close(sessionInfo.getSessionId());
 
         if (sessionInfo.getServiceState() != SessionState.IDLE) {
             sessionInfo.setServiceState(SessionState.IDLE);

@@ -43,6 +43,8 @@ public class BiUdpRelay {
         srcUdpSocket = new UdpSocket(remoteIpAddress, remotePort, srcLocalPort);
         srcUdpSocket.setUdpCallback(new RelayUdpCallback(srcUdpSocket));
         srcUdpSocket.start();
+
+        updateRemoteSocket();
     }
 
     public void openDstUdpClient(String remoteIpAddress, int remotePort) {
@@ -50,14 +52,26 @@ public class BiUdpRelay {
         dstUdpSocket = new UdpSocket(remoteIpAddress, remotePort, dstLocalPort);
         dstUdpSocket.setUdpCallback(new RelayUdpCallback(dstUdpSocket));
         dstUdpSocket.start();
+
+        updateRemoteSocket();
+    }
+
+    private void updateRemoteSocket() {
+        if (srcUdpSocket != null && dstUdpSocket != null) {
+            dstUdpSocket.setRemoteSocket(srcUdpSocket);
+        }
+        if (srcUdpSocket != null && dstUdpSocket != null) {
+            srcUdpSocket.setRemoteSocket(dstUdpSocket);
+        }
+
     }
 
     public void setDupUdpQueue(String dstQueueName) {
         logger.debug("Open UDP relay queue [{}]", dstQueueName);
         this.dstQueueName = dstQueueName;
-        if (srcUdpSocket != null) {
-            srcUdpSocket.setRelayQueue(dstQueueName);
-            srcUdpSocket.saveToFile("/tmp/aiif.pcm");
+        if (dstUdpSocket != null) {
+            dstUdpSocket.setRelayQueue(dstQueueName);
+            dstUdpSocket.saveToFile("/tmp/aiif.pcm");
         }
     }
 
@@ -80,7 +94,9 @@ public class BiUdpRelay {
 
         @Override
         public void onReceived(byte[] srcAddress, int srcPort, byte[] buf, int length) {
-            udpSocket.send(buf, length);
+            if (udpSocket.getRemoteSocket() != null) {
+                udpSocket.getRemoteSocket().send(buf, length);
+            }
         }
     }
 }
