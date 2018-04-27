@@ -26,7 +26,7 @@ public class SurfVoiceBuilder {
     public void setParticipant(int toolId, int mixerId) {
         toolReq.setToolType(SurfConstant.TOOL_TYPE_VOICE_MIXER);
         toolReq.addParticipant(toolId,
-                SurfMsgParticipant.PAR_TYPE_DOMINANT,
+                SurfMsgParticipant.PAR_TYPE_REGULAR,
                 mixerId,
                 -1,
                 SurfMsgParticipant.PAR_ACTION_ADD);

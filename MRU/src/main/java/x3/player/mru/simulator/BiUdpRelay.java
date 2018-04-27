@@ -71,7 +71,9 @@ public class BiUdpRelay {
         this.dstQueueName = dstQueueName;
         if (dstUdpSocket != null) {
             dstUdpSocket.setRelayQueue(dstQueueName);
-            dstUdpSocket.saveToFile("/tmp/aiif.pcm");
+
+            String filename = String.format("/tmp/%s.pcm", dstQueueName);
+            dstUdpSocket.saveToFile(filename);
         }
     }
 

@@ -54,7 +54,7 @@ public class PrepareStateFunction implements StateFunction {
                 //
                 // TODO: DEMO
                 //
-                playDemoAudio(sessionInfo, roomInfo);
+//                playDemoAudio(sessionInfo, roomInfo);
             }
 
             if (sessionInfo.isCaller()) {
@@ -231,7 +231,8 @@ public class PrepareStateFunction implements StateFunction {
         // Creates a mixer's participant as ip mode
         SurfVoiceBuilder parBuilder = new SurfVoiceBuilder(parId);
         parBuilder.setChannel(mixerId,
-                surfConfig.getInternalPayload(),
+//                surfConfig.getInternalPayload(),
+                sdpInfo.getPayloadId(),
                 sdpInfo.getPayloadId(),
                 parPort,
                 config.getLocalIpAddress(), sessionInfo.getDstLocalPort());
@@ -284,7 +285,8 @@ public class PrepareStateFunction implements StateFunction {
         // Creates a callee as ip mode
         SurfVoiceBuilder builder = new SurfVoiceBuilder(calleeId);
         builder.setChannel(mixerId,
-                surfConfig.getInternalPayload(),  // outpayloadId
+                sdpInfo.getPayloadId(), // inPayloadId
+//                surfConfig.getInternalPayload(),  // outpayloadId
                 sdpInfo.getPayloadId(), // inPayloadId
                 calleePort,
                 sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
