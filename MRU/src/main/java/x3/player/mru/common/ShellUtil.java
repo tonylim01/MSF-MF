@@ -36,4 +36,14 @@ public class ShellUtil {
 
         return runShell(ffmpegCmd);
     }
+
+    public static boolean convertPcmToWav(String inputName, String outputName) {
+        if (inputName == null || outputName == null) {
+            return false;
+        }
+
+        String ffmpegCmd = String.format("ffmpeg -f s16le -ar 22050 -ac 1 -i %s -ar 8000 %s", inputName, outputName);
+
+        return runShell(ffmpegCmd);
+    }
 }

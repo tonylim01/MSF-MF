@@ -138,8 +138,7 @@ public class SurfProcToolReq extends SurfProcRequest {
     }
 
     public void setAgc(int minLevel, int maxLevel) {
-//        msg.getData().setAgcDecoder(true,  1000,
-        msg.getData().setAgcEncoder(true,  1000,
+        msg.getData().setAgcDecoder(true,  1000,
                 minLevel, maxLevel,
                 -1, 0);
     }

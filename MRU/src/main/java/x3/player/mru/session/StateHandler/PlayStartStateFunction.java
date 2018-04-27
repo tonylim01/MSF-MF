@@ -2,6 +2,9 @@ package x3.player.mru.session.StateHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import x3.player.mru.AppInstance;
+import x3.player.mru.common.ShellUtil;
+import x3.player.mru.config.AmfConfig;
 import x3.player.mru.rmqif.messages.FileData;
 import x3.player.mru.room.RoomInfo;
 import x3.player.mru.room.RoomManager;
@@ -10,6 +13,8 @@ import x3.player.mru.session.SessionState;
 import x3.player.mru.surfif.module.SurfChannelManager;
 import x3.player.mru.surfif.module.SurfConnectionManager;
 import x3.player.mru.surfif.module.SurfPlayBuilder;
+
+import java.io.File;
 
 public class PlayStartStateFunction extends PlayStateFunction implements StateFunction {
     private static final Logger logger = LoggerFactory.getLogger(PlayStartStateFunction.class);
@@ -69,6 +74,32 @@ public class PlayStartStateFunction extends PlayStateFunction implements StateFu
                 data.getChannel(), data.getMediaType(), data.getPlayFile(),
                 data.getDefVolume(), data.getMixVolume(), data.getPlayType());
 
+        AmfConfig config = AppInstance.getInstance().getConfig();
+        String filename = String.format("%s/%s", config.getLocalBasePath(), data.getPlayFile());
+
+        //
+        // TODO
+        //
+        File file = new File(filename);
+        if (!file.exists()) {
+            logger.error("[{}] File not found [{}]", sessionInfo.getSessionId(), filename);
+            return false;
+        }
+
+        int comma = filename.lastIndexOf(".");
+
+        if (comma > 0) {
+            String ext = filename.substring(comma + 1);
+            if (ext != null && ext.equals("pcm")) {
+
+                String wavfile = String.format("%swav", filename.substring(0, comma + 1));
+                logger.debug("[{}] wav file [{}]", sessionInfo.getSessionId(), wavfile);
+
+                ShellUtil.convertPcmToWav(filename, wavfile);
+                filename = wavfile;
+            }
+        }
+
         String json;
         int groupId = roomInfo.getGroupId();
         int mixerId = roomInfo.getMixerId();
@@ -105,7 +136,7 @@ public class PlayStartStateFunction extends PlayStateFunction implements StateFu
 
         // Sets a filename to play
         SurfPlayBuilder fileBuilder = new SurfPlayBuilder(fileId);
-        fileBuilder.setPlayListAppend(data.getPlayFile());
+        fileBuilder.setPlayListAppend(filename);
         json = fileBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, fileId, json);

@@ -36,6 +36,8 @@ public class AmfConfig extends DefaultConfig {
 
     private SurfConfig surfConfig;
 
+    private String localBasePath;
+
     public AmfConfig(int instanceId, String configPath) {
 
         super(configPath);
@@ -189,6 +191,9 @@ public class AmfConfig extends DefaultConfig {
             else {
                 logger.error("Local IP not found for [{}]", localNetInterface);
             }
+
+            localBasePath = getStrValue("MEDIA", "LOCAL_BASE_PATH", null);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -297,5 +302,9 @@ public class AmfConfig extends DefaultConfig {
 
     public String getRmqAiifFmt() {
         return this.rmqAiifFmt;
+    }
+
+    public String getLocalBasePath() {
+        return localBasePath;
     }
 }

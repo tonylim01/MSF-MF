@@ -180,49 +180,8 @@ public class PrepareStateFunction implements StateFunction {
         SurfConnectionManager connectionManager = SurfConnectionManager.getInstance();
 
         SdpInfo sdpInfo = sessionInfo.getSdpInfo();
-        SurfConfig surfConfig = AppInstance.getInstance().getConfig().getSurfConfig();
 
-        // Creates 3 voice channels
-//        int cgRxId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CG_RX);
-//        int cgTxId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CG_TX);
         int parId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_CG);
-
-//        int rxPort = SurfChannelManager.getUdpPort(cgRxId);
-//        int txPort = SurfChannelManager.getUdpPort(cgTxId);
-
-//        logger.debug("[{}] CG_RX ptp: remote ({}:{}) -> local ({})", sessionInfo.getSessionId(),
-//                config.getLocalIpAddress(), sessionInfo.getSrcLocalPort(), rxPort);
-//
-//        // Creates a caller as p2p mode (RX channel: remote -> local)
-//        SurfVoiceBuilder rxBuilder = new SurfVoiceBuilder(cgRxId);
-//        rxBuilder.setChannel(-1,
-//                sdpInfo.getPayloadId(), // inPayloadId
-//                surfConfig.getInternalPayload(),  // outpayloadId
-//                rxPort,
-//                config.getLocalIpAddress(), sessionInfo.getSrcLocalPort());
-//        rxBuilder.setCoder(surfConfig.getInternalCodec(), sdpInfo.getCodecStr(),
-//                surfConfig.getInternalSampleRate(), 0,true);
-//        json = rxBuilder.build();
-//
-//        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, cgRxId, json);
-//
-//        logger.debug("[{}] CG_TX ptp: remote ({}:{}) <- local ({})", sessionInfo.getSessionId(),
-//                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort(), txPort);
-//
-//        // Creates a caller as p2p mode (TX channel: remote <- local)
-//        SurfVoiceBuilder txBuilder = new SurfVoiceBuilder(cgTxId);
-//        txBuilder.setChannel(-1,
-//                surfConfig.getInternalPayload(), // inPayloadId
-//                sdpInfo.getPayloadId(),  // outpayloadId
-//                txPort,
-//                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
-//        txBuilder.setCoder(sdpInfo.getCodecStr(), surfConfig.getInternalCodec(),
-//                0, surfConfig.getInternalSampleRate(), true);
-//        txBuilder.setOverrideSrcPort(rxPort);
-//        json = txBuilder.build();
-//
-//        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, cgTxId, json);
-
         int parPort = SurfChannelManager.getUdpPort(parId);
 
         logger.debug("[{}] CG_par fe: remote ({}:{}) - local ({}) - mixer ({})", sessionInfo.getSessionId(),
@@ -231,13 +190,10 @@ public class PrepareStateFunction implements StateFunction {
         // Creates a mixer's participant as ip mode
         SurfVoiceBuilder parBuilder = new SurfVoiceBuilder(parId);
         parBuilder.setChannel(mixerId,
-//                surfConfig.getInternalPayload(),
                 sdpInfo.getPayloadId(),
                 sdpInfo.getPayloadId(),
                 parPort,
                 config.getLocalIpAddress(), sessionInfo.getDstLocalPort());
-//        parBuilder.setCoder(sdpInfo.getCodecStr(), surfConfig.getInternalCodec(),
-//                0, surfConfig.getInternalSampleRate(), true);
         parBuilder.setCoder(sdpInfo.getCodecStr(), sdpInfo.getCodecStr(),
                 0, 0, true);
 //        parBuilder.setVad(true);
@@ -273,7 +229,6 @@ public class PrepareStateFunction implements StateFunction {
         SurfConnectionManager connectionManager = SurfConnectionManager.getInstance();
 
         SdpInfo sdpInfo = sessionInfo.getSdpInfo();
-        SurfConfig surfConfig = AppInstance.getInstance().getConfig().getSurfConfig();
 
         // Creates one voice channel
         int calleeId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CD);
@@ -286,12 +241,9 @@ public class PrepareStateFunction implements StateFunction {
         SurfVoiceBuilder builder = new SurfVoiceBuilder(calleeId);
         builder.setChannel(mixerId,
                 sdpInfo.getPayloadId(), // inPayloadId
-//                surfConfig.getInternalPayload(),  // outpayloadId
-                sdpInfo.getPayloadId(), // inPayloadId
+                sdpInfo.getPayloadId(), // outpayloadId
                 calleePort,
                 sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
-//        builder.setCoder(sdpInfo.getCodecStr(), surfConfig.getInternalCodec(),
-//                0, surfConfig.getInternalSampleRate(), true);
         builder.setCoder(sdpInfo.getCodecStr(), sdpInfo.getCodecStr(),
                 0, 0, true);
 //        builder.setVad(true);
@@ -327,7 +279,6 @@ public class PrepareStateFunction implements StateFunction {
 
         SurfConnectionManager connectionManager = SurfConnectionManager.getInstance();
 
-        SdpInfo sdpInfo = sessionInfo.getSdpInfo();
         SurfConfig surfConfig = AppInstance.getInstance().getConfig().getSurfConfig();
 
         // Creates bg & play channels
@@ -368,7 +319,8 @@ public class PrepareStateFunction implements StateFunction {
         bgBuilder.setCoder(surfConfig.getInternalCodec(), surfConfig.getInternalCodec(),
                 surfConfig.getInternalSampleRate(), surfConfig.getInternalSampleRate(),
                 false);
-//        bgBuilder.setAgc(-29, -28);   // TODO: TEST
+//        bgBuilder.setAgc(-30, -20);   // TODO: TEST
+//        bgBuilder.setAgc(-10, -8);   // TODO: TEST
         json = bgBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, bgId, json);
@@ -390,7 +342,6 @@ public class PrepareStateFunction implements StateFunction {
 
         logger.debug("[{}] Play demo audio", sessionInfo.getSessionId());
 
-        String json;
         int groupId = roomInfo.getGroupId();
         int mixerId = roomInfo.getMixerId();
 
@@ -400,7 +351,7 @@ public class PrepareStateFunction implements StateFunction {
 
         FileData file = new FileData();
         file.setChannel(FileData.CHANNEL_BGM);
-        file.setPlayFile("/home/amf/bin/Heize_rain_and.wav");
+        file.setPlayFile("Heize_rain_and.wav");
         SessionStateManager.getInstance().setState(sessionInfo.getSessionId(), SessionState.PLAY_START, file);
 
         return true;

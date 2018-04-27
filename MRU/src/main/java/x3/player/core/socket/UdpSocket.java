@@ -122,6 +122,10 @@ public class UdpSocket {
     }
 
     public boolean send(byte[] buf, int size) {
+        if (socket == null) {
+            return false;
+        }
+
         if (buf == null || (buf != null && buf.length == 0)) {
             return false;
         }
