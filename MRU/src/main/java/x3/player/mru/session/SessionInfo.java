@@ -29,6 +29,7 @@ public class SessionInfo {
     private boolean isMentPlaying;
 
     private FileData fileData;
+    private String fromQueue;
 
     public String getSessionId() {
         return sessionId;
@@ -203,5 +204,13 @@ public class SessionInfo {
 
     public void setFileData(FileData fileData) {
         this.fileData = fileData;
+    }
+
+    public String getFromQueue() {
+        return fromQueue;
+    }
+
+    public void setFromQueue(String fromQueue) {
+        this.fromQueue = fromQueue;
     }
 }

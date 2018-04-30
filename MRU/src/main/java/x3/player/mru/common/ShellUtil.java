@@ -37,6 +37,16 @@ public class ShellUtil {
         return runShell(ffmpegCmd);
     }
 
+    public static boolean startAlawTranscoding(String inputName, String outputName) {
+        if (inputName == null || outputName == null) {
+            return false;
+        }
+
+        String ffmpegCmd = String.format("ffmpeg -f alaw -i %s -acodec pcm_s16le -f u16le pipe:1 > %s", inputName, outputName);
+
+        return runShell(ffmpegCmd);
+    }
+
     public static boolean convertPcmToWav(String inputName, String outputName) {
         if (inputName == null || outputName == null) {
             return false;

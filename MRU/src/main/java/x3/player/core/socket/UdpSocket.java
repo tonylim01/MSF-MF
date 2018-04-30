@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import x3.player.mru.common.ShellUtil;
 import x3.player.mru.rmqif.module.RmqClient;
+import x3.player.mru.surfif.messages.SurfMsgVocoder;
+import x3.player.mru.surfif.types.SurfConstant;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -161,6 +163,12 @@ public class UdpSocket {
         rmqClient = RmqClient.getInstance(queueName);
     }
 
+    private String inputCodec;
+
+    public void setInputCodec(String codec) {
+        inputCodec = codec;
+    }
+
     private static final byte[] AMR_HEADER = { 0x23, 0x21, 0x41, 0x4D, 0x52, 0x2D, 0x57, 0x42, 0x0A };
 
     private void createPipe(String queueName) {
@@ -174,7 +182,9 @@ public class UdpSocket {
 
         try {
             inputPipeFile = new RandomAccessFile(inputPipeName, "rw");
-            inputPipeFile.write(AMR_HEADER);
+            if (inputCodec != null && inputCodec.equals(SurfMsgVocoder.VOCODER_AMR_WB)) {
+                inputPipeFile.write(AMR_HEADER);
+            }
 
             outputPipeFile = new RandomAccessFile(outputPipeName, "r");
 
@@ -227,7 +237,12 @@ public class UdpSocket {
 
             logger.info("Ffmpeg proc ({}) start", inputPipeName);
 
-            ShellUtil.startAMRTranscoding(inputPipeName, outputPipeName);
+            if (inputCodec != null && inputCodec.equals(SurfMsgVocoder.VOCODER_ALAW)) {
+                ShellUtil.startAlawTranscoding(inputPipeName, outputPipeName);
+            }
+            else {
+                ShellUtil.startAMRTranscoding(inputPipeName, outputPipeName);
+            }
 
             logger.info("Ffmpeg proc ({}) end", inputPipeName);
         }

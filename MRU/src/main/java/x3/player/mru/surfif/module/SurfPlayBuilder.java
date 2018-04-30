@@ -1,6 +1,7 @@
 package x3.player.mru.surfif.module;
 
 import x3.player.mru.surfif.handler.SurfProcToolReq;
+import x3.player.mru.surfif.messages.SurfMsgEvent;
 import x3.player.mru.surfif.types.SurfConstant;
 
 public class SurfPlayBuilder {
@@ -11,10 +12,14 @@ public class SurfPlayBuilder {
         toolReq = new SurfProcToolReq(toolId);
     }
 
-    public void setFileReader(int audioDstToolId) {
+    public void setFileReader(int audioDstToolId, String sessionId) {
         toolReq.setToolType(SurfConstant.TOOL_TYPE_FILE_READER);
         toolReq.setAudioEnabled(true);
         toolReq.setAudioDstToolId(audioDstToolId);
+        if (sessionId != null) {
+            toolReq.setAppInfo(sessionId);
+        }
+        toolReq.addEvent(SurfMsgEvent.EVENT_TYPE_ALL, true);
     }
 
     public void setPlayListAppend(String filename) {

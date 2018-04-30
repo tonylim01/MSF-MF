@@ -2,8 +2,12 @@ package x3.player.mru.simulator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import x3.player.core.sdp.SdpInfo;
 import x3.player.mru.AppInstance;
 import x3.player.mru.config.AmfConfig;
+import x3.player.mru.session.SessionInfo;
+import x3.player.mru.session.SessionManager;
+import x3.player.mru.surfif.module.SurfConnectionManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -100,8 +104,21 @@ public class BiUdpRelayManager {
     public boolean openDstDupQueue(String sessionId, String queueName) {
         logger.debug("[{}] Open dst DUP queue. name [{}]", sessionId, queueName);
 
+
+        SessionInfo sessionInfo = SessionManager.getInstance().getSession(sessionId);
+
+        if (sessionInfo == null) {
+            return false;
+        }
+
+        SdpInfo sdpInfo = sessionInfo.getSdpInfo();
+
+        if (sdpInfo == null) {
+            return false;
+        }
+
         BiUdpRelay udpRelay = getUdpRelay(sessionId);
-        udpRelay.setDupUdpQueue(queueName);
+        udpRelay.setDupUdpQueue(sdpInfo.getCodecStr(), queueName);
 
         return true;
     }

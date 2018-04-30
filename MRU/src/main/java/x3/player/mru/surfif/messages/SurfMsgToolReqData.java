@@ -20,6 +20,9 @@ public class SurfMsgToolReqData {
     @SerializedName("input_from_RTP")
     private Boolean inputFromRtp;
 
+    @SerializedName("app_info")
+    private String appInfo;
+
     /**
      * Events
      */
@@ -125,6 +128,14 @@ public class SurfMsgToolReqData {
 
     public void setInputFromRtp(Boolean inputFromRtp) {
         this.inputFromRtp = inputFromRtp;
+    }
+
+    public String getAppInfo() {
+        return appInfo;
+    }
+
+    public void setAppInfo(String appInfo) {
+        this.appInfo = appInfo;
     }
 
     public int getSamplingRate() {

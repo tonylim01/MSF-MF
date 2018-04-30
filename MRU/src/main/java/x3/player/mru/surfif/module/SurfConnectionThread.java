@@ -10,9 +10,11 @@ import x3.player.mru.common.NetUtil;
 import x3.player.mru.surfif.handler.SurfProcConnect;
 import x3.player.mru.surfif.handler.SurfProcSysAns;
 import x3.player.mru.surfif.handler.SurfProcSysInf;
+import x3.player.mru.surfif.handler.SurfProcToolInf;
 import x3.player.mru.surfif.messages.SurfMsgConnect;
 import x3.player.mru.surfif.messages.SurfMsgSysAns;
 import x3.player.mru.surfif.messages.SurfMsgSysInf;
+import x3.player.mru.surfif.messages.SurfMsgToolInf;
 import x3.player.mru.surfif.types.SurfConstant;
 
 import java.net.SocketException;
@@ -125,6 +127,10 @@ public class SurfConnectionThread extends Thread {
         else if (key.equals(SurfMsgSysAns.MSG_NAME)) {
             SurfProcSysAns sysAns = new SurfProcSysAns();
             sysAns.parse(element);
+        }
+        else if (key.equals(SurfMsgToolInf.MSG_NAME)) {
+            SurfProcToolInf toolInf = new SurfProcToolInf();
+            toolInf.parse(element);
         }
         else {
             // TODO

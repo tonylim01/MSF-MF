@@ -66,10 +66,11 @@ public class BiUdpRelay {
 
     }
 
-    public void setDupUdpQueue(String dstQueueName) {
+    public void setDupUdpQueue(String inputCodec, String dstQueueName) {
         logger.debug("Open UDP relay queue [{}]", dstQueueName);
         this.dstQueueName = dstQueueName;
         if (dstUdpSocket != null) {
+            dstUdpSocket.setInputCodec(inputCodec);
             dstUdpSocket.setRelayQueue(dstQueueName);
 
             String filename = String.format("/tmp/%s.pcm", dstQueueName);

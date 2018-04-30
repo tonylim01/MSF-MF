@@ -178,6 +178,10 @@ public class SurfProcToolReq extends SurfProcRequest {
         msg.getData().setAudioDstToolId(audioDstToolId);
     }
 
+    public void setAppInfo(String appInfo) {
+        msg.getData().setAppInfo(appInfo);
+    }
+
     public void setCmdType(String cmdType) {
         msg.getData().setCmdType(cmdType);
     }

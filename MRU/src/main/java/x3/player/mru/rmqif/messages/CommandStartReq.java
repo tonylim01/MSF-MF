@@ -21,4 +21,16 @@ public class CommandStartReq {
     public FileData getData() {
         return data;
     }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setChannel(int channel) {
+        this.channel = channel;
+    }
+
+    public void setData(FileData data) {
+        this.data = data;
+    }
 }

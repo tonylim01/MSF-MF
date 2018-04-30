@@ -54,7 +54,7 @@ public class PrepareStateFunction implements StateFunction {
                 //
                 // TODO: DEMO
                 //
-//                playDemoAudio(sessionInfo, roomInfo);
+                playDemoAudio(sessionInfo, roomInfo);
             }
 
             if (sessionInfo.isCaller()) {

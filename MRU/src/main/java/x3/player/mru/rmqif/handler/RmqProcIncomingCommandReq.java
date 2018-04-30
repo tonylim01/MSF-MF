@@ -12,9 +12,9 @@ import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionState;
 import x3.player.mru.session.SessionStateManager;
 
-public class RmqProcCommandStartReq extends RmqIncomingMessageHandler {
+public class RmqProcIncomingCommandReq extends RmqIncomingMessageHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(RmqProcCommandStartReq.class);
+    private static final Logger logger = LoggerFactory.getLogger(RmqProcIncomingCommandReq.class);
 
     @Override
     public boolean handle(RmqMessage msg) {
@@ -61,6 +61,8 @@ public class RmqProcCommandStartReq extends RmqIncomingMessageHandler {
                 msg.getSessionId(), req.getType(), req.getChannel(),
                 file.getPlayType(), file.getPlayFile(), file.getDefVolume(), file.getMixVolume(), file.getMediaType());
 
+        sessionInfo.setFromQueue(msg.getHeader().getMsgFrom());
+
         file.setChannel(req.getChannel());
 
         if (req.getType().equals(CommandStartReq.CMD_TYPE_MEDIA_PLAY)) {
@@ -81,7 +83,7 @@ public class RmqProcCommandStartReq extends RmqIncomingMessageHandler {
     @Override
     public void sendResponse(String sessionId, String transactionId, String queueName, int reasonCode, String reasonStr) {
 
-        RmqProcCommandStartRes res = new RmqProcCommandStartRes(sessionId, transactionId);
+        RmqProcOutgoingCommandRes res = new RmqProcOutgoingCommandRes(sessionId, transactionId);
 
         res.setReasonCode(reasonCode);
         res.setReasonStr(reasonStr);
