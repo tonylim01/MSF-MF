@@ -17,7 +17,7 @@ public class RmqProcOutgoingCommandReq extends RmqOutgoingMessage {
     }
 
     /**
-     * Sends a HangupReq to the given queue
+     * Sends a CommandReq to the given queue
      * @param queueName
      * @return
      */
