@@ -23,6 +23,7 @@ public class BiUdpRelay {
     private int srcLocalPort;
     private int dstLocalPort;
 
+    private AiifRelay aiifRelay = null;
     private String dstQueueName = null;
 
     public void setSrcLocalPort(int localPort) {
@@ -70,11 +71,22 @@ public class BiUdpRelay {
         logger.debug("Open UDP relay queue [{}]", dstQueueName);
         this.dstQueueName = dstQueueName;
         if (dstUdpSocket != null) {
-            dstUdpSocket.setInputCodec(inputCodec);
-            dstUdpSocket.setRelayQueue(dstQueueName);
+            aiifRelay = new AiifRelay();
+
+            aiifRelay.setInputCodec(inputCodec);
+            aiifRelay.setRelayQueue(dstQueueName);
 
             String filename = String.format("/tmp/%s.pcm", dstQueueName);
-            dstUdpSocket.saveToFile(filename);
+            aiifRelay.saveToFile(filename);
+            aiifRelay.start();
+
+            dstUdpSocket.setTag(aiifRelay.hashCode());
+
+//            dstUdpSocket.setInputCodec(inputCodec);
+//            dstUdpSocket.setRelayQueue(dstQueueName);
+//
+//            String filename = String.format("/tmp/%s.pcm", dstQueueName);
+//            dstUdpSocket.saveToFile(filename);
         }
     }
 
@@ -99,6 +111,16 @@ public class BiUdpRelay {
         public void onReceived(byte[] srcAddress, int srcPort, byte[] buf, int length) {
             if (udpSocket.getRemoteSocket() != null) {
                 udpSocket.getRemoteSocket().send(buf, length);
+                if (udpSocket.getTag() != 0) {
+                    aiifRelay.send(buf, length);
+
+                    int sum = 0;
+                    for (int i = 12; i < length; i += 2) {
+                        sum += ((((((short)buf[i]) & 0xff) << 8) | ((short)buf[i + 1] & 0xff)) & 0xffff);
+                    }
+
+                    logger.debug("sub = %d", sum);
+                }
             }
         }
     }
