@@ -42,7 +42,7 @@ public class ShellUtil {
             return false;
         }
 
-        String ffmpegCmd = String.format("ffmpeg -f alaw -i %s -acodec pcm_s16le -f u16le pipe:1 > %s", inputName, outputName);
+        String ffmpegCmd = String.format("ffmpeg -f alaw -ar 8000 -ac 1 -i %s -acodec pcm_s16le -f u16le -ar 16000 -ac 1 pipe:1 > %s", inputName, outputName);
 
         return runShell(ffmpegCmd);
     }

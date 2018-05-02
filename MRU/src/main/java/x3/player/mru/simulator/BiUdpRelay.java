@@ -70,7 +70,8 @@ public class BiUdpRelay {
     public void setDupUdpQueue(String inputCodec, String dstQueueName) {
         logger.debug("Open UDP relay queue [{}]", dstQueueName);
         this.dstQueueName = dstQueueName;
-        if (dstUdpSocket != null) {
+//        if (dstUdpSocket != null) {
+        if (srcUdpSocket != null) {
             aiifRelay = new AiifRelay();
 
             aiifRelay.setInputCodec(inputCodec);
@@ -80,7 +81,7 @@ public class BiUdpRelay {
             aiifRelay.saveToFile(filename);
             aiifRelay.start();
 
-            dstUdpSocket.setTag(aiifRelay.hashCode());
+            srcUdpSocket.setTag(aiifRelay.hashCode());
 
 //            dstUdpSocket.setInputCodec(inputCodec);
 //            dstUdpSocket.setRelayQueue(dstQueueName);
@@ -114,12 +115,12 @@ public class BiUdpRelay {
                 if (udpSocket.getTag() != 0) {
                     aiifRelay.send(buf, length);
 
-                    int sum = 0;
-                    for (int i = 12; i < length; i += 2) {
-                        sum += ((((((short)buf[i]) & 0xff) << 8) | ((short)buf[i + 1] & 0xff)) & 0xffff);
-                    }
-
-                    logger.debug("sub = %d", sum);
+//                    int sum = 0;
+//                    for (int i = 12; i < length; i += 2) {
+//                        sum += ((((((short)buf[i]) & 0xff) << 8) | ((short)buf[i + 1] & 0xff)) & 0xffff);
+//                    }
+//
+//                    logger.debug("sub = %d", sum);
                 }
             }
         }
