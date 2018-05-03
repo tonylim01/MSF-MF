@@ -91,7 +91,7 @@ public class SurfProcToolInf {
         }
 
         String fromQueue = null;
-        if (sessionInfo.getFromQueue() == null) {
+        if (sessionInfo.getFromQueue() != null) {
             fromQueue = sessionInfo.getFromQueue();
         }
         else {

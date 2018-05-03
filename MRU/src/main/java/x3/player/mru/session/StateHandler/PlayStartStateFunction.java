@@ -15,6 +15,7 @@ import x3.player.mru.surfif.module.SurfConnectionManager;
 import x3.player.mru.surfif.module.SurfPlayBuilder;
 
 import java.io.File;
+import java.util.UUID;
 
 public class PlayStartStateFunction extends PlayStateFunction implements StateFunction {
     private static final Logger logger = LoggerFactory.getLogger(PlayStartStateFunction.class);
@@ -74,29 +75,39 @@ public class PlayStartStateFunction extends PlayStateFunction implements StateFu
                 data.getChannel(), data.getMediaType(), data.getPlayFile(),
                 data.getDefVolume(), data.getMixVolume(), data.getPlayType());
 
-        AmfConfig config = AppInstance.getInstance().getConfig();
-        String filename = String.format("%s/%s", config.getLocalBasePath(), data.getPlayFile());
+        String filename;
 
-        //
-        // TODO
-        //
-        File file = new File(filename);
-        if (!file.exists()) {
-            logger.error("[{}] File not found [{}]", sessionInfo.getSessionId(), filename);
-            return false;
+        if (data.getMediaType() != null && data.getMediaType().equals(FileData.MEDIA_TYPE_STREAM)) {
+            String wavfile = String.format("/tmp/%s.wav", UUID.randomUUID().toString());
+            logger.debug("[{}] wav file [{}]", sessionInfo.getSessionId(), wavfile);
+
+            Process p = ShellUtil.convertHlsToWav(data.getPlayFile(), wavfile);
+            ShellUtil.waitShell(p);
+            filename = wavfile;
         }
+        else {
+            AmfConfig config = AppInstance.getInstance().getConfig();
+            filename = String.format("%s/%s", config.getLocalBasePath(), data.getPlayFile());
 
-        int comma = filename.lastIndexOf(".");
+            File file = new File(filename);
+            if (!file.exists()) {
+                logger.error("[{}] File not found [{}]", sessionInfo.getSessionId(), filename);
+                return false;
+            }
 
-        if (comma > 0) {
-            String ext = filename.substring(comma + 1);
-            if (ext != null && ext.equals("pcm")) {
+            int comma = filename.lastIndexOf(".");
 
-                String wavfile = String.format("%swav", filename.substring(0, comma + 1));
-                logger.debug("[{}] wav file [{}]", sessionInfo.getSessionId(), wavfile);
+            if (comma > 0) {
+                String ext = filename.substring(comma + 1);
+                if (ext != null && ext.equals("pcm")) {
 
-                ShellUtil.convertPcmToWav(filename, wavfile);
-                filename = wavfile;
+                    String wavfile = String.format("%swav", filename.substring(0, comma + 1));
+                    logger.debug("[{}] wav file [{}]", sessionInfo.getSessionId(), wavfile);
+
+                    Process p = ShellUtil.convertPcmToWav(filename, wavfile);
+                    ShellUtil.waitShell(p);
+                    filename = wavfile;
+                }
             }
         }
 

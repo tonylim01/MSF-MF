@@ -98,6 +98,10 @@ public class BiUdpRelay {
         if (dstUdpSocket != null) {
             dstUdpSocket.stop();
         }
+
+        if (aiifRelay != null) {
+            aiifRelay.stop();
+        }
     }
 
     class RelayUdpCallback implements UdpCallback {

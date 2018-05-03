@@ -10,6 +10,7 @@ public class FileData {
     public static final String PLAY_TYPE_BOTH = "both";
 
     public static final String MEDIA_TYPE_FILE = "file";
+    public static final String MEDIA_TYPE_STREAM = "HLS";
 
     private Integer channel;
     @SerializedName("media_type")

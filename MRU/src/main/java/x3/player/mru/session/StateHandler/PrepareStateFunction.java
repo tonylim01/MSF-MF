@@ -55,6 +55,7 @@ public class PrepareStateFunction implements StateFunction {
                 // TODO: DEMO
                 //
 //                playDemoAudio(sessionInfo, roomInfo);
+
             }
 
             if (sessionInfo.isCaller()) {
@@ -62,6 +63,13 @@ public class PrepareStateFunction implements StateFunction {
                 openCallerResource(sessionInfo, roomInfo);
                 // Step #4) Creates local relaying resource
                 openRelayResource(sessionInfo);
+
+                //
+                // TODO: TEST AIIFD START
+                //
+//                sessionInfo.setAiifName("aiif1_aiifd_u");
+//                SessionStateManager.getInstance().setState(sessionInfo.getSessionId(), SessionState.START);
+
             }
             else {
                 // Step #5) Creates one channel for a callee

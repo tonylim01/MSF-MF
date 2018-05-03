@@ -8,9 +8,7 @@ import x3.player.mru.surfif.messages.SurfMsgVocoder;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.net.DatagramPacket;
 
 public class AiifRelay {
 
@@ -58,6 +56,9 @@ public class AiifRelay {
 
         if (pipeOpened) {
             pipeOpened = false;
+            if (transcodingProcess != null) {
+                ShellUtil.killShell(transcodingProcess);
+            }
             if (inputPipeFile != null) {
 
                 logger.info("Close input pipe ({})", inputPipeName);
@@ -137,8 +138,11 @@ public class AiifRelay {
     private void createPipe(String queueName) {
         inputPipeName = String.format("/tmp/%s_i", queueName);
         outputPipeName = String.format("/tmp/%s_o.wav", queueName);
-        ShellUtil.createNamedPipe(inputPipeName);
-        ShellUtil.createNamedPipe(outputPipeName);
+        Process p;
+        p = ShellUtil.createNamedPipe(inputPipeName);
+        ShellUtil.waitShell(p);
+        p = ShellUtil.createNamedPipe(outputPipeName);
+        ShellUtil.waitShell(p);
 
     }
 
@@ -165,6 +169,8 @@ public class AiifRelay {
         }
     }
 
+    private Process transcodingProcess = null;
+
     class FfmpegRunnable implements Runnable {
         @Override
         public void run() {
@@ -172,11 +178,15 @@ public class AiifRelay {
             logger.info("Ffmpeg proc ({}) start", inputPipeName);
 
             if (inputCodec != null && inputCodec.equals(SurfMsgVocoder.VOCODER_ALAW)) {
-                ShellUtil.startAlawTranscoding(inputPipeName, outputPipeName);
+                transcodingProcess = ShellUtil.startAlawTranscoding(inputPipeName, outputPipeName);
             }
             else {
-                ShellUtil.startAMRTranscoding(inputPipeName, outputPipeName);
+                transcodingProcess = ShellUtil.startAMRTranscoding(inputPipeName, outputPipeName);
             }
+
+            logger.info("Ffmpeg proc pid [{}]", transcodingProcess.pid());
+
+            ShellUtil.waitShell(transcodingProcess);
 
             logger.info("Ffmpeg proc ({}) end", inputPipeName);
         }
