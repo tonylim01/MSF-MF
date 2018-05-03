@@ -16,24 +16,25 @@ public class RmqProcOutgoingCommandReq extends RmqOutgoingMessage {
         setType(RmqMessageType.RMQ_MSG_STR_COMMAND_REQ);
     }
 
+    public void setPlayDone(int channel) {
+        SessionInfo sessionInfo = checkAndGetSession(getSessionId());
+        if (sessionInfo == null) {
+            return;
+        }
+
+        CommandStartReq req = new CommandStartReq();
+        req.setType(CommandStartReq.CMD_TYPE_MEDIA_DONE);
+        req.setChannel(channel);
+
+        setBody(req, CommandStartReq.class);
+
+    }
     /**
      * Sends a CommandReq to the given queue
      * @param queueName
      * @return
      */
     public boolean send(String queueName) {
-
-        SessionInfo sessionInfo = checkAndGetSession(getSessionId());
-        if (sessionInfo == null) {
-            return sendTo(queueName);
-        }
-
-        CommandStartReq req = new CommandStartReq();
-        req.setType(CommandStartReq.CMD_TYPE_MEDIA_DONE);
-        req.setChannel(sessionInfo.isBgmPlaying() ? FileData.CHANNEL_BGM : FileData.CHANNEL_MENT);
-
-        setBody(req, CommandStartReq.class);
-
         return sendTo(queueName);
     }
 }

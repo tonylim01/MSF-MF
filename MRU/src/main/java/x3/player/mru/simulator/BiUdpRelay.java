@@ -82,12 +82,6 @@ public class BiUdpRelay {
             aiifRelay.start();
 
             srcUdpSocket.setTag(aiifRelay.hashCode());
-
-//            dstUdpSocket.setInputCodec(inputCodec);
-//            dstUdpSocket.setRelayQueue(dstQueueName);
-//
-//            String filename = String.format("/tmp/%s.pcm", dstQueueName);
-//            dstUdpSocket.saveToFile(filename);
         }
     }
 
@@ -97,6 +91,12 @@ public class BiUdpRelay {
         }
         if (dstUdpSocket != null) {
             dstUdpSocket.stop();
+        }
+
+        try {
+            Thread.sleep(200);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         if (aiifRelay != null) {
@@ -119,12 +119,12 @@ public class BiUdpRelay {
                 if (udpSocket.getTag() != 0) {
                     aiifRelay.send(buf, length);
 
-//                    int sum = 0;
-//                    for (int i = 12; i < length; i += 2) {
-//                        sum += ((((((short)buf[i]) & 0xff) << 8) | ((short)buf[i + 1] & 0xff)) & 0xffff);
-//                    }
-//
-//                    logger.debug("sub = %d", sum);
+                    int sum = 0;
+                    for (int i = 12; i < length; i += 2) {
+                        sum += ((((((short)buf[i]) << 8) & 0xff00) | ((short)buf[i + 1] & 0xff)) & 0xffff);
+                    }
+
+                    logger.debug("sub = {}", sum);
                 }
             }
         }

@@ -8,6 +8,7 @@ import x3.player.mru.common.JsonMessage;
 import x3.player.mru.config.AmfConfig;
 import x3.player.mru.rmqif.handler.RmqProcOutgoingCommandReq;
 import x3.player.mru.rmqif.handler.RmqProcOutgoingHangupReq;
+import x3.player.mru.rmqif.messages.FileData;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionManager;
 import x3.player.mru.surfif.messages.SurfMsgToolInf;
@@ -43,10 +44,10 @@ public class SurfProcToolInf {
             parsePlayStarted(data);
         }
         else if (data.getType().equals("end_of_file")) {
-            // Nothing to do
+            parsePlayEnd(data);
         }
         else if (data.getType().equals("end_of_playlist")) {
-            parsePlayEnd(data);
+            // Nothing to do
         }
         else {
             logger.warn("SysInf: Unknown data type {}", data.getType());
@@ -81,12 +82,33 @@ public class SurfProcToolInf {
         }
 
         if (data.getAppInfo() == null) {
+            logger.warn("ToolInf data: appInfo not found");
+            return false;
+        }
+
+        if (data.getFilename() == null) {
+            logger.warn("ToolInf data: filename not found");
             return false;
         }
 
         SessionInfo sessionInfo = SessionManager.getInstance().getSession(data.getAppInfo());
         if (sessionInfo == null) {
             logger.warn("[{}] Session not found", data.getAppInfo());
+            return false;
+        }
+
+        int channel;
+        if (sessionInfo.getBgmFilename() != null &&
+                data.getFilename().equals(sessionInfo.getBgmFilename())) {
+            channel = FileData.CHANNEL_BGM;
+        }
+        else if (sessionInfo.getMentFilename() != null &&
+                data.getFilename().equals(sessionInfo.getMentFilename())) {
+            channel = FileData.CHANNEL_MENT;
+        }
+        else {
+            logger.warn("[{}] filename [{}] bgm [{}] ment [{}]",
+                    sessionInfo.getSessionId(), data.getFilename(), sessionInfo.getBgmFilename(), sessionInfo.getMentFilename());
             return false;
         }
 
@@ -101,10 +123,13 @@ public class SurfProcToolInf {
             fromQueue = config.getMcudName();
         }
 
+
         //
         // Sends command_req with play_done
         //
         RmqProcOutgoingCommandReq cmdReq = new RmqProcOutgoingCommandReq(sessionInfo.getSessionId(), null);
+
+        cmdReq.setPlayDone(channel);
         cmdReq.send(fromQueue);
 
         return true;

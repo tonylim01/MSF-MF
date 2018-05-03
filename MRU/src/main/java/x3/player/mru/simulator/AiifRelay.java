@@ -56,9 +56,11 @@ public class AiifRelay {
 
         if (pipeOpened) {
             pipeOpened = false;
+
             if (transcodingProcess != null) {
                 ShellUtil.killShell(transcodingProcess);
             }
+
             if (inputPipeFile != null) {
 
                 logger.info("Close input pipe ({})", inputPipeName);
@@ -67,6 +69,8 @@ public class AiifRelay {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
+                logger.info("Close input pipe ({}) done", inputPipeName);
 
                 deleteFile(inputPipeName);
 
@@ -80,8 +84,11 @@ public class AiifRelay {
                     e.printStackTrace();
                 }
 
+                logger.info("Close output pipe ({}) done", outputPipeName);
+
                 deleteFile(outputPipeName);
             }
+
         }
 
         if (fileStream != null) {
@@ -183,8 +190,6 @@ public class AiifRelay {
             else {
                 transcodingProcess = ShellUtil.startAMRTranscoding(inputPipeName, outputPipeName);
             }
-
-            logger.info("Ffmpeg proc pid [{}]", transcodingProcess.pid());
 
             ShellUtil.waitShell(transcodingProcess);
 

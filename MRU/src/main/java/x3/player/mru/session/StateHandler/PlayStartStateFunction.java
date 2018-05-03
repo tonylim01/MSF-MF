@@ -128,11 +128,13 @@ public class PlayStartStateFunction extends PlayStateFunction implements StateFu
             toolId = SurfChannelManager.TOOL_ID_BG;
             dstId = SurfChannelManager.TOOL_ID_PAR_BG;
             sessionInfo.setBgmPlaying(true);
+            sessionInfo.setBgmFilename(filename);
         }
         else {
             toolId = SurfChannelManager.TOOL_ID_MENT;
             dstId = SurfChannelManager.TOOL_ID_PAR_MENT;
             sessionInfo.setMentPlaying(true);
+            sessionInfo.setMentFilename(filename);
         }
 
         int fileId = SurfChannelManager.getReqToolId(groupId, toolId);

@@ -1,5 +1,7 @@
 package x3.player.mru.common;
 
+import java.lang.reflect.Field;
+
 public class ShellUtil {
 
     public static Process runShell(String cmd) {
@@ -32,7 +34,16 @@ public class ShellUtil {
         }
 
         try {
-            p.destroy();
+            int pid;
+            Field f = p.getClass().getDeclaredField("pid");
+            f.setAccessible(true);
+            pid = (Integer)f.get(p);
+            f.setAccessible(false);
+
+            if (pid > 0) {
+                String killCmd = String.format("kill -9 %d", pid);
+                runShell(killCmd);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

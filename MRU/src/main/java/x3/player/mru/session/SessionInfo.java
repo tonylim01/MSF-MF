@@ -27,6 +27,8 @@ public class SessionInfo {
 
     private boolean isBgmPlaying;
     private boolean isMentPlaying;
+    private String bgmFilename;
+    private String mentFilename;
 
     private FileData fileData;
     private String fromQueue;
@@ -188,6 +190,22 @@ public class SessionInfo {
 
     public void setBgmPlaying(boolean bgmPlaying) {
         isBgmPlaying = bgmPlaying;
+    }
+
+    public String getBgmFilename() {
+        return bgmFilename;
+    }
+
+    public void setBgmFilename(String bgmFilename) {
+        this.bgmFilename = bgmFilename;
+    }
+
+    public String getMentFilename() {
+        return mentFilename;
+    }
+
+    public void setMentFilename(String mentFilename) {
+        this.mentFilename = mentFilename;
     }
 
     public boolean isMentPlaying() {
