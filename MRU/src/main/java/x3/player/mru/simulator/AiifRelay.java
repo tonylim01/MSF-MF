@@ -2,6 +2,7 @@ package x3.player.mru.simulator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import x3.player.mru.AppInstance;
 import x3.player.mru.common.ShellUtil;
 import x3.player.mru.rmqif.module.RmqClient;
 import x3.player.mru.surfif.messages.SurfMsgVocoder;
@@ -28,8 +29,17 @@ public class AiifRelay {
     private String inputPipeName;
     private String outputPipeName;
 
+    private long audioDetectLevel = 0;
+    private long silenceDetectLevel = 0;
+
+    private boolean isEnergyDetected = false;
+
+
     public void start() {
         isQuit = false;
+
+        audioDetectLevel = AppInstance.getInstance().getConfig().getAudioEnergyLevel();
+        silenceDetectLevel = AppInstance.getInstance().getConfig().getSilenceEnergyLevel();
 
         ffmpegThread = new Thread(new FfmpegRunnable());
         ffmpegThread.start();
@@ -178,6 +188,12 @@ public class AiifRelay {
 
     private Process transcodingProcess = null;
 
+
+    private long linearSum = 0;
+    private int linearSumCount = 0;
+    private short prevValue = 0;
+    private long silenceStart;
+
     class FfmpegRunnable implements Runnable {
         @Override
         public void run() {
@@ -210,18 +226,26 @@ public class AiifRelay {
 
                 while (!isQuit) {
                     int size = outputPipeFile.read(pipeBuf);
-                    if (size > 0 && rmqClient != null && rmqClient.isConnected()) {
+                    if (size > 0) {
 
-                        rmqClient.send(pipeBuf, size);
+                        if (rmqClient != null && rmqClient.isConnected()) {
 
-                        // Just for log
-                        if (fileStream != null) {
-                            try {
-                                fileStream.write(pipeBuf, 0, size);
-                            } catch (Exception e) {
-                                e.printStackTrace();
+                            rmqClient.send(pipeBuf, size);
+
+                            // Just for log
+                            if (fileStream != null) {
+                                try {
+                                    fileStream.write(pipeBuf, 0, size);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
+
+                        if (audioDetectLevel > 0 && silenceDetectLevel > 0) {
+                            energyDetect(pipeBuf, size);
+                        }
+
                     }
                 }
 
@@ -231,6 +255,66 @@ public class AiifRelay {
 
             logger.info("Rmq relay proc ({}) end", outputPipeName);
         }
+
+        private boolean energyDetect(byte[] buf, int length) {
+            if (buf == null || length < 12) {
+                return false;
+            }
+
+            for (int i = 12; i < length; i += 2) {
+                short value = (short)((short)(((buf[i + 1] & 0xff) << 8) & 0xff00) | (short)(buf[i] & 0xff));
+//                short value = (short)((short)(((buf[i] & 0xff) << 8) & 0xff00) | (short)(buf[i + 1] & 0xff));
+
+                if (value > 0 && value > prevValue) {
+                    prevValue = value;
+                }
+                else if (value < 0 && prevValue > 0) {
+                    linearSum += prevValue;
+                    prevValue = 0;
+
+                    if (linearSumCount >= 5) {
+//                        logger.info("energy = {}", linearSum);
+                        if (!isEnergyDetected && linearSum >= audioDetectLevel) {
+                            //
+                            // TODO: Voice detected
+                            //
+                            logger.info("Energy Detected {}", linearSum);
+
+                            isEnergyDetected = true;
+                        }
+                        else if (isEnergyDetected) {
+                            if (linearSum < silenceDetectLevel) {
+                                //
+                                // TODO: Silence detected
+                                //
+                                long timestamp = System.currentTimeMillis();
+                                if (silenceStart == 0) {
+                                    silenceStart = timestamp;
+                                }
+                                else if (timestamp - silenceStart > 500) {
+                                    logger.info("Silence Detected {}", linearSum);
+                                    isEnergyDetected = false;
+                                }
+                            }
+                            else if (silenceStart > 0) {
+                                silenceStart = 0;
+                            }
+                        }
+
+                        linearSumCount = 0;
+                        linearSum = 0;
+
+                    }
+                }
+            }
+
+//            logger.info("sum = {} count {} len {}", sum, plus, length);
+//            linearSum += sum;
+            linearSumCount++;
+
+            return true;
+        }
     }
 
 }
+

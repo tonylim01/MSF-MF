@@ -27,11 +27,6 @@ public class BiUdpRelay {
     private AiifRelay aiifRelay = null;
     private String dstQueueName = null;
 
-    private long audioDetectLevel = 0;
-    private long silenceDetectLevel = 0;
-
-    private boolean isEnergyDetected = false;
-
     public void setSrcLocalPort(int localPort) {
         srcLocalPort = localPort;
     }
@@ -78,9 +73,6 @@ public class BiUdpRelay {
         this.dstQueueName = dstQueueName;
 //        if (dstUdpSocket != null) {
         if (srcUdpSocket != null) {
-            audioDetectLevel = AppInstance.getInstance().getConfig().getAudioEnergyLevel();
-            silenceDetectLevel = AppInstance.getInstance().getConfig().getSilenceEnergyLevel();
-
             aiifRelay = new AiifRelay();
 
             aiifRelay.setInputCodec(inputCodec);
@@ -113,9 +105,6 @@ public class BiUdpRelay {
         }
     }
 
-    private long linearSum = 0;
-    private int linearSumCount = 0;
-
     class RelayUdpCallback implements UdpCallback {
 
         private UdpSocket udpSocket;
@@ -131,53 +120,8 @@ public class BiUdpRelay {
                 if (udpSocket.getTag() != 0) {
                     aiifRelay.send(buf, length);
 
-                    if (audioDetectLevel > 0 && silenceDetectLevel > 0) {
-                        energyDetect(buf, length);
-                    }
                 }
             }
-        }
-
-        private boolean energyDetect(byte[] buf, int length) {
-            if (buf == null || length < 12) {
-                return false;
-            }
-
-            long sum = 0;
-            for (int i = 12; i < length; i += 2) {
-                short value = (short)((short)(((buf[i + 1] & 0xff) << 8) & 0xff00) | (short)(buf[i] & 0xff));
-                if (value > 0) {
-                    sum += value;
-                }
-            }
-
-            linearSum += sum;
-            linearSumCount++;
-            if (linearSumCount >= 5) {
-
-                logger.info("energy = {}", linearSum);
-                if (linearSum >= audioDetectLevel) {
-                    //
-                    // TODO: Voice detected
-                    //
-                    logger.info("Energy Detected");
-
-                    isEnergyDetected = true;
-                }
-                else if (isEnergyDetected && linearSum < silenceDetectLevel) {
-                    //
-                    // TODO: Silence detected
-                    //
-                    logger.info("Silence Detected");
-
-                    isEnergyDetected = false;
-                }
-
-                linearSumCount = 0;
-                linearSum = 0;
-            }
-
-            return true;
         }
     }
 }
