@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import x3.player.core.socket.UdpCallback;
 import x3.player.core.socket.UdpSocket;
+import x3.player.mru.AppInstance;
 import x3.player.mru.rmqif.module.RmqClient;
 
 import java.io.FileOutputStream;
@@ -25,6 +26,9 @@ public class BiUdpRelay {
 
     private AiifRelay aiifRelay = null;
     private String dstQueueName = null;
+
+    private long audioDetectLevel = 0;
+    private long silenceDetectLevel = 0;
 
     public void setSrcLocalPort(int localPort) {
         srcLocalPort = localPort;
@@ -72,6 +76,9 @@ public class BiUdpRelay {
         this.dstQueueName = dstQueueName;
 //        if (dstUdpSocket != null) {
         if (srcUdpSocket != null) {
+            audioDetectLevel = AppInstance.getInstance().getConfig().getAudioEnergyLevel();
+            silenceDetectLevel = AppInstance.getInstance().getConfig().getSilenceEnergyLevel();
+
             aiifRelay = new AiifRelay();
 
             aiifRelay.setInputCodec(inputCodec);
@@ -104,6 +111,9 @@ public class BiUdpRelay {
         }
     }
 
+    private long linearSum = 0;
+    private int linearSumCount = 0;
+
     class RelayUdpCallback implements UdpCallback {
 
         private UdpSocket udpSocket;
@@ -119,14 +129,46 @@ public class BiUdpRelay {
                 if (udpSocket.getTag() != 0) {
                     aiifRelay.send(buf, length);
 
-                    int sum = 0;
-                    for (int i = 12; i < length; i += 2) {
-                        sum += ((((((short)buf[i]) << 8) & 0xff00) | ((short)buf[i + 1] & 0xff)) & 0xffff);
+                    if (audioDetectLevel > 0 && silenceDetectLevel > 0) {
+                        energyDetect(buf, length);
                     }
-
-                    logger.debug("sub = {}", sum);
                 }
             }
+        }
+
+        private boolean energyDetect(byte[] buf, int length) {
+            if (buf == null || length < 12) {
+                return false;
+            }
+
+            long sum = 0;
+            for (int i = 12; i < length; i += 2) {
+                short value = (short)((short)(((buf[i + 1] & 0xff) << 8) & 0xff00) | (short)(buf[i] & 0xff));
+                if (value > 0) {
+                    sum += value;
+                }
+            }
+
+            linearSum += sum;
+            linearSumCount++;
+            if (linearSumCount >= 5) {
+
+                if (linearSum >= audioDetectLevel) {
+                    //
+                    // TODO: Voice detected
+                    //
+                }
+                else if (linearSum < silenceDetectLevel) {
+                    //
+                    // TODO: Silence detected
+                    //
+                }
+
+                linearSumCount = 0;
+                linearSum = 0;
+            }
+
+            return true;
         }
     }
 }

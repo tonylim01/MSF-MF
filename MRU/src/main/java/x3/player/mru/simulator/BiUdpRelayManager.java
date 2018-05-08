@@ -125,7 +125,9 @@ public class BiUdpRelayManager {
 
     public void close(String sessionId) {
         BiUdpRelay udpRelay = getUdpRelay(sessionId);
-        udpRelay.closeUdpSocket();
+        if (udpRelay != null) {
+            udpRelay.closeUdpSocket();
+        }
     }
 
     private BiUdpRelay getUdpRelay(String sessionId) {

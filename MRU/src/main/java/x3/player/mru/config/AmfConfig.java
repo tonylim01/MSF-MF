@@ -37,6 +37,8 @@ public class AmfConfig extends DefaultConfig {
     private SurfConfig surfConfig;
 
     private String localBasePath;
+    private long audioEnergyLevel;
+    private long silenceEnergyLevel;
 
     public AmfConfig(int instanceId, String configPath) {
 
@@ -194,6 +196,9 @@ public class AmfConfig extends DefaultConfig {
 
             localBasePath = getStrValue("MEDIA", "LOCAL_BASE_PATH", null);
 
+            audioEnergyLevel = (long)getIntValue("MEDIA", "AUDIO_ENERGY_LEVEL", 0);
+            silenceEnergyLevel = (long)getIntValue("MEDIA", "SILENCE_ENERGY_LEVEL", 0);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -306,5 +311,13 @@ public class AmfConfig extends DefaultConfig {
 
     public String getLocalBasePath() {
         return localBasePath;
+    }
+
+    public long getAudioEnergyLevel() {
+        return audioEnergyLevel;
+    }
+
+    public long getSilenceEnergyLevel() {
+        return silenceEnergyLevel;
     }
 }
