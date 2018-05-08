@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import x3.player.mru.AppInstance;
 import x3.player.mru.common.ShellUtil;
 import x3.player.mru.config.AmfConfig;
+import x3.player.mru.config.SurfConfig;
 import x3.player.mru.rmqif.messages.FileData;
 import x3.player.mru.room.RoomInfo;
 import x3.player.mru.room.RoomManager;
@@ -13,6 +14,7 @@ import x3.player.mru.session.SessionState;
 import x3.player.mru.surfif.module.SurfChannelManager;
 import x3.player.mru.surfif.module.SurfConnectionManager;
 import x3.player.mru.surfif.module.SurfPlayBuilder;
+import x3.player.mru.surfif.module.SurfVoiceBuilder;
 
 import java.io.File;
 import java.util.UUID;
@@ -45,12 +47,30 @@ public class PlayStartStateFunction extends PlayStateFunction implements StateFu
 
         if (arg != null && arg instanceof FileData) {
             FileData fileData = (FileData)arg;
-            if (fileData.getChannel() == FileData.CHANNEL_BGM && sessionInfo.isBgmPlaying()) {
-                stopPlay(sessionInfo, roomInfo, SurfChannelManager.TOOL_ID_BG);
+            int toolId;
+            if (fileData.getChannel() == FileData.CHANNEL_BGM) {
+                toolId = SurfChannelManager.TOOL_ID_PAR_BG;
+
+                if (sessionInfo.isBgmPlaying()) {
+                    stopPlay(sessionInfo, roomInfo, SurfChannelManager.TOOL_ID_BG);
+                }
             }
-            else if (fileData.getChannel() == FileData.CHANNEL_MENT && sessionInfo.isMentPlaying()) {
-                stopPlay(sessionInfo, roomInfo, SurfChannelManager.TOOL_ID_MENT);
+            else {
+                toolId = SurfChannelManager.TOOL_ID_PAR_MENT;
+
+                if (sessionInfo.isMentPlaying()) {
+                    stopPlay(sessionInfo, roomInfo, SurfChannelManager.TOOL_ID_MENT);
+                }
             }
+
+            boolean callerOnly;
+            if (fileData.getPlayType() != null && fileData.getPlayType().equals(FileData.PLAY_TYPE_CALLER_ONLY)) {
+                callerOnly = true;
+            }
+            else {
+                callerOnly = false;
+            }
+            updatePlayChannel(sessionInfo, roomInfo, toolId, callerOnly);
 
             playFile(sessionInfo, roomInfo, fileData);
         }
@@ -160,6 +180,44 @@ public class PlayStartStateFunction extends PlayStateFunction implements StateFu
         json = playBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, fileId, json);
+
+        return true;
+    }
+
+    private boolean updatePlayChannel(SessionInfo sessionInfo, RoomInfo roomInfo, int toolId, boolean callerOnly) {
+        if (sessionInfo == null) {
+            return false;
+        }
+
+        logger.debug("[{}] Update play channel: channel [{}] callerOnly [{}]", sessionInfo.getSessionId(),
+                toolId, callerOnly);
+
+        String json;
+        int groupId = roomInfo.getGroupId();
+        int mixerId = roomInfo.getMixerId();
+
+        if (groupId < 0 || mixerId < 0) {
+            return false;
+        }
+
+        SurfConnectionManager connectionManager = SurfConnectionManager.getInstance();
+
+        int playId = SurfChannelManager.getReqToolId(groupId, toolId);
+
+        // Update participants
+        SurfVoiceBuilder parBuilder = new SurfVoiceBuilder(mixerId);
+
+        if (!callerOnly) {
+            parBuilder.setParticipant(playId, playId);
+        }
+        else {
+            int whisperTo = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_CG);
+            parBuilder.setWhisper(playId, playId, whisperTo);
+        }
+
+        json = parBuilder.build();
+
+        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, mixerId, json);
 
         return true;
     }

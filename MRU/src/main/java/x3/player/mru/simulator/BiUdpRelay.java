@@ -30,6 +30,8 @@ public class BiUdpRelay {
     private long audioDetectLevel = 0;
     private long silenceDetectLevel = 0;
 
+    private boolean isEnergyDetected = false;
+
     public void setSrcLocalPort(int localPort) {
         srcLocalPort = localPort;
     }
@@ -153,15 +155,22 @@ public class BiUdpRelay {
             linearSumCount++;
             if (linearSumCount >= 5) {
 
+                logger.info("energy = {}", linearSum);
                 if (linearSum >= audioDetectLevel) {
                     //
                     // TODO: Voice detected
                     //
+                    logger.info("Energy Detected");
+
+                    isEnergyDetected = true;
                 }
-                else if (linearSum < silenceDetectLevel) {
+                else if (isEnergyDetected && linearSum < silenceDetectLevel) {
                     //
                     // TODO: Silence detected
                     //
+                    logger.info("Silence Detected");
+
+                    isEnergyDetected = false;
                 }
 
                 linearSumCount = 0;

@@ -32,6 +32,15 @@ public class SurfVoiceBuilder {
                 SurfMsgParticipant.PAR_ACTION_ADD);
     }
 
+    public void setWhisper(int toolId, int mixerId, int whisperTo) {
+        toolReq.setToolType(SurfConstant.TOOL_TYPE_VOICE_MIXER);
+        toolReq.addParticipant(toolId,
+                SurfMsgParticipant.PAR_TYPE_WHISPER,
+                mixerId,
+                whisperTo,
+                SurfMsgParticipant.PAR_ACTION_ADD);
+    }
+
     public void setChannel(int mixerId,
                            int inPayloadId, int outPayloadId,
                            int localPort,
