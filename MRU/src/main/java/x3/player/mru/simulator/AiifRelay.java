@@ -2,8 +2,10 @@ package x3.player.mru.simulator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import x3.player.mru.App;
 import x3.player.mru.AppInstance;
 import x3.player.mru.common.ShellUtil;
+import x3.player.mru.config.AmfConfig;
 import x3.player.mru.rmqif.module.RmqClient;
 import x3.player.mru.surfif.messages.SurfMsgVocoder;
 
@@ -31,6 +33,7 @@ public class AiifRelay {
 
     private long audioDetectLevel = 0;
     private long silenceDetectLevel = 0;
+    private long silenceDetectDuration = 0;
 
     private boolean isEnergyDetected = false;
 
@@ -38,8 +41,11 @@ public class AiifRelay {
     public void start() {
         isQuit = false;
 
-        audioDetectLevel = AppInstance.getInstance().getConfig().getAudioEnergyLevel();
-        silenceDetectLevel = AppInstance.getInstance().getConfig().getSilenceEnergyLevel();
+        AmfConfig config = AppInstance.getInstance().getConfig();
+
+        audioDetectLevel = config.getAudioEnergyLevel();
+        silenceDetectLevel = config.getSilenceEnergyLevel();
+        silenceDetectDuration = config.getSilenceDetectDuration();
 
         ffmpegThread = new Thread(new FfmpegRunnable());
         ffmpegThread.start();
@@ -257,13 +263,12 @@ public class AiifRelay {
         }
 
         private boolean energyDetect(byte[] buf, int length) {
-            if (buf == null || length < 12) {
+            if (buf == null || length < RTP_HEADER_SIZE) {
                 return false;
             }
 
-            for (int i = 12; i < length; i += 2) {
+            for (int i = RTP_HEADER_SIZE; i < length; i += 2) {
                 short value = (short)((short)(((buf[i + 1] & 0xff) << 8) & 0xff00) | (short)(buf[i] & 0xff));
-//                short value = (short)((short)(((buf[i] & 0xff) << 8) & 0xff00) | (short)(buf[i + 1] & 0xff));
 
                 if (value > 0 && value > prevValue) {
                     prevValue = value;
@@ -291,7 +296,7 @@ public class AiifRelay {
                                 if (silenceStart == 0) {
                                     silenceStart = timestamp;
                                 }
-                                else if (timestamp - silenceStart > 500) {
+                                else if (timestamp - silenceStart > silenceDetectDuration) {
                                     logger.info("Silence Detected {}", linearSum);
                                     isEnergyDetected = false;
                                 }
@@ -308,8 +313,6 @@ public class AiifRelay {
                 }
             }
 
-//            logger.info("sum = {} count {} len {}", sum, plus, length);
-//            linearSum += sum;
             linearSumCount++;
 
             return true;

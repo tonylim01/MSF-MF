@@ -39,6 +39,7 @@ public class AmfConfig extends DefaultConfig {
     private String localBasePath;
     private long audioEnergyLevel;
     private long silenceEnergyLevel;
+    private long silenceDetectDuration;
 
     public AmfConfig(int instanceId, String configPath) {
 
@@ -198,6 +199,7 @@ public class AmfConfig extends DefaultConfig {
 
             audioEnergyLevel = (long)getIntValue("MEDIA", "AUDIO_ENERGY_LEVEL", 0);
             silenceEnergyLevel = (long)getIntValue("MEDIA", "SILENCE_ENERGY_LEVEL", 0);
+            silenceDetectDuration = (long)getIntValue("MEDIA", "silenceDetectDuration", 0);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -319,5 +321,9 @@ public class AmfConfig extends DefaultConfig {
 
     public long getSilenceEnergyLevel() {
         return silenceEnergyLevel;
+    }
+
+    public long getSilenceDetectDuration() {
+        return silenceDetectDuration;
     }
 }
