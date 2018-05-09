@@ -71,15 +71,20 @@ public class BiUdpRelay {
     public void setDupUdpQueue(String inputCodec, String dstQueueName) {
         logger.debug("Open UDP relay queue [{}]", dstQueueName);
         this.dstQueueName = dstQueueName;
-//        if (dstUdpSocket != null) {
         if (srcUdpSocket != null) {
             aiifRelay = new AiifRelay();
 
             aiifRelay.setInputCodec(inputCodec);
-            aiifRelay.setRelayQueue(dstQueueName);
+            if (dstQueueName != null) {
+                aiifRelay.setRelayQueue(dstQueueName);
 
-            String filename = String.format("/tmp/%s.pcm", dstQueueName);
-            aiifRelay.saveToFile(filename);
+                String filename = String.format("/tmp/%s.pcm", dstQueueName);
+                aiifRelay.saveToFile(filename);
+            }
+            else {
+                String pipeName = String.format("cd_%d", srcLocalPort);
+                aiifRelay.createPipe(pipeName);
+            }
             aiifRelay.start();
 
             srcUdpSocket.setTag(aiifRelay.hashCode());

@@ -18,10 +18,11 @@ public class SurfChannelManager {
     private static final int BASE_UDP_PORT = 10000;
 
     public static final int TOOL_ID_MIXER   = 0;
-    public static final int TOOL_ID_CG_RX   = 1;
-    public static final int TOOL_ID_CG_TX   = 2;
-    public static final int TOOL_ID_PAR_CG  = 3;
-    public static final int TOOL_ID_CD      = 4;
+//    public static final int TOOL_ID_CG_RX   = 1;
+    public static final int TOOL_ID_CG_TX   = 1;
+    public static final int TOOL_ID_PAR_CG  = 2;
+    public static final int TOOL_ID_CD_TX   = 3;
+    public static final int TOOL_ID_PAR_CD  = 4;
     public static final int TOOL_ID_MENT    = 5;
     public static final int TOOL_ID_BG      = 6;
     public static final int TOOL_ID_PAR_MENT    = 7;

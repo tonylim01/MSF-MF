@@ -62,7 +62,7 @@ public class PrepareStateFunction implements StateFunction {
                 // Step #3) Creates 3 channels used by a caller
                 openCallerResource(sessionInfo, roomInfo);
                 // Step #4) Creates local relaying resource
-                openRelayResource(sessionInfo);
+                openCallerRelayResource(sessionInfo);
 
                 //
                 // TODO: TEST AIIFD START
@@ -74,6 +74,9 @@ public class PrepareStateFunction implements StateFunction {
             else {
                 // Step #5) Creates one channel for a callee
                 openCalleeResource(sessionInfo, roomInfo);
+                // Step #6) Creates local relaying resource
+                openCalleeRelayResource(sessionInfo);
+
             }
         }
 
@@ -85,12 +88,12 @@ public class PrepareStateFunction implements StateFunction {
      * @param sessionInfo
      * @return
      */
-    private boolean openRelayResource(SessionInfo sessionInfo) {
+    private boolean openCallerRelayResource(SessionInfo sessionInfo) {
         if (sessionInfo == null) {
             return false;
         }
 
-        logger.debug("[{}] Open relay resources", sessionInfo.getSessionId());
+        logger.debug("[{}] Open caller relay resources", sessionInfo.getSessionId());
 
         RoomInfo roomInfo = RoomManager.getInstance().getRoomInfo(sessionInfo.getConferenceId());
         if (roomInfo == null) {
@@ -110,28 +113,72 @@ public class PrepareStateFunction implements StateFunction {
         // srcLocalPort -> Surf par
         int parPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_PAR_CG);
 
-        logger.debug("[{}] Relay: remote ({}:{}) <- local ({})", sessionInfo.getSessionId(),
+        logger.debug("[{}] Caller Relay: remote ({}:{}) <- local ({})", sessionInfo.getSessionId(),
                 surfConfig.getSurfIp(), parPort, sessionInfo.getSrcLocalPort());
 
         udpRelayManager.openSrcServer(sessionInfo.getSessionId(), sessionInfo.getSrcLocalPort());
         udpRelayManager.openSrcClient(sessionInfo.getSessionId(),
-//                surfConfig.getSurfIp(), parPort);
                 sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
-
-        // TODO
-        // srcLocalPort -> AIIS as well as -> Surf par
-        //
-
 
         // dstLocalPort -> Surf caller
         int callerPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_CG_TX);
 
-        logger.debug("[{}] Relay: remote ({}:{}) <- local ({})", sessionInfo.getSessionId(),
+        logger.debug("[{}] Caller Relay: remote ({}:{}) <- local ({})", sessionInfo.getSessionId(),
                 surfConfig.getSurfIp(), callerPort, sessionInfo.getDstLocalPort());
 
         udpRelayManager.openDstServer(sessionInfo.getSessionId(), sessionInfo.getDstLocalPort());
         udpRelayManager.openDstClient(sessionInfo.getSessionId(),
-//                surfConfig.getSurfIp(), callerPort);
+                surfConfig.getSurfIp(), parPort);
+
+        return true;
+    }
+
+    /**
+     * (RTP) -> (SURF callee) --> (Relay) --> (SURF par)
+     *
+     * @param sessionInfo
+     * @return
+     */
+    private boolean openCalleeRelayResource(SessionInfo sessionInfo) {
+        if (sessionInfo == null) {
+            return false;
+        }
+
+        logger.debug("[{}] Open callee relay resources", sessionInfo.getSessionId());
+
+        RoomInfo roomInfo = RoomManager.getInstance().getRoomInfo(sessionInfo.getConferenceId());
+        if (roomInfo == null) {
+            logger.error("[{}] No roomInfo found", sessionInfo.getSessionId());
+            return false;
+        }
+
+        SdpInfo sdpInfo = sessionInfo.getSdpInfo();
+        if (sdpInfo == null) {
+            return false;
+        }
+
+        SurfConfig surfConfig = AppInstance.getInstance().getConfig().getSurfConfig();
+
+        BiUdpRelayManager udpRelayManager = BiUdpRelayManager.getInstance();
+
+        // srcLocalPort -> Surf par
+        int parPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_PAR_CD);
+
+        logger.debug("[{}] Callee Relay: remote ({}:{}) <- local ({})", sessionInfo.getSessionId(),
+                surfConfig.getSurfIp(), parPort, sessionInfo.getSrcLocalPort());
+
+        udpRelayManager.openSrcServer(sessionInfo.getSessionId(), sessionInfo.getSrcLocalPort());
+        udpRelayManager.openSrcClient(sessionInfo.getSessionId(),
+                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
+
+        // dstLocalPort -> Surf caller
+        int callerPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_CD_TX);
+
+        logger.debug("[{}] Callee Relay: remote ({}:{}) <- local ({})", sessionInfo.getSessionId(),
+                surfConfig.getSurfIp(), callerPort, sessionInfo.getDstLocalPort());
+
+        udpRelayManager.openDstServer(sessionInfo.getSessionId(), sessionInfo.getDstLocalPort());
+        udpRelayManager.openDstClient(sessionInfo.getSessionId(),
                 surfConfig.getSurfIp(), parPort);
 
         return true;
@@ -234,12 +281,48 @@ public class PrepareStateFunction implements StateFunction {
             return false;
         }
 
+        AmfConfig config = AppInstance.getInstance().getConfig();
+
+        SurfConnectionManager connectionManager = SurfConnectionManager.getInstance();
+
+        SdpInfo sdpInfo = sessionInfo.getSdpInfo();
+
+        int parId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_CD);
+        int parPort = SurfChannelManager.getUdpPort(parId);
+
+        logger.debug("[{}] CD_par fe: remote ({}:{}) - local ({}) - mixer ({})", sessionInfo.getSessionId(),
+                config.getLocalIpAddress(), sessionInfo.getDstLocalPort(), parPort, mixerId);
+
+        // Creates a mixer's participant as ip mode
+        SurfVoiceBuilder parBuilder = new SurfVoiceBuilder(parId);
+        parBuilder.setChannel(mixerId,
+                sdpInfo.getPayloadId(),
+                sdpInfo.getPayloadId(),
+                parPort,
+                config.getLocalIpAddress(), sessionInfo.getDstLocalPort());
+        parBuilder.setCoder(sdpInfo.getCodecStr(), sdpInfo.getCodecStr(),
+                0, 0, true);
+//        parBuilder.setVad(true);
+        json = parBuilder.build();
+
+        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, parId, json);
+
+        // Add participants
+        SurfVoiceBuilder addBuilder = new SurfVoiceBuilder(mixerId);
+        addBuilder.setParticipant(parId, parId);
+        json = addBuilder.build();
+
+        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, mixerId, json);
+
+        /*
+        AmfConfig config = AppInstance.getInstance().getConfig();
+
         SurfConnectionManager connectionManager = SurfConnectionManager.getInstance();
 
         SdpInfo sdpInfo = sessionInfo.getSdpInfo();
 
         // Creates one voice channel
-        int calleeId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CD);
+        int calleeId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_CD);
         int calleePort = SurfChannelManager.getUdpPort(calleeId);
 
         logger.debug("[{}] CD_par fe: remote ({}:{}) - local ({}) - mixer ({})", sessionInfo.getSessionId(),
@@ -251,7 +334,8 @@ public class PrepareStateFunction implements StateFunction {
                 sdpInfo.getPayloadId(), // inPayloadId
                 sdpInfo.getPayloadId(), // outpayloadId
                 calleePort,
-                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
+                config.getLocalIpAddress(), sessionInfo.getDstLocalPort());
+//                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
         builder.setCoder(sdpInfo.getCodecStr(), sdpInfo.getCodecStr(),
                 0, 0, true);
 //        builder.setVad(true);
@@ -265,7 +349,7 @@ public class PrepareStateFunction implements StateFunction {
         json = addBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, mixerId, json);
-
+        */
 
         return true;
     }

@@ -88,7 +88,6 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
         SdpAttribute attr = selectSdp(sessionInfo);
         if (attr != null) {
 
-//            int localPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_CG_RX);
             int localPort = sessionInfo.getSrcLocalPort();
             builder.setLocalPort(localPort);
 
@@ -107,7 +106,8 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
         }
         else {  // Outbound case
 
-            int localPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_CD);
+//            int localPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_CD);
+            int localPort = sessionInfo.getSrcLocalPort();
             builder.setLocalPort(localPort);
 
             for (String desc: sdpConfig.getAttributes()) {

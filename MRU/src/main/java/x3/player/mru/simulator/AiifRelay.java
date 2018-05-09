@@ -158,7 +158,7 @@ public class AiifRelay {
 
     private static final byte[] AMR_HEADER = { 0x23, 0x21, 0x41, 0x4D, 0x52, 0x2D, 0x57, 0x42, 0x0A };
 
-    private void createPipe(String queueName) {
+    public void createPipe(String queueName) {
         inputPipeName = String.format("/tmp/%s_i", queueName);
         outputPipeName = String.format("/tmp/%s_o.wav", queueName);
         Process p;
@@ -224,7 +224,7 @@ public class AiifRelay {
     class RmqRelayRunnable implements Runnable {
         @Override
         public void run() {
-            logger.info("Rmq relay proc ({}) start", outputPipeName);
+            logger.info("Rmq relay proc ({}) start. queue [{}]", outputPipeName, (rmqClient != null) ? "yes" : "no");
 
             byte[] pipeBuf = new byte[LINEAR_PAYLOAD_SIZE];
             try {
@@ -249,7 +249,7 @@ public class AiifRelay {
                         }
 
                         if (audioDetectLevel > 0 && silenceDetectLevel > 0) {
-                            energyDetect(pipeBuf, size);
+                            energyDetect(pipeBuf, size, (rmqClient != null) ? true : false);
                         }
 
                     }
@@ -262,7 +262,7 @@ public class AiifRelay {
             logger.info("Rmq relay proc ({}) end", outputPipeName);
         }
 
-        private boolean energyDetect(byte[] buf, int length) {
+        private boolean energyDetect(byte[] buf, int length, boolean isCaller) {
             if (buf == null || length < RTP_HEADER_SIZE) {
                 return false;
             }
@@ -283,7 +283,7 @@ public class AiifRelay {
                             //
                             // TODO: Voice detected
                             //
-                            logger.info("Energy Detected {}", linearSum);
+                            logger.info("Energy Detected [{}]", isCaller ? "caller" : "callee");
 
                             isEnergyDetected = true;
                         }
@@ -297,7 +297,7 @@ public class AiifRelay {
                                     silenceStart = timestamp;
                                 }
                                 else if (timestamp - silenceStart > silenceDetectDuration) {
-                                    logger.info("Silence Detected {}", linearSum);
+                                    logger.info("Silence Detected [{}]", isCaller ? "caller" : "callee");
                                     isEnergyDetected = false;
                                 }
                             }

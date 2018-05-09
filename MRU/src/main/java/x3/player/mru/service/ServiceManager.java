@@ -169,18 +169,22 @@ public class ServiceManager {
 
         // Closes Surf resources
         if (sessionInfo.isCaller()) {
-            int cgRxId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CG_RX);
+//            int cgRxId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CG_RX);
             int cgTxId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CG_TX);
             int parId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_CG);
 
-            removeSurfResource(sessionId, groupId, cgRxId);
+//            removeSurfResource(sessionId, groupId, cgRxId);
             removeSurfResource(sessionId, groupId, cgTxId);
             removeSurfResource(sessionId, groupId, parId);
         }
         else {
-            int calleeId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CD);
+//            int calleeId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CD);
+//
+            int cdTxId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CD_TX);
+            int parId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_CD);
 
-            removeSurfResource(sessionId, groupId, calleeId);
+            removeSurfResource(sessionId, groupId, cdTxId);
+            removeSurfResource(sessionId, groupId, parId);
         }
 
         // Closes room info
