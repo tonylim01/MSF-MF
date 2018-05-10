@@ -143,7 +143,7 @@ public class Session {
             } catch (IOException e1)
             {
                 inbound = null;
-                e1.printStackTrace();
+                log.error(e1.toString(), e1);
                 Response nok = fact.getMessageFactory().createResponse(Response.SERVER_INTERNAL_ERROR, req);
                 tr.sendResponse(nok);
                 fact.getSessionLifeCycleListener().sessionCannotCreate(this, e1);
@@ -155,7 +155,7 @@ public class Session {
                 f.timedGet(1000L);
             } catch (InterruptedException|InvocationTargetException e1)
             {
-                e1.printStackTrace();
+                log.error(e1.toString(), e1);
                 Response nok = fact.getMessageFactory().createResponse(Response.SERVER_INTERNAL_ERROR, req);
                 tr.sendResponse(nok);
                 onClosed();
@@ -175,7 +175,8 @@ public class Session {
                 }
             } catch (IOException|InterruptedException|InvocationTargetException e1)
             {
-                e1.printStackTrace();
+//                e1.printStackTrace();
+                log.error(e1.toString(), e1);
                 Response nok = fact.getMessageFactory().createResponse(Response.SERVER_INTERNAL_ERROR, req);
                 tr.sendResponse(nok);
                 onClosed();
@@ -233,7 +234,8 @@ public class Session {
 
         } catch (Exception ex)
         {
-            ex.printStackTrace();
+//            ex.printStackTrace();
+            log.error(ex.toString(), ex);
 //            throw ex;
             //System.exit(0);
 //            return null;
@@ -322,10 +324,10 @@ public class Session {
 //            req.setContent(content, contentTypeHeader);
         } catch (InvalidArgumentException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         } catch (ParseException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         }
 
 
@@ -341,7 +343,7 @@ public class Session {
 //            inviteTid = tr;
         } catch (TransactionUnavailableException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
             return /*null*/;
         }
 
@@ -373,20 +375,20 @@ public class Session {
             }
         } catch (IOException|InterruptedException|InvocationTargetException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
             try
             {
                 Response nok = fact.getMessageFactory().createResponse(Response.SERVER_INTERNAL_ERROR, inviteRequest);
                 serverTransaction.sendResponse(nok);
             } catch (ParseException e1)
             {
-                e1.printStackTrace();
+                log.error(e.toString(), e);
             } catch (SipException e1)
             {
-                e1.printStackTrace();
+                log.error(e.toString(), e);
             } catch (InvalidArgumentException e1)
             {
-                e1.printStackTrace();
+                log.error(e.toString(), e);
             }
             onClosed();
             fact.getSessionLifeCycleListener().sessionCannotCreate(this, e);
@@ -409,7 +411,7 @@ public class Session {
             req.setContent(sdp.getBytes(), contentTypeHeader);
         } catch (ParseException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         }
 
 //        System.out.println("inviteTid = " + cliInviteTid);
@@ -424,7 +426,7 @@ public class Session {
 //            return tr;
         } catch (SipException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         }
 
 //        return tr;
@@ -474,13 +476,13 @@ public class Session {
             serverTransaction/*inviteTid*/.sendResponse(nok);
         } catch (ParseException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         } catch (InvalidArgumentException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         } catch (SipException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(),e);
         }
 
         onClosed();
@@ -499,10 +501,10 @@ public class Session {
             log.info(Utils.toString(ack));
         } catch (InvalidArgumentException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         } catch (SipException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         }
         //outbound: MCU-->MRU Negodone_req
 //        MruClient mru = fact.getClient();
@@ -514,16 +516,20 @@ public class Session {
             f.timedGet(1000L);
         } catch (IOException e)
         {
-            e.printStackTrace();
+//            e.printStackTrace();
+            log.error(e.toString(), e);
         } catch (TimeoutException e)
         {
-            e.printStackTrace();
+//            e.printStackTrace();
+            log.error(e.toString(), e);
         } catch (InterruptedException e)
         {
-            e.printStackTrace();
+//            e.printStackTrace();
+            log.error(e.toString(), e);
         } catch (InvocationTargetException e)
         {
-            e.printStackTrace();
+//            e.printStackTrace();
+            log.error(e.toString(), e);
         }
 
         //CSCF<--MCU:inbound SIP:200/OK
@@ -552,16 +558,17 @@ public class Session {
                 f.timedGet(1000L);
             } catch (IOException e)
             {
-                e.printStackTrace();
+//                e.printStackTrace();
+                log.error(e.toString(), e);
             } catch (TimeoutException e)
             {
-                e.printStackTrace();
+                log.error(e.toString(), e);
             } catch (InterruptedException e)
             {
-                e.printStackTrace();
+                log.error(e.toString(), e);
             } catch (InvocationTargetException e)
             {
-                e.printStackTrace();
+                log.error(e.toString(), e);
             }
 
             fact.getClient().serviceStart(inbound.getCallId(),
@@ -569,16 +576,16 @@ public class Session {
             fact.getSessionLifeCycleListener().sessionCreated(this);
         } catch (ParseException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         } catch (InvalidArgumentException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         } catch (SipException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(),e);
         } catch (IOException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         }
     }
 
@@ -609,16 +616,17 @@ public class Session {
 
         } catch (ParseException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(),e);
         } catch (InvalidArgumentException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         } catch (SipException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         }
 
         //MCU-->CANCEL-->outbound
+        if (clientTransaction != null)
         try
         {
             Request cancel =/*outBoundTr*/null;
@@ -628,7 +636,7 @@ public class Session {
             log.info(Utils.toString(cancel));
         } catch (SipException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         }
 
         onClosed();
@@ -672,13 +680,13 @@ public class Session {
 //            }
         } catch (ParseException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(),e);
         } catch (InvalidArgumentException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         } catch (SipException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         }
 
         try
@@ -726,7 +734,7 @@ public class Session {
 //            }
         } catch (SipException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(),e);
         }
 
         onClosed();
@@ -746,7 +754,7 @@ public class Session {
             }
         } catch (IOException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         } catch (TimeoutException e)
         {
 //            e.printStackTrace();
@@ -766,16 +774,16 @@ public class Session {
             }
         } catch (IOException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         } catch (TimeoutException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         } catch (InterruptedException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         } catch (InvocationTargetException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         }
 
 //        if (aiifId != null)
@@ -785,7 +793,7 @@ public class Session {
                                               caller/*"01012341234"*/);
             } catch (IOException e)
             {
-                e.printStackTrace();
+                log.error(e.toString(), e);
             }
     }
 

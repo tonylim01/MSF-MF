@@ -66,54 +66,63 @@ public class Client {//implements HeartbeatListener {
                                                             Envelope envelope,
                                                             AMQP.BasicProperties properties,
                                                             byte[] rawBody) throws IOException {
+                                     try
+                                     {
 //                                     String message = new String(body, "UTF-8");
 //                                     System.out.println(" [x] Received '" + envelope.getRoutingKey() + "':'" + message + "'");
-                                     Map<String,Object> js =(Map<String,Object>)r.read(new String(rawBody));
-                                     Map<String, Object> header = (Map<String,Object>)js.get("header");//properties.getHeaders();
-                                     String msgFrom = String.valueOf(header.get("msgFrom"));
-                                     Map<String, Object> body = (Map<String,Object>)js.get("body");
-                                     String type = String.valueOf(header.get("type"));
-                                     if ("mfmp_heartbeat_indi".equals(type))
-                                     {
-                                         Map<String, Object> hb=(Map<String, Object>)r.read(new String(rawBody));
+                                         Map<String, Object> js = (Map<String, Object>) r.read(new String(rawBody));
+                                         Map<String, Object> header = (Map<String, Object>) js.get("header");//properties.getHeaders();
+                                         String msgFrom = String.valueOf(header.get("msgFrom"));
+                                         Map<String, Object> body = (Map<String, Object>) js.get("body");
+                                         String type = String.valueOf(header.get("type"));
+                                         if ("mfmp_heartbeat_indi".equals(type))
+                                         {
+                                             Map<String, Object> hb = (Map<String, Object>) r.read(new String(rawBody));
 //                                         if (heartbeatListener != null)
 //                                         {
 //                                             heartbeatListener.beat(h);
 //                                         }
-                                         beat(hb);
-                                         return;
-                                     }
+                                             beat(hb);
+                                             return;
+                                         }
 
-                                     log.info("MCU<--"+msgFrom+" "+new String(rawBody));
-                                     String tid = String.valueOf(header.get("transactionId"));
-                                     Integer rc = (Integer) header.get("reasonCode");
-                                     FutureResult f = futureResultMap.remove(tid);
-                                     if (f != null)
-                                     {
-                                         //h.put("body", body);
-                                         Map<String, Object> res = new HashMap<String, Object>();
-                                         res.put("reasonCode", rc);
+                                         log.info("MCU<--" + msgFrom + " " + type + " " + new String(rawBody));
+                                         String tid = String.valueOf(header.get("transactionId"));
+                                         Integer rc = (Integer) header.get("reasonCode");
+                                         FutureResult f = futureResultMap.remove(tid);
+                                         if (f != null)
+                                         {
+                                             //h.put("body", body);
+                                             Map<String, Object> res = new HashMap<String, Object>();
+                                             res.put("reasonCode", rc);
 //                                         if (m.get("body") != null)
 //                                         {
-                                         res.put("body", js.get("body"));
+                                             res.put("body", js.get("body"));
 //                                         }
-                                         if (Integer.valueOf(0).equals(rc))
-                                         {
-                                             f.set(res);
-                                         } else
-                                         {
-                                             f.setException(new ClientException(rc));
-                                         }
+                                             if (Integer.valueOf(0).equals(rc))
+                                             {
+                                                 f.set(res);
+                                             } else
+                                             {
+                                                 f.setException(new ClientException(rc));
+                                             }
 //                                         f.set(new Object[]{properties,
 //                                                 body});
-                                     }
+                                         }
 
-                                     if ("mfmp_service_start_res".equalsIgnoreCase(type))
+                                         if ("mfmp_service_start_res".equalsIgnoreCase(type) && body != null)
+                                         {
+                                             Integer aiif_id = (Integer) body.get("AIIF ID");
+                                             String callId = String.valueOf(header.get("callId"));
+                                             if (Integer.valueOf(0).equals(rc))
+                                             {
+                                                 onServiceStarted(callId,
+                                                                  aiif_id);
+                                             }
+                                         }
+                                     } catch (Exception e)
                                      {
-                                         Integer aiif_id = (Integer) body.get("AIIF ID");
-                                         String callId = String.valueOf(header.get("callId"));
-                                         onServiceStarted(callId,
-                                                          aiif_id);
+                                        log.error(e.toString(), e);
                                      }
                                  }
                              });
@@ -149,10 +158,10 @@ public class Client {//implements HeartbeatListener {
             connection.close();
         } catch (IOException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         } catch (TimeoutException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
         }
     }
 
@@ -193,7 +202,7 @@ public class Client {//implements HeartbeatListener {
         {
             throw e;
         }//*/
-        //*
+        /*
         Map<String,Object> res = new HashMap<>();
         res.put("reasonCode", 0);
         f.set(res);

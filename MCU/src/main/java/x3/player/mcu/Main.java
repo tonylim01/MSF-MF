@@ -63,7 +63,7 @@ public class Main {
                                    aiif_id);
                 } catch (IOException e)
                 {
-                    e.printStackTrace();
+                    log.error(e.toString(), e);
                 }
             }
         };

@@ -64,17 +64,17 @@ public class SipSignal implements SipListener, SessionLifeCycleListener {
             PeerUnavailableException,
             ObjectInUseException,
             TooManyListenersException {
-        executor=new ThreadPoolExecutor(
-                10,
-                100,
-                1000L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(),
-                new BasicThreadFactory.Builder()
-                        .namingPattern("McuSipSignal-%d")
-                        .daemon(true)
-                        .priority(Thread.MAX_PRIORITY)
-                        .build()
-        );
+//        executor=new ThreadPoolExecutor(
+//                10,
+//                100,
+//                1000L, TimeUnit.MILLISECONDS,
+//                new LinkedBlockingQueue<Runnable>(),
+//                new BasicThreadFactory.Builder()
+//                        .namingPattern("McuSipSignal-%d")
+//                        .daemon(true)
+//                        .priority(Thread.MAX_PRIORITY)
+//                        .build()
+//        );
 //        executor.allowCoreThreadTimeOut(true);
 
         SipFactory sipFactory = null;
@@ -257,9 +257,9 @@ a=fmtp:99 profile-level-id=3
         log.debug("processBye");
         try
         {
-            executor.execute(()->{
+//            executor.execute(()->{
                 ((Session) event.getServerTransaction().getDialog().getApplicationData()).close(event);
-            });
+//            });
             //todo:
             //failover applicationData == null
             /*
@@ -274,7 +274,7 @@ a=fmtp:99 profile-level-id=3
              */
         } catch (NullPointerException e)
         {
-            e.printStackTrace();
+            log.error(e.toString(), e);
             throw e;
         }
 
@@ -336,7 +336,7 @@ a=fmtp:99 profile-level-id=3
                 } catch (NullPointerException e)
                 {
                     //throw e;
-                    e.printStackTrace();
+                    log.error(e.toString(), e);
 //                    return;
                 }
 

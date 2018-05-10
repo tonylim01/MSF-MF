@@ -1,5 +1,7 @@
 package x3.player.mcu;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import x3.player.mcu.mru.Client;
 
 import javax.sip.*;
@@ -11,6 +13,7 @@ import javax.sip.message.MessageFactory;
  * Created by hwaseob on 2018-02-26.
  */
 public class SessionFactory {
+    final static Logger log = LoggerFactory.getLogger(SessionFactory.class);
 
     private SipFactory sipFactory;
 
@@ -69,7 +72,7 @@ public class SessionFactory {
                 headerFactory = getSipFactory().createHeaderFactory();
             } catch (PeerUnavailableException e)
             {
-                e.printStackTrace();
+                log.error(e.toString(), e);
             }
 
         return headerFactory;
@@ -82,7 +85,7 @@ public class SessionFactory {
                 messageFactory = getSipFactory().createMessageFactory();
             } catch (PeerUnavailableException e)
             {
-                e.printStackTrace();
+                log.error(e.toString(), e);
             }
 
         return messageFactory;
@@ -95,7 +98,7 @@ public class SessionFactory {
                 addressFactory = getSipFactory().createAddressFactory();
             } catch (PeerUnavailableException e)
             {
-                e.printStackTrace();
+                log.error(e.toString(), e);
             }
 
         return addressFactory;
