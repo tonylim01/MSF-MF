@@ -94,7 +94,7 @@ public class ShellUtil {
             return null;
         }
 
-        String ffmpegCmd = String.format("exec ffmpeg -i \"%s\" -acodec pcm_s16le -ar 8000 -ac 1 %s", inputName, outputName);
+        String ffmpegCmd = String.format("exec ffmpeg -i \"%s\" -acodec pcm_s16le -ar 8000 -ac 1 -filter volume=0.2 %s", inputName, outputName);
 
         return runShell(ffmpegCmd);
     }
