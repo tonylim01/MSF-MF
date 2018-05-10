@@ -25,7 +25,13 @@ public class SessionInfo {
     private String toNo;
     private String aiifName;
 
+    private boolean isBgmPlaying;
+    private boolean isMentPlaying;
+    private String bgmFilename;
+    private String mentFilename;
+
     private FileData fileData;
+    private String fromQueue;
 
     public String getSessionId() {
         return sessionId;
@@ -178,11 +184,51 @@ public class SessionInfo {
         this.aiifName = aiifName;
     }
 
+    public boolean isBgmPlaying() {
+        return isBgmPlaying;
+    }
+
+    public void setBgmPlaying(boolean bgmPlaying) {
+        isBgmPlaying = bgmPlaying;
+    }
+
+    public String getBgmFilename() {
+        return bgmFilename;
+    }
+
+    public void setBgmFilename(String bgmFilename) {
+        this.bgmFilename = bgmFilename;
+    }
+
+    public String getMentFilename() {
+        return mentFilename;
+    }
+
+    public void setMentFilename(String mentFilename) {
+        this.mentFilename = mentFilename;
+    }
+
+    public boolean isMentPlaying() {
+        return isMentPlaying;
+    }
+
+    public void setMentPlaying(boolean mentPlaying) {
+        isMentPlaying = mentPlaying;
+    }
+
     public FileData getFileData() {
         return fileData;
     }
 
     public void setFileData(FileData fileData) {
         this.fileData = fileData;
+    }
+
+    public String getFromQueue() {
+        return fromQueue;
+    }
+
+    public void setFromQueue(String fromQueue) {
+        this.fromQueue = fromQueue;
     }
 }

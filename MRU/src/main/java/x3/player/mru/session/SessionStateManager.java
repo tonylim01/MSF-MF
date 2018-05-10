@@ -45,16 +45,26 @@ public class SessionStateManager {
     }
 
     /**
-     * Adds SessionState into the state queue
+     * Adds SessionState into the state queue without an argument
      * @param sessionId
      * @param state
      */
     public void setState(String sessionId, SessionState state) {
+        setState(sessionId, state, null);
+    }
+
+    /**
+     * Adds SessionState into the state queue with an argument
+     * @param sessionId
+     * @param state
+     * @param data
+     */
+    public void setState(String sessionId, SessionState state, Object data) {
         if (sessionId == null) {
             return;
         }
 
-        SessionStateMessage msg = new SessionStateMessage(sessionId, state);
+        SessionStateMessage msg = new SessionStateMessage(sessionId, state, data);
         stateQueue.add(msg);
     }
 
@@ -72,8 +82,10 @@ public class SessionStateManager {
                     new AbstractMap.SimpleEntry<>(SessionState.OFFER, new OfferStateFunction()),
                     new AbstractMap.SimpleEntry<>(SessionState.ANSWER, new AnswerStateFunction()),
                     new AbstractMap.SimpleEntry<>(SessionState.PREPARE, new PrepareStateFunction()),
+                    new AbstractMap.SimpleEntry<>(SessionState.START, new StartStateFunction()),
                     new AbstractMap.SimpleEntry<>(SessionState.READY, new ReadyStateFunction()),
-                    new AbstractMap.SimpleEntry<>(SessionState.PLAY, new PlayStateFunction()),
+                    new AbstractMap.SimpleEntry<>(SessionState.PLAY_START, new PlayStartStateFunction()),
+                    new AbstractMap.SimpleEntry<>(SessionState.PLAY_STOP, new PlayStopStateFunction()),
                     new AbstractMap.SimpleEntry<>(SessionState.RELEASE, new ReleaseStateFunction())
             ).collect(Collectors.toMap((e) -> e.getKey(), (e) ->e.getValue())));
         }
@@ -118,7 +130,7 @@ public class SessionStateManager {
 
             StateFunction stateFunction = stateFunctions().get(msg.getState());
             if (stateFunction != null) {
-                stateFunction.run(sessionInfo);
+                stateFunction.run(sessionInfo, msg.getData());
             }
         }
     }

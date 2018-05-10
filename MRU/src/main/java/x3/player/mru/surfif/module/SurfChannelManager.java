@@ -18,13 +18,14 @@ public class SurfChannelManager {
     private static final int BASE_UDP_PORT = 10000;
 
     public static final int TOOL_ID_MIXER   = 0;
-    public static final int TOOL_ID_CG_RX   = 1;
-    public static final int TOOL_ID_CG_TX   = 2;
-    public static final int TOOL_ID_PAR_CG  = 3;
-    public static final int TOOL_ID_CD      = 4;
-    public static final int TOOL_ID_PLAY    = 5;
+//    public static final int TOOL_ID_CG_RX   = 1;
+    public static final int TOOL_ID_CG_TX   = 1;
+    public static final int TOOL_ID_PAR_CG  = 2;
+    public static final int TOOL_ID_CD_TX   = 3;
+    public static final int TOOL_ID_PAR_CD  = 4;
+    public static final int TOOL_ID_MENT    = 5;
     public static final int TOOL_ID_BG      = 6;
-    public static final int TOOL_ID_PAR_PLAY    = 7;
+    public static final int TOOL_ID_PAR_MENT    = 7;
     public static final int TOOL_ID_PAR_BG  = 8;
 
     private static SurfChannelManager surfChannelManager = null;
@@ -126,87 +127,4 @@ public class SurfChannelManager {
         return getUdpPort(getReqToolId(groupId, toolId));
     }
 
-    public String buildCreateVoiceMixer(int mixerId) {
-        SurfProcToolReq toolReq = new SurfProcToolReq(mixerId);
-
-        toolReq.setToolType(SurfConstant.TOOL_TYPE_VOICE_MIXER);
-        toolReq.setSamplingRate(8000);  // TODO
-        toolReq.setHangoverPeriod(500); // TODO
-        toolReq.setDominantSpeakers(5); // TODO
-
-        String json = toolReq.build();
-
-        return json;
-    }
-
-    public String buildCreateVoiceChannel(int toolId, int mixerId,
-                                          boolean inputFromRtp,
-                                          int inPayloadId, int outPayloadId,
-                                          int localPort,
-                                          String remoteIp, int remotePort) {
-
-        SurfProcToolReq toolReq = new SurfProcToolReq(toolId);
-
-        toolReq.setMixerId(mixerId);
-        toolReq.setToolType((mixerId < 0) ?
-                SurfConstant.TOOL_TYPE_VOICE_P2P : SurfConstant.TOOL_TYPE_VOICE_FE_IP);
-        if (!inputFromRtp) {
-            toolReq.setInputFromRtp(inputFromRtp);
-        }
-        toolReq.setDecoder(SurfMsgVocoder.VOCODER_ALAW, null, null);
-        toolReq.setEncoder(SurfMsgVocoder.VOCODER_ALAW, null, null);
-        toolReq.setLocalRtpInfo(localPort, outPayloadId);
-        toolReq.setRemoteRtpInfo(remoteIp, remotePort, inPayloadId);
-
-        String json = toolReq.build();
-
-        return json;
-    }
-
-    public String buildPlayListAppend(int toolId) {
-        SurfProcToolReq toolReq = new SurfProcToolReq(toolId);
-
-        //
-        // TODO
-        //
-
-        return null;
-    }
-
-    /**
-     * Sample code for reference
-     * @param toolId
-     * @param reqId
-     * @return
-     */
-    private SurfMsgVoiceConfig getVoiceConfig(int toolId, int reqId) {
-        SurfMsgVoiceConfig msg = new SurfMsgVoiceConfig();
-
-        SurfMsgToolReq toolReq = msg.getToolReq();
-
-        toolReq.setToolId(toolId);
-        toolReq.setReqId(reqId);
-        toolReq.setReqType(SurfConstant.REQ_TYPE_SET_CONFIG);
-
-        SurfMsgToolReqData data = toolReq.getData();
-
-        data.setToolType(SurfConstant.TOOL_TYPE_VOICE_P2P);
-        data.setBackendToolId(2);   // TODO: mixer's toolId
-
-        SurfMsgVocoder decoder = data.getDecoder();
-        decoder.setVocoder(SurfMsgVocoder.VOCODER_ALAW);   // TODO
-
-        SurfMsgVocoder encoder = data.getEncoder();
-        encoder.setVocoder(SurfMsgVocoder.VOCODER_ALAW);   // TODO
-
-        SurfMsgRtp rtp = data.getRtp();
-
-        rtp.setLocalUdpPort(10000); // TODO
-        rtp.setRemoteUdpPort(10002);    // TODO
-        rtp.setRemoteIp("192.168.1.1"); // TODO
-        rtp.setInPayloadType(8);    // TODO
-        rtp.setOutPayloadType(8);   // TODO
-
-        return msg;
-    }
 }

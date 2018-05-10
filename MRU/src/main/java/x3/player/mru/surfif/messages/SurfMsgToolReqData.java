@@ -20,6 +20,19 @@ public class SurfMsgToolReqData {
     @SerializedName("input_from_RTP")
     private Boolean inputFromRtp;
 
+    @SerializedName("app_info")
+    private String appInfo;
+
+    /**
+     * Events
+     */
+    private List<SurfMsgEvent> events;
+
+    /**
+     * Status
+     */
+    private List<SurfMsgStatus> status;
+
     /**
      * Mixer
      */
@@ -31,6 +44,14 @@ public class SurfMsgToolReqData {
     private Integer dominantSpeakers;
 
     /**
+     * file_reader
+     */
+    @SerializedName("audio_enabled")
+    private Boolean audioEnabled;
+    @SerializedName("audio_dst_tool_ids")
+    private List<Integer> audioDstToolIds;
+
+    /**
      * Commands
      * play_list_append
      */
@@ -39,6 +60,11 @@ public class SurfMsgToolReqData {
     private List<SurfMsgFile> files;
     private Integer repetitions;
     private Float duration;     // Seconds
+
+    @SerializedName("AGC")
+    private SurfMsgAgc agc;
+
+    private List<SurfMsgParticipant> participants;
 
     public SurfMsgToolReqData() {
     }
@@ -104,6 +130,14 @@ public class SurfMsgToolReqData {
         this.inputFromRtp = inputFromRtp;
     }
 
+    public String getAppInfo() {
+        return appInfo;
+    }
+
+    public void setAppInfo(String appInfo) {
+        this.appInfo = appInfo;
+    }
+
     public int getSamplingRate() {
         return samplingRate;
     }
@@ -162,6 +196,29 @@ public class SurfMsgToolReqData {
         this.files.add(file);
     }
 
+    public void addParticipant(int id, String type, int toolId, int whisperTo, String action) {
+        if (this.participants == null) {
+            this.participants = new ArrayList<>();
+        }
+
+        SurfMsgParticipant par = new SurfMsgParticipant();
+
+        par.setId(id);
+        if (type != null) {
+            par.setType(type);
+        }
+
+        par.setToolId(toolId);
+        if (whisperTo >= 0) {
+            par.setWhisperTo(whisperTo);
+        }
+        if (action != null) {
+            par.setAction(action);
+        }
+
+        this.participants.add(par);
+    }
+
     public int getRepetitions() {
         return repetitions;
     }
@@ -176,5 +233,110 @@ public class SurfMsgToolReqData {
 
     public void setDuration(float duration) {
         this.duration = duration;
+    }
+
+    public boolean getAudioEnabled() {
+        return audioEnabled;
+    }
+
+    public void setAudioEnabled(boolean audioEnabled) {
+        this.audioEnabled = audioEnabled;
+    }
+
+    public List<Integer> getAudioDstToolIds() {
+        return audioDstToolIds;
+    }
+
+    public void setAudioDstToolId(int audioDstToolId) {
+        if (this.audioDstToolIds == null) {
+            this.audioDstToolIds = new ArrayList<>();
+        }
+
+        this.audioDstToolIds.add(audioDstToolId);
+    }
+
+    public void setAgcEncoder(boolean enabled,
+                              int energyAvgWindow, int minSignalLevel, int maxSignalLevel, int stepLevel,
+                              int silenceThreshold) {
+
+        SurfMsgAgcData data = getAgcData(enabled, energyAvgWindow, minSignalLevel, maxSignalLevel, stepLevel,
+                silenceThreshold);
+
+        if (this.agc == null) {
+            this.agc = new SurfMsgAgc();
+        }
+
+        this.agc.setEncoderSide(data);
+    }
+
+    public void setAgcDecoder(boolean enabled,
+                              int energyAvgWindow, int minSignalLevel, int maxSignalLevel, int stepLevel,
+                              int silenceThreshold) {
+
+        SurfMsgAgcData data = getAgcData(enabled, energyAvgWindow, minSignalLevel, maxSignalLevel, stepLevel,
+                silenceThreshold);
+
+        if (this.agc == null) {
+            this.agc = new SurfMsgAgc();
+        }
+
+        this.agc.setDecoderSide(data);
+    }
+
+    public void setVad(boolean enabled) {
+        if (this.getEncoder() != null) {
+            this.getEncoder().setVad(enabled, null, false);
+        }
+    }
+
+    private SurfMsgAgcData getAgcData(boolean enabled,
+                                      int energyAvgWindow, int minSignalLevel, int maxSignalLevel, int stepLevel,
+                                      int silenceThreshold) {
+        SurfMsgAgcData data = new SurfMsgAgcData();
+
+        data.setEnabled(enabled);
+        if (energyAvgWindow != 0) {
+            data.setEnergyAvgWindow(energyAvgWindow);
+        }
+        if (minSignalLevel != 0) {
+            data.setMinSignalLevel(minSignalLevel);
+        }
+        if (maxSignalLevel != 0) {
+            data.setMaxSignalLevel(maxSignalLevel);
+        }
+        if (stepLevel > 0) {
+            data.setStepLevel(stepLevel);
+        }
+        if (silenceThreshold != 0) {
+            data.setSilenceThreshold(silenceThreshold);
+        }
+//        data.setLimitGain(limitGain);
+//        data.setMaxGain(maxGain);
+
+        return data;
+    }
+
+    public void addEvent(String type, boolean enabled) {
+        if (this.events == null) {
+            this.events = new ArrayList<>();
+        }
+
+        SurfMsgEvent event = new SurfMsgEvent();
+        event.setType(type);
+        event.setEnabled(enabled);
+
+        this.events.add(event);
+    }
+
+    public void addStatus(String type, int period) {
+        if (this.status == null) {
+            this.status= new ArrayList<>();
+        }
+
+        SurfMsgStatus status = new SurfMsgStatus();
+        status.setType(type);
+        status.setPeriod(period);
+
+        this.status.add(status);
     }
 }

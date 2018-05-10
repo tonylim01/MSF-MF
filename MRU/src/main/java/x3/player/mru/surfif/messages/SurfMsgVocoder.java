@@ -38,6 +38,14 @@ public class SurfMsgVocoder {
     public static final String RATE_G726_16     = "16";
     public static final String RATE_G726_32     = "32";
 
+    public static final String RATE_EVS_96      = "9.60";
+    public static final String RATE_EVS_164     = "16.40";
+    public static final String RATE_EVS_244     = "24.40";
+    public static final String RATE_EVS_320     = "32.00";
+    public static final String RATE_EVS_480     = "48.00";
+    public static final String RATE_EVS_640     = "64.00";
+    public static final String RATE_EVS_960     = "96.00";
+
     /**
      * Packing:
      * AMR_NB, AMR_WB   : OA, BE (Default: OA)
@@ -48,10 +56,24 @@ public class SurfMsgVocoder {
     public static final String PACKING_G726_LE  = "LE";
     public static final String PACKING_G726_BE  = "BE";
 
+    /**
+     * VAD type
+     */
+    public static final String SURF_VAD_TYPE_NONE = "none";
+    public static final String SURF_VAD_TYPE_LIGHT = "light";
+    public static final String SURF_VAD_TYPE_G729B = "G.729B";
+
+
     @SerializedName("type")
     private String vocoder;
     private String rate;
     private String packing;
+    @SerializedName("packet_duration")
+    private Integer packetDuration;
+    @SerializedName("VAD")
+    private SurfVad vad;
+    @SerializedName("sample_rate")
+    private Integer sampleRate;
 
     public String getVocoder() {
         return vocoder;
@@ -75,5 +97,63 @@ public class SurfMsgVocoder {
 
     public void setPacking(String packing) {
         this.packing = packing;
+    }
+
+    public int getPacketDuration() {
+        return packetDuration;
+    }
+
+    public void setPacketDuration(int packetDuration) {
+        if (packetDuration > 0) {
+            this.packetDuration = packetDuration;
+        }
+    }
+
+    public int getSampleRate() {
+        return sampleRate;
+    }
+
+    public void setSampleRate(int sampleRate) {
+        this.sampleRate = sampleRate;
+    }
+
+    public void setVad(boolean enabled, String type, boolean enableSid) {
+        if (!enabled) {
+            if (this.vad != null) {
+                this.vad = null;
+            }
+        }
+        else {
+            if (this.vad == null) {
+                this.vad = new SurfVad();
+            }
+
+            this.vad.setEnabled(enabled);
+            if (type != null) {
+                this.vad.setType(type);
+            }
+            if (enableSid) {
+                this.vad.setEnableSid(enableSid);
+            }
+        }
+    }
+
+    private class SurfVad {
+        private boolean enabled;
+        private String type;
+        @SerializedName("enable_SID")
+        private Boolean enableSid;
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public void setEnableSid(boolean enableSid) {
+            this.enableSid = enableSid;
+        }
     }
 }

@@ -20,6 +20,7 @@ public class AmfConfig extends DefaultConfig {
     private String rmqAcswf;
     private String rmqUser, rmqPass;
     private String rmqAiifs[];
+    private String rmqAiifFmt;
 
     private int sessionMaxSize;
     private int sessionTimeout;
@@ -34,6 +35,11 @@ public class AmfConfig extends DefaultConfig {
     private String localIpAddress;
 
     private SurfConfig surfConfig;
+
+    private String localBasePath;
+    private long audioEnergyLevel;
+    private long silenceEnergyLevel;
+    private long silenceDetectDuration;
 
     public AmfConfig(int instanceId, String configPath) {
 
@@ -112,6 +118,8 @@ public class AmfConfig extends DefaultConfig {
                 }
             }
 
+            rmqAiifFmt = getStrValue("RMQ", "RMQ_AIIF_FMT", null);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -137,6 +145,17 @@ public class AmfConfig extends DefaultConfig {
             int totalChannels = getIntValue("SURF", "TOTAL_CHANNELS", 0);
 
             surfConfig.setTotalChannels(totalChannels);
+
+            String internalCodec = getStrValue("SURF", "INTERNAL_CODEC",
+                    SurfConfig.DEFAULT_INTERNAL_CODEC);
+            int internalPayload = getIntValue("SURF", "INTERNAL_PAYLOAD", 0);
+            int internalSampleRate = getIntValue("SURF", "INTERNAL_SAMPLE_RATE",
+                    SurfConfig.DEFAULT_INTERNAL_SAMPLE_RATE);
+
+            surfConfig.setInternalCodec(internalCodec);
+            surfConfig.setInternalPayload(internalPayload);
+            surfConfig.setInternalSampleRate(internalSampleRate);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -172,6 +191,16 @@ public class AmfConfig extends DefaultConfig {
             if (localNetInterface != null) {
                 localIpAddress = NetUtil.getLocalIP(localNetInterface);
             }
+            else {
+                logger.error("Local IP not found for [{}]", localNetInterface);
+            }
+
+            localBasePath = getStrValue("MEDIA", "LOCAL_BASE_PATH", null);
+
+            audioEnergyLevel = (long)getIntValue("MEDIA", "AUDIO_ENERGY_LEVEL", 0);
+            silenceEnergyLevel = (long)getIntValue("MEDIA", "SILENCE_ENERGY_LEVEL", 0);
+            silenceDetectDuration = (long)getIntValue("MEDIA", "silenceDetectDuration", 0);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -276,5 +305,25 @@ public class AmfConfig extends DefaultConfig {
         }
 
         return rmqAiifs[index];
+    }
+
+    public String getRmqAiifFmt() {
+        return this.rmqAiifFmt;
+    }
+
+    public String getLocalBasePath() {
+        return localBasePath;
+    }
+
+    public long getAudioEnergyLevel() {
+        return audioEnergyLevel;
+    }
+
+    public long getSilenceEnergyLevel() {
+        return silenceEnergyLevel;
+    }
+
+    public long getSilenceDetectDuration() {
+        return silenceDetectDuration;
     }
 }

@@ -2,8 +2,14 @@ package x3.player.core.socket;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import x3.player.mru.common.ShellUtil;
+import x3.player.mru.rmqif.module.RmqClient;
+import x3.player.mru.surfif.messages.SurfMsgVocoder;
+import x3.player.mru.surfif.types.SurfConstant;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -21,6 +27,9 @@ public class UdpSocket {
     private InetAddress address;
     private int localPort;
     private int remotePort;
+    private int tag = 0;
+
+    private UdpSocket remoteSocket;
 
     public UdpSocket(String ipAddress, int remotePort, int localPort) {
         try {
@@ -61,7 +70,27 @@ public class UdpSocket {
         socket.close();
     }
 
+    public void setTag(int tag) {
+        this.tag = tag;
+    }
+
+    public int getTag() {
+        return tag;
+    }
+
+    public UdpSocket getRemoteSocket() {
+        return remoteSocket;
+    }
+
+    public void setRemoteSocket(UdpSocket remoteSocket) {
+        this.remoteSocket = remoteSocket;
+    }
+
     public boolean send(byte[] buf, int size) {
+        if (socket == null) {
+            return false;
+        }
+
         if (buf == null || (buf != null && buf.length == 0)) {
             return false;
         }
@@ -70,7 +99,6 @@ public class UdpSocket {
             return false;
         }
 
-        logger.debug("Remote port {} size {}", remotePort, size);
         boolean result = false;
         DatagramPacket packet = new DatagramPacket(buf, size, address, remotePort);
         try {
@@ -97,6 +125,7 @@ public class UdpSocket {
                     }
                 } catch (Exception e) {
                     logger.warn("Exception [{}] [{}]", e.getClass(), e.getMessage());
+                    e.printStackTrace();
                     if (e.getClass() != IOException.class) {
                         isQuit = true;
                     }
@@ -105,4 +134,5 @@ public class UdpSocket {
             logger.info("UdpServer server ({}) end", localPort);
         }
     }
+
 }

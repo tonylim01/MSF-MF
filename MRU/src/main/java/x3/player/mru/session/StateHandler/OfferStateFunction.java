@@ -9,7 +9,7 @@ public class OfferStateFunction implements StateFunction {
     private static final Logger logger = LoggerFactory.getLogger(OfferStateFunction.class);
 
     @Override
-    public void run(SessionInfo sessionInfo) {
+    public void run(SessionInfo sessionInfo, Object arg) {
         if (sessionInfo == null) {
             return;
         }

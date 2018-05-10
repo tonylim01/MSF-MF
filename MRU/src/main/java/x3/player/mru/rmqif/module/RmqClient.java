@@ -63,7 +63,15 @@ public class RmqClient {
         }
    }
 
-   public boolean send(String msg) {
+    public boolean isConnected() {
+        return isConnected;
+    }
+
+    public boolean send(String msg) {
+        return send(msg.getBytes(), msg.length());
+    }
+
+    public boolean send(byte[] msg, int size) {
         if (sender == null) {
             if (createSender(queueName) == false) {
                 return false;
@@ -79,6 +87,6 @@ public class RmqClient {
             }
         }
 
-        return sender.send(msg);
-        }
+        return sender.send(msg, size);
+    }
 }

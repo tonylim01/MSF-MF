@@ -103,7 +103,7 @@ public class RmqConsumer implements Runnable {
             case RmqMessageType.RMQ_MSG_TYPE_NEGO_DONE_RES:
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_COMMAND_REQ:
-                RmqProcCommandStartReq commandStartReq = new RmqProcCommandStartReq();
+                RmqProcIncomingCommandReq commandStartReq = new RmqProcIncomingCommandReq();
                 commandStartReq.handle(msg);
                 break;
             case RmqMessageType.RMQ_MSG_TYPE_COMMAND_RES:

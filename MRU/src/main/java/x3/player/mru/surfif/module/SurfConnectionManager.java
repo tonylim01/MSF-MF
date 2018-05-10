@@ -167,7 +167,6 @@ public class SurfConnectionManager {
         int jsonLength = json.length();
         byte[] bufLength = NetUtil.getLittleEndian4Bytes(jsonLength);
 
-        logger.debug("Surf send length: {} {} {} {}", bufLength[0] & 0xff, bufLength[1] & 0xff, bufLength[2] & 0xff, bufLength[3] & 0xff);
         int retHdr = socket.send(bufLength);
 
         if (retHdr <= 0) {
@@ -175,8 +174,6 @@ public class SurfConnectionManager {
         }
 
         int retBody = socket.send(json.getBytes());
-
-        logger.debug("-> Surf: msg={} result={}", json, retBody);
 
         if (retBody <= 0) {
             return -1;
@@ -287,7 +284,7 @@ public class SurfConnectionManager {
                 return;
             }
 
-            logger.debug("{} Send to surf. groupId {} toolId {} msg {}", info.getSessionId(),
+            logger.debug("[{}] -> Surf. groupId {} toolId {} msg {}", info.getSessionId(),
                     info.getGroupId(), info.getToolId(), info.getMsg());
 
             int result = send(info.getMsg());

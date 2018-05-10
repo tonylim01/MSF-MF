@@ -4,6 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import x3.player.core.socket.UdpCallback;
 import x3.player.core.socket.UdpSocket;
+import x3.player.mru.AppInstance;
+import x3.player.mru.rmqif.module.RmqClient;
+
+import java.io.FileOutputStream;
 
 public class BiUdpRelay {
 
@@ -19,6 +23,9 @@ public class BiUdpRelay {
 
     private int srcLocalPort;
     private int dstLocalPort;
+
+    private AiifRelay aiifRelay = null;
+    private String dstQueueName = null;
 
     public void setSrcLocalPort(int localPort) {
         srcLocalPort = localPort;
@@ -38,6 +45,8 @@ public class BiUdpRelay {
         srcUdpSocket = new UdpSocket(remoteIpAddress, remotePort, srcLocalPort);
         srcUdpSocket.setUdpCallback(new RelayUdpCallback(srcUdpSocket));
         srcUdpSocket.start();
+
+        updateRemoteSocket();
     }
 
     public void openDstUdpClient(String remoteIpAddress, int remotePort) {
@@ -45,8 +54,42 @@ public class BiUdpRelay {
         dstUdpSocket = new UdpSocket(remoteIpAddress, remotePort, dstLocalPort);
         dstUdpSocket.setUdpCallback(new RelayUdpCallback(dstUdpSocket));
         dstUdpSocket.start();
+
+        updateRemoteSocket();
     }
 
+    private void updateRemoteSocket() {
+        if (srcUdpSocket != null && dstUdpSocket != null) {
+            dstUdpSocket.setRemoteSocket(srcUdpSocket);
+        }
+        if (srcUdpSocket != null && dstUdpSocket != null) {
+            srcUdpSocket.setRemoteSocket(dstUdpSocket);
+        }
+
+    }
+
+    public void setDupUdpQueue(String inputCodec, String dstQueueName) {
+        logger.debug("Open UDP relay queue [{}]", dstQueueName);
+        this.dstQueueName = dstQueueName;
+        if (srcUdpSocket != null) {
+            aiifRelay = new AiifRelay();
+
+            aiifRelay.setInputCodec(inputCodec);
+            if (dstQueueName != null) {
+                aiifRelay.setRelayQueue(dstQueueName);
+
+                String filename = String.format("/tmp/%s.pcm", dstQueueName);
+                aiifRelay.saveToFile(filename);
+            }
+            else {
+                String pipeName = String.format("cd_%d", srcLocalPort);
+                aiifRelay.createPipe(pipeName);
+            }
+            aiifRelay.start();
+
+            srcUdpSocket.setTag(aiifRelay.hashCode());
+        }
+    }
 
     public void closeUdpSocket() {
         if (srcUdpSocket != null) {
@@ -54,6 +97,16 @@ public class BiUdpRelay {
         }
         if (dstUdpSocket != null) {
             dstUdpSocket.stop();
+        }
+
+        try {
+            Thread.sleep(200);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (aiifRelay != null) {
+            aiifRelay.stop();
         }
     }
 
@@ -67,8 +120,13 @@ public class BiUdpRelay {
 
         @Override
         public void onReceived(byte[] srcAddress, int srcPort, byte[] buf, int length) {
-            logger.debug("UDP received: size [{}]", length);
-            udpSocket.send(buf, length);
+            if (udpSocket.getRemoteSocket() != null) {
+                udpSocket.getRemoteSocket().send(buf, length);
+                if (udpSocket.getTag() != 0) {
+                    aiifRelay.send(buf, length);
+
+                }
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ import x3.player.mru.rmqif.handler.base.RmqIncomingMessageHandler;
 import x3.player.mru.rmqif.messages.InboundSetOfferReq;
 import x3.player.mru.rmqif.types.RmqMessage;
 import x3.player.mru.rmqif.types.RmqMessageType;
+import x3.player.mru.room.RoomInfo;
 import x3.player.mru.room.RoomManager;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionManager;
@@ -14,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import x3.player.mru.session.SessionState;
 import x3.player.mru.session.SessionStateManager;
+import x3.player.mru.simulator.BiUdpRelayManager;
+import x3.player.mru.surfif.module.SurfChannelManager;
 
 public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
 
@@ -79,12 +82,35 @@ public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
             return false;
         }
 
+        RoomInfo roomInfo = RoomManager.getInstance().getRoomInfo(req.getConferenceId());
+
+        if (roomInfo != null && roomInfo.getGroupId() < 0) {
+            int groupId = SurfChannelManager.getInstance().getIdleChannelGroup();
+            if (groupId < 0) {
+                logger.error("({}) Cannot find idle channel group", msg.getSessionId());
+
+                RoomManager.getInstance().removeSession(req.getConferenceId(), msg.getSessionId());
+
+                sendResponse(msg.getSessionId(), msg.getHeader().getTransactionId(), msg.getHeader().getMsgFrom(),
+                        RmqMessageType.RMQ_MSG_COMMON_REASON_CODE_FAILURE,
+                        "NO RESOURCE");
+                return false;
+            }
+            roomInfo.setGroupId(groupId);
+        }
+
         sessionInfo.setSdpInfo(sdpInfo);
         sessionInfo.setConferenceId(req.getConferenceId());
         sessionInfo.setFromNo(req.getFromNo());
         sessionInfo.setToNo(req.getToNo());
         sessionInfo.setCaller((parCount == 1) ? true : false);
 
+        BiUdpRelayManager udpRelayManager = BiUdpRelayManager.getInstance();
+        sessionInfo.setSrcLocalPort(udpRelayManager.getNextLocalPort());
+        sessionInfo.setDstLocalPort(udpRelayManager.getNextLocalPort());
+
+        logger.debug("[{}] Local port: src [{}] dst [{{]", msg.getSessionId(),
+                sessionInfo.getSrcLocalPort(), sessionInfo.getDstLocalPort());
         //
         // TODO
         //
@@ -124,7 +150,7 @@ public class RmqProcInboundSetOfferReq extends RmqIncomingMessageHandler {
         int result = 0;
 
         RoomManager roomManager = RoomManager.getInstance();
-        if (roomManager.hasSession(conferenceId,sessionId)) {
+        if (roomManager.hasSession(conferenceId, sessionId)) {
             logger.warn("[{}] Already existed in room [{}]", sessionId, conferenceId);
         }
         else {

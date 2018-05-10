@@ -1,5 +1,7 @@
 package x3.player.core.sdp;
 
+import x3.player.mru.surfif.messages.SurfMsgVocoder;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,4 +56,34 @@ public class SdpUtil {
         return sb.toString();
     }
 
+    public static String getCodecStr(int payloadType) {
+        String codec = null;
+
+        switch (payloadType) {
+            case 0:
+                codec = SurfMsgVocoder.VOCODER_ULAW;
+                break;
+            case 8:
+                codec = SurfMsgVocoder.VOCODER_ALAW;
+                break;
+            case 9:
+                codec = SurfMsgVocoder.VOCODER_G722;
+                break;
+        }
+
+        return codec;
+    }
+
+    public static String getCodecStr(String sdpCodec) {
+        if (sdpCodec == null) {
+            return null;
+        }
+
+        String codec = null;
+
+        if (sdpCodec.equals("AMR-WB"))
+                codec = SurfMsgVocoder.VOCODER_AMR_WB;
+
+        return codec;
+    }
 }

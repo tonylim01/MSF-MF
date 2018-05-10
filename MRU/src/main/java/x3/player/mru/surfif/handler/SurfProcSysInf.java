@@ -9,6 +9,7 @@ import x3.player.mru.surfif.messages.SurfMsgSysInfData;
 
 public class SurfProcSysInf {
     private static final Logger logger = LoggerFactory.getLogger(SurfProcSysInf.class);
+    private static final boolean isLogging = false;
 
     public SurfMsgSysInf parse(JsonElement element) {
         if (element == null) {
@@ -29,7 +30,8 @@ public class SurfProcSysInf {
         }
 
         SurfMsgSysInfData data = msg.getData();
-        logger.debug("SysInf type {} data type {}", msg.getInfType(), data.getType());
+        if (isLogging)
+            logger.debug("SysInf type {} data type {}", msg.getInfType(), data.getType());
 
         if (data.getType().equals("performance")) {
             parseStatusPerformance(data);
@@ -58,19 +60,22 @@ public class SurfProcSysInf {
             return false;
         }
 
-        logger.debug("SysInf performance status:");
+        if (isLogging)
+            logger.debug("SysInf performance status:");
         if (data.getMemoryPools() != null) {
             for (int i = 0; i < data.getMemoryPools().size(); i++) {
-                logger.debug("\tmemory_pools: block_size {} nof_free_blocks {} total_nof_blocks {}",
-                        data.getMemoryPools().get(i).getBlockSize(),
-                        data.getMemoryPools().get(i).getNofFreeBlocks(),
-                        data.getMemoryPools().get(i).getTotalNofBlocks());
+                if (isLogging)
+                    logger.debug("\tmemory_pools: block_size {} nof_free_blocks {} total_nof_blocks {}",
+                            data.getMemoryPools().get(i).getBlockSize(),
+                            data.getMemoryPools().get(i).getNofFreeBlocks(),
+                            data.getMemoryPools().get(i).getTotalNofBlocks());
             }
         }
         if (data.getCpu() != null) {
-            logger.debug("\tcpu: usage {} nof_late_sched_iterations {}",
-                    data.getCpu().getCpuUsage(),
-                    data.getCpu().getNofLateSchedIterations());
+            if (isLogging)
+                logger.debug("\tcpu: usage {} nof_late_sched_iterations {}",
+                        data.getCpu().getCpuUsage(),
+                        data.getCpu().getNofLateSchedIterations());
         }
 
         return true;
@@ -81,7 +86,8 @@ public class SurfProcSysInf {
             return false;
         }
 
-        logger.debug("SysInf network status: packet_loss {}", data.getPacketLoss());
+        if (isLogging)
+            logger.debug("SysInf network status: packet_loss {}", data.getPacketLoss());
 
         return true;
     }
@@ -91,8 +97,9 @@ public class SurfProcSysInf {
             return false;
         }
 
-        logger.debug("SysInf video_performance status: mixed_missed_frames {} decoder_missed_frames {} encoder_missed_frames {} gpu_usage {}",
-                data.getMixerMissedFrames(), data.getDecoderMissedFrames(), data.getEncoderMissedFrames(), data.getGpuUsage());
+        if (isLogging)
+            logger.debug("SysInf video_performance status: mixed_missed_frames {} decoder_missed_frames {} encoder_missed_frames {} gpu_usage {}",
+                    data.getMixerMissedFrames(), data.getDecoderMissedFrames(), data.getEncoderMissedFrames(), data.getGpuUsage());
 
         return true;
     }
@@ -102,17 +109,19 @@ public class SurfProcSysInf {
             return false;
         }
 
-        logger.debug("SysInf file_reader_performance status:");
+        if (isLogging)
+            logger.debug("SysInf file_reader_performance status:");
         if (data.getFileReader() != null) {
-            logger.debug("\tfile_reader: nof_iter {} total_dur {} nof_late_iter {} total_sleep {} min_sleep {} max_sleep {} avg_sleep {} usage {}",
-                    data.getFileReader().getNofIterations(),
-                    data.getFileReader().getTotalDuration(),
-                    data.getFileReader().getNofLateIterations(),
-                    data.getFileReader().getTotalSleepTime(),
-                    data.getFileReader().getMinSleepTime(),
-                    data.getFileReader().getMaxSleepTime(),
-                    data.getFileReader().getAverageSleepTime(),
-                    data.getFileReader().getUsage());
+            if (isLogging)
+                logger.debug("\tfile_reader: nof_iter {} total_dur {} nof_late_iter {} total_sleep {} min_sleep {} max_sleep {} avg_sleep {} usage {}",
+                        data.getFileReader().getNofIterations(),
+                        data.getFileReader().getTotalDuration(),
+                        data.getFileReader().getNofLateIterations(),
+                        data.getFileReader().getTotalSleepTime(),
+                        data.getFileReader().getMinSleepTime(),
+                        data.getFileReader().getMaxSleepTime(),
+                        data.getFileReader().getAverageSleepTime(),
+                        data.getFileReader().getUsage());
         }
 
         return true;
@@ -123,17 +132,19 @@ public class SurfProcSysInf {
             return false;
         }
 
-        logger.debug("SysInf license status:");
-        logger.debug("\tlicense: acodecs {} wb_codecs {} amixer {} play {} record {} srtp {} vcodecs {} vmixer {}",
-                data.isAudioCodecs(), data.isAudioWBCodecs(), data.isAudioMixer(),
-                data.isFilePlay(), data.isFileRecord(),
-                data.isSrtp(),
-                data.isVideoCodecs(), data.isVideoMixer());
-        logger.debug("\tlicense: max_ep {} cur_ep {} max_vcodec_tools {} cur_vcodec_tools {} max_vres {}",
-                data.getMaxEndpoints(), data.getCurEndpoints(),
-                data.getMaxVideoCodecTools(), data.getCurVideoCodecTools(),
-                data.getMaxVideoResolution());
-        logger.debug("\tlicense: expiration_date {}", data.getExpirationDate());
+        if (isLogging) {
+            logger.debug("SysInf license status:");
+            logger.debug("\tlicense: acodecs {} wb_codecs {} amixer {} play {} record {} srtp {} vcodecs {} vmixer {}",
+                    data.isAudioCodecs(), data.isAudioWBCodecs(), data.isAudioMixer(),
+                    data.isFilePlay(), data.isFileRecord(),
+                    data.isSrtp(),
+                    data.isVideoCodecs(), data.isVideoMixer());
+            logger.debug("\tlicense: max_ep {} cur_ep {} max_vcodec_tools {} cur_vcodec_tools {} max_vres {}",
+                    data.getMaxEndpoints(), data.getCurEndpoints(),
+                    data.getMaxVideoCodecTools(), data.getCurVideoCodecTools(),
+                    data.getMaxVideoResolution());
+            logger.debug("\tlicense: expiration_date {}", data.getExpirationDate());
+        }
 
         return true;
     }

@@ -12,9 +12,9 @@ import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionState;
 import x3.player.mru.session.SessionStateManager;
 
-public class RmqProcCommandStartReq extends RmqIncomingMessageHandler {
+public class RmqProcIncomingCommandReq extends RmqIncomingMessageHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(RmqProcCommandStartReq.class);
+    private static final Logger logger = LoggerFactory.getLogger(RmqProcIncomingCommandReq.class);
 
     @Override
     public boolean handle(RmqMessage msg) {
@@ -57,13 +57,19 @@ public class RmqProcCommandStartReq extends RmqIncomingMessageHandler {
             return false;
         }
 
-        logger.info("[{}] CommandReq: cmd type [{}] file type [{}] file [{}] def [{}] mix [{}] media [{}]",
-                msg.getSessionId(), req.getType(),
+        logger.info("[{}] CommandReq: cmd type [{}] channel [{}] file type [{}] file [{}] def [{}] mix [{}] media [{}]",
+                msg.getSessionId(), req.getType(), req.getChannel(),
                 file.getPlayType(), file.getPlayFile(), file.getDefVolume(), file.getMixVolume(), file.getMediaType());
 
+        sessionInfo.setFromQueue(msg.getHeader().getMsgFrom());
+
+        file.setChannel(req.getChannel());
+
         if (req.getType().equals(CommandStartReq.CMD_TYPE_MEDIA_PLAY)) {
-            sessionInfo.setFileData(file);
-            SessionStateManager.getInstance().setState(msg.getSessionId(), SessionState.PLAY);
+            SessionStateManager.getInstance().setState(msg.getSessionId(), SessionState.PLAY_START, file);
+        }
+        else if (req.getType().equals(CommandStartReq.CMD_TYPE_MEDIA_STOP)) {
+            SessionStateManager.getInstance().setState(msg.getSessionId(), SessionState.PLAY_STOP, file);
         }
         else {
             logger.warn("[{}] CommandReq: Unsupported type [{}]", msg.getSessionId(), req.getType());
@@ -77,7 +83,7 @@ public class RmqProcCommandStartReq extends RmqIncomingMessageHandler {
     @Override
     public void sendResponse(String sessionId, String transactionId, String queueName, int reasonCode, String reasonStr) {
 
-        RmqProcCommandStartRes res = new RmqProcCommandStartRes(sessionId, transactionId);
+        RmqProcOutgoingCommandRes res = new RmqProcOutgoingCommandRes(sessionId, transactionId);
 
         res.setReasonCode(reasonCode);
         res.setReasonStr(reasonStr);

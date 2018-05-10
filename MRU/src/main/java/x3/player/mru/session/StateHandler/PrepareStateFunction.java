@@ -6,19 +6,23 @@ import x3.player.core.sdp.SdpInfo;
 import x3.player.mru.AppInstance;
 import x3.player.mru.config.AmfConfig;
 import x3.player.mru.config.SurfConfig;
+import x3.player.mru.rmqif.messages.FileData;
 import x3.player.mru.room.RoomInfo;
 import x3.player.mru.room.RoomManager;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionState;
+import x3.player.mru.session.SessionStateManager;
 import x3.player.mru.simulator.BiUdpRelayManager;
+import x3.player.mru.surfif.messages.SurfMsgVocoder;
 import x3.player.mru.surfif.module.SurfChannelManager;
 import x3.player.mru.surfif.module.SurfConnectionManager;
+import x3.player.mru.surfif.module.SurfVoiceBuilder;
 
 public class PrepareStateFunction implements StateFunction {
     private static final Logger logger = LoggerFactory.getLogger(PrepareStateFunction.class);
 
     @Override
-    public void run(SessionInfo sessionInfo) {
+    public void run(SessionInfo sessionInfo, Object arg) {
         if (sessionInfo == null) {
             return;
         }
@@ -31,6 +35,7 @@ public class PrepareStateFunction implements StateFunction {
 
         //
         // TODO
+        // Callee's NegoDoneReq comes ahead of Caller's
         //
         RoomInfo roomInfo = RoomManager.getInstance().getRoomInfo(sessionInfo.getConferenceId());
         if (roomInfo == null) {
@@ -38,24 +43,41 @@ public class PrepareStateFunction implements StateFunction {
             return;
         }
 
-        if (roomInfo.getGroupId() < 0) {
-            allocateGroup(roomInfo);
-            // Step #1) Creates a voice mixer
-            openMixerResource(roomInfo, sessionInfo.getSessionId());
+        synchronized (roomInfo) {
+            if (roomInfo.getMixerId() < 0) {
+                // Step #1) Creates a voice mixer
+                openMixerResource(roomInfo, sessionInfo.getSessionId());
 
-            // Step #2) Create play & bg channels and connects them to the mixer
-            openPlayResource(sessionInfo, roomInfo);
-        }
+                // Step #2) Create play & bg channels and connects them to the mixer
+                openPlayResource(sessionInfo, roomInfo);
 
-        if (sessionInfo.isCaller()) {
-            // Step #3) Creates 3 channels used by a caller
-            openCallerResource(sessionInfo, roomInfo);
-            // Step #4) Creates local relaying resource
-            openRelayResource(sessionInfo);
-        }
-        else {
-            // Step #5) Creates one channel for a callee
-            openCalleeResource(sessionInfo, roomInfo);
+                //
+                // TODO: DEMO
+                //
+//                playDemoAudio(sessionInfo, roomInfo);
+
+            }
+
+            if (sessionInfo.isCaller()) {
+                // Step #3) Creates 3 channels used by a caller
+                openCallerResource(sessionInfo, roomInfo);
+                // Step #4) Creates local relaying resource
+                openCallerRelayResource(sessionInfo);
+
+                //
+                // TODO: TEST AIIFD START
+                //
+//                sessionInfo.setAiifName("aiif1_aiifd_u");
+//                SessionStateManager.getInstance().setState(sessionInfo.getSessionId(), SessionState.START);
+
+            }
+            else {
+                // Step #5) Creates one channel for a callee
+                openCalleeResource(sessionInfo, roomInfo);
+                // Step #6) Creates local relaying resource
+                openCalleeRelayResource(sessionInfo);
+
+            }
         }
 
     }
@@ -66,12 +88,12 @@ public class PrepareStateFunction implements StateFunction {
      * @param sessionInfo
      * @return
      */
-    private boolean openRelayResource(SessionInfo sessionInfo) {
+    private boolean openCallerRelayResource(SessionInfo sessionInfo) {
         if (sessionInfo == null) {
             return false;
         }
 
-        logger.debug("{} Open relay resources", sessionInfo.getSessionId());
+        logger.debug("[{}] Open caller relay resources", sessionInfo.getSessionId());
 
         RoomInfo roomInfo = RoomManager.getInstance().getRoomInfo(sessionInfo.getConferenceId());
         if (roomInfo == null) {
@@ -91,34 +113,73 @@ public class PrepareStateFunction implements StateFunction {
         // srcLocalPort -> Surf par
         int parPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_PAR_CG);
 
+        logger.debug("[{}] Caller Relay: remote ({}:{}) <- local ({})", sessionInfo.getSessionId(),
+                surfConfig.getSurfIp(), parPort, sessionInfo.getSrcLocalPort());
+
         udpRelayManager.openSrcServer(sessionInfo.getSessionId(), sessionInfo.getSrcLocalPort());
         udpRelayManager.openSrcClient(sessionInfo.getSessionId(),
-                surfConfig.getSurfIp(), parPort);
-
-        // TODO
-        // srcLocalPort -> AIIS as well as -> Surf par
-        //
-
+                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
 
         // dstLocalPort -> Surf caller
         int callerPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_CG_TX);
 
+        logger.debug("[{}] Caller Relay: remote ({}:{}) <- local ({})", sessionInfo.getSessionId(),
+                surfConfig.getSurfIp(), callerPort, sessionInfo.getDstLocalPort());
+
         udpRelayManager.openDstServer(sessionInfo.getSessionId(), sessionInfo.getDstLocalPort());
         udpRelayManager.openDstClient(sessionInfo.getSessionId(),
-                surfConfig.getSurfIp(), callerPort);
+                surfConfig.getSurfIp(), parPort);
 
         return true;
     }
 
-    private boolean allocateGroup(RoomInfo roomInfo) {
-        if (roomInfo == null) {
+    /**
+     * (RTP) -> (SURF callee) --> (Relay) --> (SURF par)
+     *
+     * @param sessionInfo
+     * @return
+     */
+    private boolean openCalleeRelayResource(SessionInfo sessionInfo) {
+        if (sessionInfo == null) {
             return false;
         }
 
-        int groupId = roomInfo.getGroupId();
-        roomInfo.setGroupId(groupId);
+        logger.debug("[{}] Open callee relay resources", sessionInfo.getSessionId());
 
-        logger.debug("({}) Allocates new group [{}]", roomInfo.getRoomId(), groupId);
+        RoomInfo roomInfo = RoomManager.getInstance().getRoomInfo(sessionInfo.getConferenceId());
+        if (roomInfo == null) {
+            logger.error("[{}] No roomInfo found", sessionInfo.getSessionId());
+            return false;
+        }
+
+        SdpInfo sdpInfo = sessionInfo.getSdpInfo();
+        if (sdpInfo == null) {
+            return false;
+        }
+
+        SurfConfig surfConfig = AppInstance.getInstance().getConfig().getSurfConfig();
+
+        BiUdpRelayManager udpRelayManager = BiUdpRelayManager.getInstance();
+
+        // srcLocalPort -> Surf par
+        int parPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_PAR_CD);
+
+        logger.debug("[{}] Callee Relay: remote ({}:{}) <- local ({})", sessionInfo.getSessionId(),
+                surfConfig.getSurfIp(), parPort, sessionInfo.getSrcLocalPort());
+
+        udpRelayManager.openSrcServer(sessionInfo.getSessionId(), sessionInfo.getSrcLocalPort());
+        udpRelayManager.openSrcClient(sessionInfo.getSessionId(),
+                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
+
+        // dstLocalPort -> Surf caller
+        int callerPort = SurfChannelManager.getUdpPort(roomInfo.getGroupId(), SurfChannelManager.TOOL_ID_CD_TX);
+
+        logger.debug("[{}] Callee Relay: remote ({}:{}) <- local ({})", sessionInfo.getSessionId(),
+                surfConfig.getSurfIp(), callerPort, sessionInfo.getDstLocalPort());
+
+        udpRelayManager.openDstServer(sessionInfo.getSessionId(), sessionInfo.getDstLocalPort());
+        udpRelayManager.openDstClient(sessionInfo.getSessionId(),
+                surfConfig.getSurfIp(), parPort);
 
         return true;
     }
@@ -137,11 +198,18 @@ public class PrepareStateFunction implements StateFunction {
             return false;
         }
 
+        logger.debug("({}) Allocates mixer on group [{}]", roomInfo.getRoomId(), groupId);
+
         // Creates a mixer
         int mixerId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_MIXER);
         roomInfo.setMixerId(mixerId);
 
-        String json = channelManager.buildCreateVoiceMixer(mixerId);
+        SurfConfig config = AppInstance.getInstance().getConfig().getSurfConfig();
+
+        SurfVoiceBuilder builder = new SurfVoiceBuilder(mixerId);
+        builder.setMixer(config.getInternalSampleRate(), 500, 5); // TODO : Temp. value
+        String json = builder.build();
+
         connectionManager.addSendQueue(sessionId, groupId, mixerId, json);
 
         return true;
@@ -152,7 +220,7 @@ public class PrepareStateFunction implements StateFunction {
             return false;
         }
 
-        logger.debug("{} Allocates caller DSP resources", sessionInfo.getSessionId());
+        logger.debug("[{}] Allocates caller DSP resources", sessionInfo.getSessionId());
 
         String json;
         int groupId = roomInfo.getGroupId();
@@ -165,45 +233,35 @@ public class PrepareStateFunction implements StateFunction {
         AmfConfig config = AppInstance.getInstance().getConfig();
 
         SurfConnectionManager connectionManager = SurfConnectionManager.getInstance();
-        SurfChannelManager channelManager = SurfChannelManager.getInstance();
 
         SdpInfo sdpInfo = sessionInfo.getSdpInfo();
-        int localPayloadId = 8; // TODO : Internal packet's payloadId
 
-        // Creates 3 voice channels
-        int cgRxId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CG_RX);
-        int cgTxId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CG_TX);
         int parId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_CG);
+        int parPort = SurfChannelManager.getUdpPort(parId);
 
-        int rxPort = SurfChannelManager.getUdpPort(cgRxId);
-        int txPort = ((rxPort << 16) & 0xffff0000) + SurfChannelManager.getUdpPort(cgTxId);
-
-
-        // Creates a caller as p2p mode (RX channel: remote -> local)
-        json = channelManager.buildCreateVoiceChannel(cgRxId, -1, true,
-                sdpInfo.getPayloadId(), // inPayloadId
-                localPayloadId,  // outpayloadId
-                rxPort,
-                config.getLocalIpAddress(), sessionInfo.getSrcLocalPort());
-
-        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, cgRxId, json);
-
-        // Creates a caller as p2p mode (TX channel: remote <- local)
-        json = channelManager.buildCreateVoiceChannel(cgTxId, -1, true,
-                localPayloadId, // inPayloadId
-                sdpInfo.getPayloadId(),  // outpayloadId
-                txPort,
-                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
-
-        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, cgTxId, json);
+        logger.debug("[{}] CG_par fe: remote ({}:{}) - local ({}) - mixer ({})", sessionInfo.getSessionId(),
+                config.getLocalIpAddress(), sessionInfo.getDstLocalPort(), parPort, mixerId);
 
         // Creates a mixer's participant as ip mode
-        json = channelManager.buildCreateVoiceChannel(parId, mixerId, true,
-                localPayloadId,
-                localPayloadId,
-                SurfChannelManager.getUdpPort(parId),
+        SurfVoiceBuilder parBuilder = new SurfVoiceBuilder(parId);
+        parBuilder.setChannel(mixerId,
+                sdpInfo.getPayloadId(),
+                sdpInfo.getPayloadId(),
+                parPort,
                 config.getLocalIpAddress(), sessionInfo.getDstLocalPort());
+        parBuilder.setCoder(sdpInfo.getCodecStr(), sdpInfo.getCodecStr(),
+                0, 0, true);
+//        parBuilder.setVad(true);
+        json = parBuilder.build();
+
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, parId, json);
+
+        // Add participants
+        SurfVoiceBuilder addBuilder = new SurfVoiceBuilder(mixerId);
+        addBuilder.setParticipant(parId, parId);
+        json = addBuilder.build();
+
+        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, mixerId, json);
 
         return true;
     }
@@ -223,24 +281,75 @@ public class PrepareStateFunction implements StateFunction {
             return false;
         }
 
+        AmfConfig config = AppInstance.getInstance().getConfig();
+
         SurfConnectionManager connectionManager = SurfConnectionManager.getInstance();
-        SurfChannelManager channelManager = SurfChannelManager.getInstance();
 
         SdpInfo sdpInfo = sessionInfo.getSdpInfo();
-        int localPayloadId = 8; // TODO : Internal packet's payloadId
+
+        int parId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_CD);
+        int parPort = SurfChannelManager.getUdpPort(parId);
+
+        logger.debug("[{}] CD_par fe: remote ({}:{}) - local ({}) - mixer ({})", sessionInfo.getSessionId(),
+                config.getLocalIpAddress(), sessionInfo.getDstLocalPort(), parPort, mixerId);
+
+        // Creates a mixer's participant as ip mode
+        SurfVoiceBuilder parBuilder = new SurfVoiceBuilder(parId);
+        parBuilder.setChannel(mixerId,
+                sdpInfo.getPayloadId(),
+                sdpInfo.getPayloadId(),
+                parPort,
+                config.getLocalIpAddress(), sessionInfo.getDstLocalPort());
+        parBuilder.setCoder(sdpInfo.getCodecStr(), sdpInfo.getCodecStr(),
+                0, 0, true);
+//        parBuilder.setVad(true);
+        json = parBuilder.build();
+
+        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, parId, json);
+
+        // Add participants
+        SurfVoiceBuilder addBuilder = new SurfVoiceBuilder(mixerId);
+        addBuilder.setParticipant(parId, parId);
+        json = addBuilder.build();
+
+        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, mixerId, json);
+
+        /*
+        AmfConfig config = AppInstance.getInstance().getConfig();
+
+        SurfConnectionManager connectionManager = SurfConnectionManager.getInstance();
+
+        SdpInfo sdpInfo = sessionInfo.getSdpInfo();
 
         // Creates one voice channel
-        int calleeId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_CD);
+        int calleeId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_CD);
         int calleePort = SurfChannelManager.getUdpPort(calleeId);
 
+        logger.debug("[{}] CD_par fe: remote ({}:{}) - local ({}) - mixer ({})", sessionInfo.getSessionId(),
+                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort(), calleePort, mixerId);
+
         // Creates a callee as ip mode
-        json = channelManager.buildCreateVoiceChannel(calleeId, mixerId, true,
+        SurfVoiceBuilder builder = new SurfVoiceBuilder(calleeId);
+        builder.setChannel(mixerId,
                 sdpInfo.getPayloadId(), // inPayloadId
-                localPayloadId,  // outpayloadId
+                sdpInfo.getPayloadId(), // outpayloadId
                 calleePort,
-                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
+                config.getLocalIpAddress(), sessionInfo.getDstLocalPort());
+//                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
+        builder.setCoder(sdpInfo.getCodecStr(), sdpInfo.getCodecStr(),
+                0, 0, true);
+//        builder.setVad(true);
+        json = builder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, calleeId, json);
+
+        // Add participants
+        SurfVoiceBuilder addBuilder = new SurfVoiceBuilder(mixerId);
+        addBuilder.setParticipant(calleeId, calleeId);
+        json = addBuilder.build();
+
+        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, mixerId, json);
+        */
 
         return true;
     }
@@ -261,35 +370,82 @@ public class PrepareStateFunction implements StateFunction {
         }
 
         SurfConnectionManager connectionManager = SurfConnectionManager.getInstance();
-        SurfChannelManager channelManager = SurfChannelManager.getInstance();
 
-        SdpInfo sdpInfo = sessionInfo.getSdpInfo();
-        int localPayloadId = 8; // TODO : Internal packet's payloadId
+        SurfConfig surfConfig = AppInstance.getInstance().getConfig().getSurfConfig();
 
         // Creates bg & play channels
-        int playId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_PLAY);
+        int playId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_MENT);
         int playPort =  SurfChannelManager.getUdpPort(playId);
 
-        json = channelManager.buildCreateVoiceChannel(playId, mixerId, false,
-                localPayloadId, // inPayloadId
-                localPayloadId,  // outpayloadId
+        SurfVoiceBuilder playBuilder = new SurfVoiceBuilder(playId);
+        playBuilder.setChannel(mixerId,
+                surfConfig.getInternalPayload(), // inPayloadId
+                surfConfig.getInternalPayload(),  // outpayloadId
                 playPort,
-                "0.0.0.0", 0);
+                "127.0.0.1",
+                SurfChannelManager.getUdpPort(groupId, SurfChannelManager.TOOL_ID_MENT));
+        playBuilder.setCoder(surfConfig.getInternalCodec(), surfConfig.getInternalCodec(),
+                surfConfig.getInternalSampleRate(), surfConfig.getInternalSampleRate(),
+                false);
+        json = playBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, playId, json);
 
-        int bgId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_BG);
-        int bgPort =  SurfChannelManager.getUdpPort(playId);
+        // Add participants
+        SurfVoiceBuilder par1Builder = new SurfVoiceBuilder(mixerId);
+        par1Builder.setParticipant(playId, playId);
+        json = par1Builder.build();
 
-        json = channelManager.buildCreateVoiceChannel(bgId, mixerId, false,
-                localPayloadId, // inPayloadId
-                localPayloadId,  // outpayloadId
+        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, mixerId, json);
+
+        int bgId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_BG);
+        int bgPort =  SurfChannelManager.getUdpPort(bgId);
+
+        SurfVoiceBuilder bgBuilder = new SurfVoiceBuilder(bgId);
+        bgBuilder.setChannel(mixerId,
+                surfConfig.getInternalPayload(), // inPayloadId
+                surfConfig.getInternalPayload(),  // outpayloadId
                 bgPort,
-                "0.0.0.0", 0);
+                "127.0.0.1",
+                SurfChannelManager.getUdpPort(groupId, SurfChannelManager.TOOL_ID_BG));
+        bgBuilder.setCoder(surfConfig.getInternalCodec(), surfConfig.getInternalCodec(),
+                surfConfig.getInternalSampleRate(), surfConfig.getInternalSampleRate(),
+                false);
+//        bgBuilder.setAgc(-30, -20);   // TODO: TEST
+//        bgBuilder.setAgc(-10, -8);   // TODO: TEST
+        json = bgBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, bgId, json);
+
+        // Add participants
+        SurfVoiceBuilder par2Builder = new SurfVoiceBuilder(mixerId);
+        par2Builder.setParticipant(bgId, bgId);
+        json = par2Builder.build();
+
+        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, mixerId, json);
 
         return true;
     }
 
+    private boolean playDemoAudio(SessionInfo sessionInfo, RoomInfo roomInfo) {
+        if (sessionInfo == null) {
+            return false;
+        }
+
+        logger.debug("[{}] Play demo audio", sessionInfo.getSessionId());
+
+        int groupId = roomInfo.getGroupId();
+        int mixerId = roomInfo.getMixerId();
+
+        if (groupId < 0 || mixerId < 0) {
+            return false;
+        }
+
+        FileData file = new FileData();
+        file.setChannel(FileData.CHANNEL_BGM);
+        file.setPlayFile("Heize_rain_and.wav");
+        SessionStateManager.getInstance().setState(sessionInfo.getSessionId(), SessionState.PLAY_START, file);
+
+        return true;
+    }
  }
