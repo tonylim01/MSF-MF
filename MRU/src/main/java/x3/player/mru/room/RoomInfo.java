@@ -12,6 +12,7 @@ public class RoomInfo {
 
     private boolean isVolumeMin;
     private boolean isBgm;
+    private boolean isVoice;
 
     public RoomInfo() {
         this.sessions = new Vector<>();
@@ -99,5 +100,15 @@ public class RoomInfo {
 
     public void setBgm(boolean bgm) {
         isBgm = bgm;
+    }
+
+    public boolean isVoice() {
+        return isVoice;
+    }
+
+    public void setVoice(boolean voice) {
+        if (isVoice != voice) {
+            isVoice = voice;
+        }
     }
 }

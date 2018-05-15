@@ -7,6 +7,10 @@ import x3.player.mru.AppInstance;
 import x3.player.mru.common.ShellUtil;
 import x3.player.mru.config.AmfConfig;
 import x3.player.mru.rmqif.module.RmqClient;
+import x3.player.mru.room.RoomInfo;
+import x3.player.mru.room.RoomManager;
+import x3.player.mru.session.SessionInfo;
+import x3.player.mru.session.SessionManager;
 import x3.player.mru.session.SessionState;
 import x3.player.mru.session.SessionStateManager;
 import x3.player.mru.surfif.messages.SurfMsgVocoder;
@@ -40,6 +44,7 @@ public class AiifRelay {
     private boolean isEnergyDetected = false;
 
     private String sessionId;
+    private RoomInfo roomInfo;
 
     public void start() {
         isQuit = false;
@@ -126,6 +131,13 @@ public class AiifRelay {
 
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
+
+        if (sessionId != null) {
+            SessionInfo sessionInfo = SessionManager.getInstance().getSession(sessionId);
+            if (sessionInfo != null && sessionInfo.getConferenceId() != null) {
+                roomInfo = RoomManager.getInstance().getRoomInfo(sessionInfo.getConferenceId());
+            }
+        }
     }
 
     public boolean send(byte[] buf, int size) {
@@ -294,6 +306,10 @@ public class AiifRelay {
 
                             isEnergyDetected = true;
                             SessionStateManager.getInstance().setState(sessionId, SessionState.UPDATE, (Boolean)true);
+
+                            if (roomInfo != null) {
+                                roomInfo.setVoice(true);
+                            }
                         }
                         else if (isEnergyDetected) {
                             if (linearSum < silenceDetectLevel) {
@@ -308,6 +324,10 @@ public class AiifRelay {
                                     logger.info("Silence Detected [{}] interval [{}]", isCaller ? "caller" : "callee", timestamp - silenceStart);
                                     isEnergyDetected = false;
                                     SessionStateManager.getInstance().setState(sessionId, SessionState.UPDATE, (Boolean)false);
+
+                                    if (roomInfo != null) {
+                                        roomInfo.setVoice(false);
+                                    }
                                 }
                             }
                             else if (silenceStart > 0) {

@@ -93,6 +93,31 @@ public class UpdateStateFunction implements StateFunction {
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, bgId, json);
 
+        int mentId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_MENT);
+        int mentPort =  SurfChannelManager.getUdpPort(mentId);
+
+        SurfVoiceBuilder mentBuilder = new SurfVoiceBuilder(mentId);
+        mentBuilder.setChannel(mixerId,
+                surfConfig.getInternalPayload(), // inPayloadId
+                surfConfig.getInternalPayload(),  // outpayloadId
+                mentPort,
+                "127.0.0.1",
+                SurfChannelManager.getUdpPort(groupId, SurfChannelManager.TOOL_ID_MENT));
+        mentBuilder.setCoder(surfConfig.getInternalCodec(), surfConfig.getInternalCodec(),
+                surfConfig.getInternalSampleRate(), surfConfig.getInternalSampleRate(),
+                false);
+
+        if (!roomInfo.isVoice()) {
+            mentBuilder.setAgc(-15, -10);
+        }
+        else {
+            mentBuilder.disableAgc();
+        }
+
+        json = mentBuilder.build();
+
+        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, mentId, json);
+
         return true;
     }
 

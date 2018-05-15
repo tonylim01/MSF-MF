@@ -13,6 +13,8 @@ import x3.player.mru.room.RoomInfo;
 import x3.player.mru.room.RoomManager;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionManager;
+import x3.player.mru.session.SessionState;
+import x3.player.mru.session.SessionStateManager;
 import x3.player.mru.surfif.messages.SurfMsgToolInf;
 import x3.player.mru.surfif.messages.SurfMsgToolInfData;
 
@@ -112,6 +114,12 @@ public class SurfProcToolInf {
         else if (sessionInfo.getMentFilename() != null &&
                 data.getFilename().equals(sessionInfo.getMentFilename())) {
             channel = FileData.CHANNEL_MENT;
+
+            // TODO: TEST BGM volume up
+            RoomInfo roomInfo = RoomManager.getInstance().getRoomInfo(sessionInfo.getConferenceId());
+            if (roomInfo != null && !roomInfo.isVoice()) {
+                SessionStateManager.getInstance().setState(sessionInfo.getSessionId(), SessionState.UPDATE, (Boolean)false);
+            }
         }
         else {
             logger.warn("[{}] filename [{}] bgm [{}] ment [{}]",

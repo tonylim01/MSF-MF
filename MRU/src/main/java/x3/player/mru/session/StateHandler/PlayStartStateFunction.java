@@ -11,6 +11,7 @@ import x3.player.mru.room.RoomInfo;
 import x3.player.mru.room.RoomManager;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionState;
+import x3.player.mru.session.SessionStateManager;
 import x3.player.mru.surfif.module.SurfChannelManager;
 import x3.player.mru.surfif.module.SurfConnectionManager;
 import x3.player.mru.surfif.module.SurfPlayBuilder;
@@ -63,6 +64,9 @@ public class PlayStartStateFunction extends PlayStateFunction implements StateFu
                 if (sessionInfo.isMentPlaying()) {
                     stopPlay(sessionInfo, roomInfo, SurfChannelManager.TOOL_ID_MENT);
                 }
+
+                // TODO: TEST BGM volume down
+                SessionStateManager.getInstance().setState(sessionInfo.getSessionId(), SessionState.UPDATE, (Boolean)true);
             }
 
             boolean callerOnly;

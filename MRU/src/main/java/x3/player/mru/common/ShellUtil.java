@@ -84,7 +84,7 @@ public class ShellUtil {
             return null;
         }
 
-        String ffmpegCmd = String.format("exec ffmpeg -y -f s16le -ar 22050 -ac 1 -i %s -ar 8000 %s", inputName, outputName);
+        String ffmpegCmd = String.format("exec ffmpeg -y -f s16le -ar 22050 -ac 1 -i %s -ar 8000 -filter volume=0.1 %s", inputName, outputName);
 
         return runShell(ffmpegCmd);
     }
