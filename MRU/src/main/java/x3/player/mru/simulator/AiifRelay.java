@@ -40,6 +40,7 @@ public class AiifRelay {
     private long audioDetectLevel = 0;
     private long silenceDetectLevel = 0;
     private long silenceDetectDuration = 0;
+    private long energyDetectDuration = 0;
 
     private boolean isEnergyDetected = false;
 
@@ -54,6 +55,7 @@ public class AiifRelay {
         audioDetectLevel = config.getAudioEnergyLevel();
         silenceDetectLevel = config.getSilenceEnergyLevel();
         silenceDetectDuration = config.getSilenceDetectDuration();
+        energyDetectDuration = config.getEnergyDetectDuration();
 
         ffmpegThread = new Thread(new FfmpegRunnable());
         ffmpegThread.start();
@@ -218,6 +220,7 @@ public class AiifRelay {
     private int linearSumCount = 0;
     private short prevValue = 0;
     private long silenceStart;
+    private long energyStart;
 
     class FfmpegRunnable implements Runnable {
         @Override
@@ -299,19 +302,32 @@ public class AiifRelay {
                     if (linearSumCount >= 5) {
 //                        logger.info("energy = {}", linearSum);
                         if (!isEnergyDetected && linearSum >= audioDetectLevel) {
+                            if (silenceStart > 0) {
+                                silenceStart = 0;
+                            }
                             //
                             // TODO: Voice detected
                             //
-                            logger.info("Energy Detected [{}]", isCaller ? "caller" : "callee");
+                            long timestamp = System.currentTimeMillis();
+                            if (energyStart == 0) {
+                                energyStart = timestamp;
+                            }
+                            else if (timestamp - energyStart > energyDetectDuration) {
+                                logger.info("Energy Detected [{}]", isCaller ? "caller" : "callee");
 
-                            isEnergyDetected = true;
-                            SessionStateManager.getInstance().setState(sessionId, SessionState.UPDATE, (Boolean)true);
+                                isEnergyDetected = true;
+                                SessionStateManager.getInstance().setState(sessionId, SessionState.UPDATE, (Boolean)true);
 
-                            if (roomInfo != null) {
-                                roomInfo.setVoice(true);
+                                if (roomInfo != null) {
+                                    roomInfo.setVoice(true);
+                                }
                             }
                         }
                         else if (isEnergyDetected) {
+                            if (energyStart > 0) {
+                                energyStart = 0;
+                            }
+
                             if (linearSum < silenceDetectLevel) {
                                 //
                                 // TODO: Silence detected
@@ -333,6 +349,9 @@ public class AiifRelay {
                             else if (silenceStart > 0) {
                                 silenceStart = 0;
                             }
+                        }
+                        else if (energyStart > 0) {
+                            energyStart = 0;
                         }
 
                         linearSumCount = 0;

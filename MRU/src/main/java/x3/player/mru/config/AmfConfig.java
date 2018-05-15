@@ -40,6 +40,7 @@ public class AmfConfig extends DefaultConfig {
     private long audioEnergyLevel;
     private long silenceEnergyLevel;
     private long silenceDetectDuration;
+    private long energyDetectDuration;
 
     private String promptConfPath;
 
@@ -211,6 +212,7 @@ public class AmfConfig extends DefaultConfig {
             audioEnergyLevel = (long)getIntValue("MEDIA", "AUDIO_ENERGY_LEVEL", 0);
             silenceEnergyLevel = (long)getIntValue("MEDIA", "SILENCE_ENERGY_LEVEL", 0);
             silenceDetectDuration = (long)getIntValue("MEDIA", "SILENCE_DETECT_DURATION", 0);
+            energyDetectDuration = (long)getIntValue("MEDIA", "ENERGY_DETECT_DURATION", 0);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -336,6 +338,10 @@ public class AmfConfig extends DefaultConfig {
 
     public long getSilenceDetectDuration() {
         return silenceDetectDuration;
+    }
+
+    public long getEnergyDetectDuration() {
+        return energyDetectDuration;
     }
 
     public String getPromptConfPath() {
