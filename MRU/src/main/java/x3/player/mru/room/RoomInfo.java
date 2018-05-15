@@ -10,6 +10,9 @@ public class RoomInfo {
     private int groupId;
     private int mixerId;
 
+    private boolean isVolumeMin;
+    private boolean isBgm;
+
     public RoomInfo() {
         this.sessions = new Vector<>();
         groupId = -1;
@@ -80,5 +83,21 @@ public class RoomInfo {
 
     public void setMixerId(int mixerId) {
         this.mixerId = mixerId;
+    }
+
+    public boolean isVolumeMin() {
+        return isVolumeMin;
+    }
+
+    public void setVolumeMin(boolean volumeMin) {
+        isVolumeMin = volumeMin;
+    }
+
+    public boolean isBgm() {
+        return isBgm;
+    }
+
+    public void setBgm(boolean bgm) {
+        isBgm = bgm;
     }
 }

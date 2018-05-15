@@ -93,6 +93,10 @@ public class SurfVoiceBuilder {
         toolReq.setAgc(minLevel, maxLevel);
     }
 
+    public void disableAgc() {
+        toolReq.disableAgc();
+    }
+
     public String build() {
         return toolReq.build();
     }

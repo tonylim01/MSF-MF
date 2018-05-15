@@ -143,6 +143,12 @@ public class SurfProcToolReq extends SurfProcRequest {
                 -1, 0);
     }
 
+    public void disableAgc() {
+        msg.getData().setAgcDecoder(false,  1000,
+                0, 0,
+                -1, 0);
+    }
+
     public void setVad(boolean enabled) {
         msg.getData().setVad(enabled);
         if (enabled) {

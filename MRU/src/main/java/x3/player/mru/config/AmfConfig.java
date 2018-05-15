@@ -199,7 +199,7 @@ public class AmfConfig extends DefaultConfig {
 
             audioEnergyLevel = (long)getIntValue("MEDIA", "AUDIO_ENERGY_LEVEL", 0);
             silenceEnergyLevel = (long)getIntValue("MEDIA", "SILENCE_ENERGY_LEVEL", 0);
-            silenceDetectDuration = (long)getIntValue("MEDIA", "silenceDetectDuration", 0);
+            silenceDetectDuration = (long)getIntValue("MEDIA", "SILENCE_DETECT_DURATION", 0);
 
         } catch (Exception e) {
             e.printStackTrace();

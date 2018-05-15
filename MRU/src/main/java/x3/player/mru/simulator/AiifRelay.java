@@ -7,6 +7,8 @@ import x3.player.mru.AppInstance;
 import x3.player.mru.common.ShellUtil;
 import x3.player.mru.config.AmfConfig;
 import x3.player.mru.rmqif.module.RmqClient;
+import x3.player.mru.session.SessionState;
+import x3.player.mru.session.SessionStateManager;
 import x3.player.mru.surfif.messages.SurfMsgVocoder;
 
 import java.io.File;
@@ -37,6 +39,7 @@ public class AiifRelay {
 
     private boolean isEnergyDetected = false;
 
+    private String sessionId;
 
     public void start() {
         isQuit = false;
@@ -119,6 +122,10 @@ public class AiifRelay {
             rmqThread.interrupt();
             rmqThread = null;
         }
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
     }
 
     public boolean send(byte[] buf, int size) {
@@ -286,6 +293,7 @@ public class AiifRelay {
                             logger.info("Energy Detected [{}]", isCaller ? "caller" : "callee");
 
                             isEnergyDetected = true;
+                            SessionStateManager.getInstance().setState(sessionId, SessionState.UPDATE, (Boolean)true);
                         }
                         else if (isEnergyDetected) {
                             if (linearSum < silenceDetectLevel) {
@@ -297,8 +305,9 @@ public class AiifRelay {
                                     silenceStart = timestamp;
                                 }
                                 else if (timestamp - silenceStart > silenceDetectDuration) {
-                                    logger.info("Silence Detected [{}]", isCaller ? "caller" : "callee");
+                                    logger.info("Silence Detected [{}] interval [{}]", isCaller ? "caller" : "callee", timestamp - silenceStart);
                                     isEnergyDetected = false;
+                                    SessionStateManager.getInstance().setState(sessionId, SessionState.UPDATE, (Boolean)false);
                                 }
                             }
                             else if (silenceStart > 0) {

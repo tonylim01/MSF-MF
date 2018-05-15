@@ -54,6 +54,8 @@ public class PlayStartStateFunction extends PlayStateFunction implements StateFu
                 if (sessionInfo.isBgmPlaying()) {
                     stopPlay(sessionInfo, roomInfo, SurfChannelManager.TOOL_ID_BG);
                 }
+
+                roomInfo.setBgm(true);
             }
             else {
                 toolId = SurfChannelManager.TOOL_ID_PAR_MENT;

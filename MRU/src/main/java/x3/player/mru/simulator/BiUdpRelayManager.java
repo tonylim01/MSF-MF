@@ -136,7 +136,7 @@ public class BiUdpRelayManager {
             udpRelay = udpRelayMap.get(sessionId);
         }
         else {
-            udpRelay = new BiUdpRelay();
+            udpRelay = new BiUdpRelay(sessionId);
             udpRelayMap.put(sessionId, udpRelay);
         }
 

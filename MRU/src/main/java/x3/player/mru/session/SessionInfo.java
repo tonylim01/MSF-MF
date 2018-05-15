@@ -33,6 +33,9 @@ public class SessionInfo {
     private FileData fileData;
     private String fromQueue;
 
+    private int volumeMin;
+    private int volumeMax;
+
     public String getSessionId() {
         return sessionId;
     }
@@ -230,5 +233,21 @@ public class SessionInfo {
 
     public void setFromQueue(String fromQueue) {
         this.fromQueue = fromQueue;
+    }
+
+    public int getVolumeMin() {
+        return volumeMin;
+    }
+
+    public void setVolumeMin(int volumeMin) {
+        this.volumeMin = volumeMin;
+    }
+
+    public int getVolumeMax() {
+        return volumeMax;
+    }
+
+    public void setVolumeMax(int volumeMax) {
+        this.volumeMax = volumeMax;
     }
 }

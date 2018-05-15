@@ -9,6 +9,8 @@ import x3.player.mru.config.AmfConfig;
 import x3.player.mru.rmqif.handler.RmqProcOutgoingCommandReq;
 import x3.player.mru.rmqif.handler.RmqProcOutgoingHangupReq;
 import x3.player.mru.rmqif.messages.FileData;
+import x3.player.mru.room.RoomInfo;
+import x3.player.mru.room.RoomManager;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionManager;
 import x3.player.mru.surfif.messages.SurfMsgToolInf;
@@ -101,6 +103,11 @@ public class SurfProcToolInf {
         if (sessionInfo.getBgmFilename() != null &&
                 data.getFilename().equals(sessionInfo.getBgmFilename())) {
             channel = FileData.CHANNEL_BGM;
+
+            RoomInfo roomInfo = RoomManager.getInstance().getRoomInfo(sessionInfo.getConferenceId());
+            if (roomInfo != null) {
+                roomInfo.setBgm(false);
+            }
         }
         else if (sessionInfo.getMentFilename() != null &&
                 data.getFilename().equals(sessionInfo.getMentFilename())) {
