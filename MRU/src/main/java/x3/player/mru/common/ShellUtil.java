@@ -96,6 +96,10 @@ public class ShellUtil {
                 (config != null) ? config.getMentVolume() : DEFAULT_VOLUME,
                 outputName);
 
+        if (config != null) {
+            config.close();
+        }
+
         return runShell(ffmpegCmd);
     }
 
@@ -110,6 +114,10 @@ public class ShellUtil {
                 inputName,
                 (config != null) ? config.getBgmVolume() : DEFAULT_VOLUME,
                 outputName);
+
+        if (config != null) {
+            config.close();
+        }
 
         return runShell(ffmpegCmd);
     }
