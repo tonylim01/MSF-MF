@@ -1,5 +1,8 @@
 package x3.player.mru.common;
 
+import x3.player.mru.AppInstance;
+import x3.player.mru.config.PromptConfig;
+
 import java.lang.reflect.Field;
 
 public class ShellUtil {
@@ -79,12 +82,19 @@ public class ShellUtil {
         return runShell(ffmpegCmd);
     }
 
+    private static final float DEFAULT_VOLUME = 0.1f;
+
     public static Process convertPcmToWav(String inputName, String outputName) {
         if (inputName == null || outputName == null) {
             return null;
         }
 
-        String ffmpegCmd = String.format("exec ffmpeg -y -f s16le -ar 22050 -ac 1 -i %s -ar 8000 -filter volume=0.1 %s", inputName, outputName);
+        PromptConfig config = AppInstance.getInstance().getPromptConfig();
+
+        String ffmpegCmd = String.format("exec ffmpeg -y -f s16le -ar 22050 -ac 1 -i %s -ar 8000 -filter volume=%f %s",
+                inputName,
+                (config != null) ? config.getMentVolume() : DEFAULT_VOLUME,
+                outputName);
 
         return runShell(ffmpegCmd);
     }
@@ -94,7 +104,12 @@ public class ShellUtil {
             return null;
         }
 
-        String ffmpegCmd = String.format("exec ffmpeg -i \"%s\" -acodec pcm_s16le -ar 8000 -ac 1 -filter volume=0.1 %s", inputName, outputName);
+        PromptConfig config = AppInstance.getInstance().getPromptConfig();
+
+        String ffmpegCmd = String.format("exec ffmpeg -i \"%s\" -acodec pcm_s16le -ar 8000 -ac 1 -filter volume=%f %s",
+                inputName,
+                (config != null) ? config.getBgmVolume() : DEFAULT_VOLUME,
+                outputName);
 
         return runShell(ffmpegCmd);
     }

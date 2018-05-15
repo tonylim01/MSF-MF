@@ -41,6 +41,8 @@ public class AmfConfig extends DefaultConfig {
     private long silenceEnergyLevel;
     private long silenceDetectDuration;
 
+    private String promptConfPath;
+
     public AmfConfig(int instanceId, String configPath) {
 
         super(configPath);
@@ -69,10 +71,19 @@ public class AmfConfig extends DefaultConfig {
 
         String instanceSection = String.format("INSTANCE-%d", instanceId);
 
+        loadCommonConfig();
         loadSessionConfig();
         loadRmqConfig(instanceSection);
         loadSurfConfig(instanceSection);
         loadMediaConfig(instanceSection);
+    }
+
+    private void loadCommonConfig() {
+        try {
+            promptConfPath = getStrValue("COMMON", "PROMPT_CONF_PATH", null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void loadSessionConfig() {
@@ -325,5 +336,9 @@ public class AmfConfig extends DefaultConfig {
 
     public long getSilenceDetectDuration() {
         return silenceDetectDuration;
+    }
+
+    public String getPromptConfPath() {
+        return promptConfPath;
     }
 }
