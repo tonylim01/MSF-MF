@@ -12,10 +12,7 @@ import x3.player.mru.room.RoomManager;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionState;
 import x3.player.mru.session.SessionStateManager;
-import x3.player.mru.surfif.module.SurfChannelManager;
-import x3.player.mru.surfif.module.SurfConnectionManager;
-import x3.player.mru.surfif.module.SurfPlayBuilder;
-import x3.player.mru.surfif.module.SurfVoiceBuilder;
+import x3.player.mru.surfif.module.*;
 
 import java.io.File;
 import java.util.UUID;
@@ -49,6 +46,20 @@ public class PlayStartStateFunction extends PlayStateFunction implements StateFu
         if (arg != null && arg instanceof FileData) {
             FileData fileData = (FileData)arg;
             int toolId;
+
+            if (sessionInfo.getPlayIds() != null) {
+                for (String playId: sessionInfo.getPlayIds()) {
+                    SurfPlayInfo playInfo = SurfPlayManager.getInstance().getData(playId);
+                    if (playInfo != null) {
+                        if (fileData.getChannel() == playInfo.getChannel()) {
+                            SurfPlayManager.getInstance().removeData(playId);
+                            sessionInfo.removePlayId(playId);
+                            break;
+                        }
+                    }
+                }
+            }
+
             if (fileData.getChannel() == FileData.CHANNEL_BGM) {
                 toolId = SurfChannelManager.TOOL_ID_PAR_BG;
 
@@ -57,6 +68,12 @@ public class PlayStartStateFunction extends PlayStateFunction implements StateFu
                 }
 
                 roomInfo.setBgm(true);
+
+                /*
+                if (!roomInfo.isVoice()) {
+                    SessionStateManager.getInstance().setState(sessionInfo.getSessionId(), SessionState.UPDATE, (Boolean)false);
+                }
+                */
             }
             else {
                 toolId = SurfChannelManager.TOOL_ID_PAR_MENT;
@@ -65,8 +82,12 @@ public class PlayStartStateFunction extends PlayStateFunction implements StateFu
                     stopPlay(sessionInfo, roomInfo, SurfChannelManager.TOOL_ID_MENT);
                 }
 
+                roomInfo.setMent(true);
+
+                /*
                 // TODO: TEST BGM volume down
                 SessionStateManager.getInstance().setState(sessionInfo.getSessionId(), SessionState.UPDATE, (Boolean)true);
+                */
             }
 
             boolean callerOnly;
@@ -163,11 +184,14 @@ public class PlayStartStateFunction extends PlayStateFunction implements StateFu
             sessionInfo.setMentFilename(filename);
         }
 
+        String playId = SurfPlayManager.getInstance().putData(sessionInfo.getSessionId(), data.getChannel(), filename);
+        sessionInfo.putPlayId(playId);
+
         int fileId = SurfChannelManager.getReqToolId(groupId, toolId);
         int parId = SurfChannelManager.getReqToolId(groupId, dstId);
 
         SurfPlayBuilder channelBuilder = new SurfPlayBuilder(fileId);
-        channelBuilder.setFileReader(parId, sessionInfo.getSessionId());
+        channelBuilder.setFileReader(parId, playId);
 
         json = channelBuilder.build();
 

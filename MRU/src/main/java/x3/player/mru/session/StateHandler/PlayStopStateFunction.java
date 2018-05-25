@@ -7,9 +7,8 @@ import x3.player.mru.room.RoomInfo;
 import x3.player.mru.room.RoomManager;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionState;
-import x3.player.mru.surfif.module.SurfChannelManager;
-import x3.player.mru.surfif.module.SurfConnectionManager;
-import x3.player.mru.surfif.module.SurfPlayBuilder;
+import x3.player.mru.session.SessionStateManager;
+import x3.player.mru.surfif.module.*;
 
 public class PlayStopStateFunction extends PlayStateFunction implements StateFunction {
     private static final Logger logger = LoggerFactory.getLogger(PlayStopStateFunction.class);
@@ -39,11 +38,28 @@ public class PlayStopStateFunction extends PlayStateFunction implements StateFun
 
         if (arg != null && arg instanceof FileData) {
             FileData fileData = (FileData) arg;
+
+            if (sessionInfo.getPlayIds() != null) {
+                for (String playId: sessionInfo.getPlayIds()) {
+                    SurfPlayInfo playInfo = SurfPlayManager.getInstance().getData(playId);
+                    if (playInfo != null) {
+                        if (fileData.getChannel() == playInfo.getChannel()) {
+                            SurfPlayManager.getInstance().removeData(playId);
+                            sessionInfo.removePlayId(playId);
+                            break;
+                        }
+                    }
+                }
+            }
+
             if (fileData.getChannel() == FileData.CHANNEL_BGM && sessionInfo.isBgmPlaying()) {
                 stopPlay(sessionInfo, roomInfo, SurfChannelManager.TOOL_ID_BG);
             } else if (fileData.getChannel() == FileData.CHANNEL_MENT && sessionInfo.isMentPlaying()) {
                 stopPlay(sessionInfo, roomInfo, SurfChannelManager.TOOL_ID_MENT);
             }
+
+            SessionStateManager.getInstance().setState(sessionInfo.getSessionId(), SessionState.UPDATE, (Boolean)false);
+
         } else {
             logger.error("[{}] Invalid file data");
         }

@@ -9,9 +9,7 @@ import x3.player.mru.room.RoomInfo;
 import x3.player.mru.room.RoomManager;
 import x3.player.mru.session.SessionInfo;
 import x3.player.mru.session.SessionState;
-import x3.player.mru.surfif.module.SurfChannelManager;
-import x3.player.mru.surfif.module.SurfConnectionManager;
-import x3.player.mru.surfif.module.SurfVoiceBuilder;
+import x3.player.mru.surfif.module.*;
 
 public class UpdateStateFunction implements StateFunction {
     private static final Logger logger = LoggerFactory.getLogger(UpdateStateFunction.class);
@@ -40,10 +38,13 @@ public class UpdateStateFunction implements StateFunction {
 
         if (arg != null && arg instanceof Boolean) {
             boolean isLow = (Boolean)arg;
+            updateVolume(sessionInfo, roomInfo, isLow);
+            /*
             if (roomInfo.isVolumeMin() != isLow) {
                 roomInfo.setVolumeMin(isLow);
                 updateVolume(sessionInfo, roomInfo, isLow);
             }
+            */
         }
 
 
@@ -54,7 +55,7 @@ public class UpdateStateFunction implements StateFunction {
             return false;
         }
 
-        logger.debug("{} Update play volume: isLow {}", sessionInfo.getSessionId(), isLow);
+        logger.debug("[{}] Update play volume: isLow [{}]", sessionInfo.getSessionId(), isLow);
 
         String json;
         int groupId = roomInfo.getGroupId();
@@ -63,6 +64,28 @@ public class UpdateStateFunction implements StateFunction {
         if (groupId < 0 || mixerId < 0) {
             return false;
         }
+
+        boolean isBgm = false;
+        boolean isMent = false;
+
+        if (sessionInfo.getPlayIds() != null) {
+            for (String playId: sessionInfo.getPlayIds()) {
+                SurfPlayInfo playInfo = SurfPlayManager.getInstance().getData(playId);
+                if (playInfo != null) {
+                    logger.debug("[{}] Update play volume: play id [{}] channel [{}]", sessionInfo.getSessionId(),
+                            playId, playInfo.getChannel());
+                    if (playInfo.getChannel() == FileData.CHANNEL_BGM) {
+                        isBgm = true;
+                    }
+                    else {
+                        isMent = true;
+                    }
+                }
+            }
+        }
+
+        logger.debug("[{}] Update play volume: voice [{}] bgm [{}] ment [{}]", sessionInfo.getSessionId(),
+                roomInfo.isVoice(), isBgm, isMent);
 
         SurfConnectionManager connectionManager = SurfConnectionManager.getInstance();
 
@@ -82,7 +105,7 @@ public class UpdateStateFunction implements StateFunction {
         bgBuilder.setCoder(surfConfig.getInternalCodec(), surfConfig.getInternalCodec(),
                 surfConfig.getInternalSampleRate(), surfConfig.getInternalSampleRate(),
                 false);
-        if (!isLow) {
+        if (!roomInfo.isVoice() && !isMent) {
             bgBuilder.setAgc(-15, -10);
         }
         else {

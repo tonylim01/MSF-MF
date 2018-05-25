@@ -7,8 +7,11 @@ public class SdpInfo {
 
     private String remoteIp;
     private int remotePort;
+
     private int payloadId;
     private String codecStr;
+
+    private int payload2833;
 
     List<SdpAttribute> attributes = null;
 
@@ -42,6 +45,14 @@ public class SdpInfo {
 
     public void setCodecStr(String codecStr) {
         this.codecStr = codecStr;
+    }
+
+    public int getPayload2833() {
+        return payload2833;
+    }
+
+    public void setPayload2833(int payload2833) {
+        this.payload2833 = payload2833;
     }
 
     public List<SdpAttribute> getAttributes() {

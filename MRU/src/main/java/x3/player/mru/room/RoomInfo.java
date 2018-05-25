@@ -12,6 +12,7 @@ public class RoomInfo {
 
     private boolean isVolumeMin;
     private boolean isBgm;
+    private boolean isMent;
     private boolean isVoice;
 
     public RoomInfo() {
@@ -100,6 +101,14 @@ public class RoomInfo {
 
     public void setBgm(boolean bgm) {
         isBgm = bgm;
+    }
+
+    public boolean isMent() {
+        return isMent;
+    }
+
+    public void setMent(boolean ment) {
+        isMent = ment;
     }
 
     public boolean isVoice() {

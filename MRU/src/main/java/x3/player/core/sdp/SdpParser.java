@@ -14,6 +14,8 @@ public class SdpParser {
 
     private static final Logger logger = LoggerFactory.getLogger(SdpParser.class);
 
+    private static final String TELEPHONE_EVENT = "telephone-event";
+
     public static SdpInfo selectAttribute(SdpInfo sdpInfo) {
         if (sdpInfo == null || sdpInfo.getAttributes() == null) {
             return null;
@@ -86,6 +88,19 @@ public class SdpParser {
                         }
                     }
                 }
+
+                // Gets telephone-event
+                for (SdpAttribute attr: sdpInfo.getAttributes()) {
+                    if (attr != null && attr.getDescription() != null &&
+                            attr.getDescription().startsWith(TELEPHONE_EVENT)) {
+                        if (attr.getPayloadId() > 0) {
+                            sdpInfo.setPayload2833(attr.getPayloadId());
+                            logger.debug("2833 payload [{}]", sdpInfo.getPayload2833());
+                            break;
+                        }
+                    }
+                }
+
             }
         } catch (Exception e) {
             e.printStackTrace();

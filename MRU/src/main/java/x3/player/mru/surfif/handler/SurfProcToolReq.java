@@ -137,6 +137,18 @@ public class SurfProcToolReq extends SurfProcRequest {
         }
     }
 
+    public void setPayload2833(int payloadId) {
+        if (msg.getData().getRtp() != null) {
+            msg.getData().getRtp().setDtmfInPayloadType(payloadId);
+        }
+
+        if (msg.getData().getEvg() == null) {
+            msg.getData().newEvg();
+        }
+
+        msg.getData().getEvg().setEnabled(true);
+    }
+
     public void setAgc(int minLevel, int maxLevel) {
         msg.getData().setAgcDecoder(true,  1000,
                 minLevel, maxLevel,
