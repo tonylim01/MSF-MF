@@ -77,8 +77,8 @@ public class RmqMessageType {
     public static final String RMQ_MSG_STR_COMMAND_END_REQ          = "msmp_command_end_req";
     public static final String RMQ_MSG_STR_COMMAND_END_RES          = "msmp_command_end_res";
 
-    public static final String RMQ_MSG_STR_DTMF_DETECT_REQ          = "msmp_dtmf_det_req";
-    public static final String RMQ_MSG_STR_DTMF_DETECT_RES          = "msmp_dtmf_det_res";
+    public static final String RMQ_MSG_STR_DTMF_DETECT_REQ          = "mfmp_dtmf_det_req";
+    public static final String RMQ_MSG_STR_DTMF_DETECT_RES          = "mfmp_dtmf_det_res";
 
     public static final int RMQ_MSG_TYPE_UNDEFINED = 0;
     public static final int RMQ_MSG_TYPE_INBOUND_SET_OFFER_REQ = 0x0001;
