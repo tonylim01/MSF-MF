@@ -155,7 +155,7 @@ public class Session {
                 f.timedGet(1000L);
             } catch (InterruptedException|InvocationTargetException e1)
             {
-                log.error(e1.toString(), e1);
+                log.error("inbound offer fail", e1);
                 Response nok = fact.getMessageFactory().createResponse(Response.SERVER_INTERNAL_ERROR, req);
                 tr.sendResponse(nok);
                 onClosed();
@@ -176,21 +176,12 @@ public class Session {
             } catch (IOException|InterruptedException|InvocationTargetException e1)
             {
 //                e1.printStackTrace();
-                log.error(e1.toString(), e1);
+                log.error("inbound answer fail", e1);
                 Response nok = fact.getMessageFactory().createResponse(Response.SERVER_INTERNAL_ERROR, req);
                 tr.sendResponse(nok);
                 onClosed();
                 fact.getSessionLifeCycleListener().sessionCannotCreate(this, e1);
                 return;
-//            } catch (TimeoutException e1)
-//            {
-//                e1.printStackTrace();
-//            } catch (InterruptedException e1)
-//            {
-//                e1.printStackTrace();
-//            } catch (InvocationTargetException e1)
-//            {
-//                e1.printStackTrace();
             }
 
 //            /*ClientTransaction outbound = */invite(
@@ -234,11 +225,7 @@ public class Session {
 
         } catch (Exception ex)
         {
-//            ex.printStackTrace();
             log.error(ex.toString(), ex);
-//            throw ex;
-            //System.exit(0);
-//            return null;
         }
 
     }
@@ -375,7 +362,7 @@ public class Session {
             }
         } catch (IOException|InterruptedException|InvocationTargetException e)
         {
-            log.error(e.toString(), e);
+            log.error("outbound offer fail", e);
             try
             {
                 Response nok = fact.getMessageFactory().createResponse(Response.SERVER_INTERNAL_ERROR, inviteRequest);
@@ -514,22 +501,9 @@ public class Session {
                                           //d.getCallId().getCallId(),
                                           new String(outbound_sdp));
             f.timedGet(1000L);
-        } catch (IOException e)
+        } catch (IOException|InterruptedException|InvocationTargetException e)
         {
-//            e.printStackTrace();
-            log.error(e.toString(), e);
-        } catch (TimeoutException e)
-        {
-//            e.printStackTrace();
-            log.error(e.toString(), e);
-        } catch (InterruptedException e)
-        {
-//            e.printStackTrace();
-            log.error(e.toString(), e);
-        } catch (InvocationTargetException e)
-        {
-//            e.printStackTrace();
-            log.error(e.toString(), e);
+            log.error("outbound negoDone fail", e);
         }
 
         //CSCF<--MCU:inbound SIP:200/OK
@@ -556,19 +530,10 @@ public class Session {
                                               inbound.getDialog().getCallId().getCallId()*/
                                             null);
                 f.timedGet(1000L);
-            } catch (IOException e)
+            } catch (IOException|InterruptedException|InvocationTargetException e)
             {
 //                e.printStackTrace();
-                log.error(e.toString(), e);
-            } catch (TimeoutException e)
-            {
-                log.error(e.toString(), e);
-            } catch (InterruptedException e)
-            {
-                log.error(e.toString(), e);
-            } catch (InvocationTargetException e)
-            {
-                log.error(e.toString(), e);
+                log.error("inbound negoDone fail", e);
             }
 
             fact.getClient().serviceStart(inbound.getCallId(),
@@ -752,18 +717,9 @@ public class Session {
             {
                 inbound.hangup().timedGet(1000L);
             }
-        } catch (IOException e)
+        } catch (IOException|InterruptedException|InvocationTargetException e)
         {
-            log.error(e.toString(), e);
-        } catch (TimeoutException e)
-        {
-//            e.printStackTrace();
-        } catch (InterruptedException e)
-        {
-//            e.printStackTrace();
-        } catch (InvocationTargetException e)
-        {
-//            e.printStackTrace();
+            log.error("inbound hangup fail", e);
         }
 
         try
@@ -772,18 +728,9 @@ public class Session {
             {
                 outbound.hangup().timedGet(1000L);
             }
-        } catch (IOException e)
+        } catch (IOException|InterruptedException|InvocationTargetException e)
         {
-            log.error(e.toString(), e);
-        } catch (TimeoutException e)
-        {
-            log.error(e.toString(), e);
-        } catch (InterruptedException e)
-        {
-            log.error(e.toString(), e);
-        } catch (InvocationTargetException e)
-        {
-            log.error(e.toString(), e);
+            log.error("outbound hangup fail", e);
         }
 
 //        if (aiifId != null)
