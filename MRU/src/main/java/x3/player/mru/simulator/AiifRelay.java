@@ -2,6 +2,7 @@ package x3.player.mru.simulator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import x3.player.core.codec.AMRSlience;
 import x3.player.mru.App;
 import x3.player.mru.AppInstance;
 import x3.player.mru.common.ShellUtil;
@@ -17,7 +18,9 @@ import x3.player.mru.surfif.messages.SurfMsgVocoder;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 
 public class AiifRelay {
 
@@ -47,6 +50,8 @@ public class AiifRelay {
     private String sessionId;
     private RoomInfo roomInfo;
 
+    private boolean isAMR = false;
+
     public void start() {
         isQuit = false;
 
@@ -61,9 +66,11 @@ public class AiifRelay {
         ffmpegThread.start();
 
         try {
+            logger.debug("AiifRelay start {} codec {}", inputPipeName, inputCodec);
             inputPipeFile = new RandomAccessFile(inputPipeName, "rw");
             if (inputCodec != null && inputCodec.equals(SurfMsgVocoder.VOCODER_AMR_WB)) {
                 inputPipeFile.write(AMR_HEADER);
+                isAMR = true;
             }
 
             outputPipeFile = new RandomAccessFile(outputPipeName, "r");
@@ -155,7 +162,15 @@ public class AiifRelay {
 
         if (inputPipeFile != null) {
             try {
-                inputPipeFile.write(buf, RTP_HEADER_SIZE, size - RTP_HEADER_SIZE);
+                boolean alreadyWrite = false;
+
+                if (isAMR) {
+                    alreadyWrite = checkSID(buf, size);
+                }
+
+                if (!alreadyWrite) {
+                    inputPipeFile.write(buf, RTP_HEADER_SIZE, size - RTP_HEADER_SIZE);
+                }
                 result = true;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -165,6 +180,86 @@ public class AiifRelay {
         return result;
     }
 
+    private static final int FRAME_TYPE_AMR = 8;
+    private static final int FRAME_TYPE_SID = 9;
+
+    private long lastTimestamp = 0;
+    private int lastFrameType = 0;
+
+    public static final long toUnsignedInt(byte[] b) {
+        long l = 0;
+
+        l |= b[0] & 0xFF;
+        l <<= 8;
+        l |= b[1] & 0xFF;
+        l <<= 8;
+        l |= b[2] & 0xFF;
+        l <<= 8;
+        l |= b[3] & 0xFF;
+
+        return l;
+    }
+
+    private boolean checkSID(byte[] buf, int size) {
+        if (buf == null) {
+            return false;
+        }
+
+
+        boolean result = false;
+
+        byte[] timestampBuf = new byte[4];
+        System.arraycopy(buf, 4, timestampBuf, 0, timestampBuf.length);
+
+        long timestamp = toUnsignedInt(timestampBuf);
+
+        int frameType= ((buf[RTP_HEADER_SIZE + 1] & 0xff) >> 3) & 0x0f;
+
+        logger.debug("AMR frame: timestamp {} frametype {}", timestamp, frameType);
+
+        if (frameType == FRAME_TYPE_SID) {
+            if (lastTimestamp > 0) {
+                int timestampGap = (int)(((timestamp - lastTimestamp) / 20) / 16 - 1);
+                if (timestampGap > 0) {
+
+                    result = true;
+                    logger.debug("AMR frame: write silence count {}", timestampGap);
+                    writeAMRSilencePacket(timestampGap);
+                }
+            }
+        }
+        else {
+            lastFrameType = frameType;
+        }
+
+        lastTimestamp = timestamp;
+
+        return result;
+    }
+
+    private void writeAMRSilencePacket(int count) {
+
+        //int dataSize = AMRSlience.getPayloadSize(FRAME_TYPE_AMR);
+        int dataSize = AMRSlience.getPayloadSize(lastFrameType);
+        if (dataSize == 0) {
+            return;
+        }
+
+        logger.debug("AMR frame: write silence size {}", dataSize);
+
+        byte[] data = new byte[dataSize];
+        AMRSlience.copySilenceBuffer(lastFrameType, data, 0);
+
+        if (inputPipeFile != null) {
+            for (int i = 0; i < count; i++) {
+                try {
+                    inputPipeFile.write(data);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
     public void setRelayQueue(String queueName) {
         createPipe(queueName);
