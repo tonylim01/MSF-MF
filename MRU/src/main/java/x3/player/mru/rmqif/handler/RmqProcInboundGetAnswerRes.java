@@ -82,8 +82,8 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
         builder.setHost(sdpConfig.getLocalHost());
 
 //        builder.setLocalIpAddress(config.getSurfIp());
-        builder.setLocalIpAddress(config.getLocalIpAddress());
-        builder.setSessionName("acs-amf");      // TODO
+        builder.setLocalIpAddress(sdpConfig.getLocalIpAddress());
+        builder.setSessionName("-");      // TODO
 
         SdpAttribute attr = selectSdp(sessionInfo);
         if (attr != null) {

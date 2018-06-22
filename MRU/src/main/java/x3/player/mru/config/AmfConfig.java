@@ -104,18 +104,18 @@ public class AmfConfig extends DefaultConfig {
             rmqUser = getStrValue("RMQ", "RMQ_USER", null);
             rmqPass = getStrValue("RMQ", "RMQ_PASS", null);
 
-            String rawPasswd = getStrValue("RMQ", "RAW_PASS", null);
-            if (rawPasswd != null) {
-                String encoded = Base64.getEncoder().encodeToString(rawPasswd.getBytes());
-                logger.warn("Encoding password: input [{}] encoded [{}]", rawPasswd, encoded);
-
-            }
-
-            if (rmqPass != null) {
-                String decoded = new String(Base64.getDecoder().decode(rmqPass));
-                logger.info("Decoding password: input [{}] decoded [{}]", rmqPass, decoded);
-                rmqPass = decoded;
-            }
+//            String rawPasswd = getStrValue("RMQ", "RAW_PASS", null);
+//            if (rawPasswd != null) {
+//                String encoded = Base64.getEncoder().encodeToString(rawPasswd.getBytes());
+//                logger.warn("Encoding password: input [{}] encoded [{}]", rawPasswd, encoded);
+//
+//            }
+//
+//            if (rmqPass != null) {
+//                String decoded = new String(Base64.getDecoder().decode(rmqPass));
+//                logger.info("Decoding password: input [{}] decoded [{}]", rmqPass, decoded);
+//                rmqPass = decoded;
+//            }
 
             rmqLocal = getStrValue(instanceSection, "RMQ_LOCAL", "localhost");
 

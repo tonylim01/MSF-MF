@@ -1,11 +1,16 @@
 package x3.player.mru.common;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import x3.player.mru.AppInstance;
+import x3.player.mru.config.AmfConfig;
 import x3.player.mru.config.PromptConfig;
 
 import java.lang.reflect.Field;
 
 public class ShellUtil {
+
+    private static final Logger logger = LoggerFactory.getLogger( ShellUtil.class);
 
     public static Process runShell(String cmd) {
         Process p = null;
@@ -67,7 +72,9 @@ public class ShellUtil {
             return null;
         }
 
-        String ffmpegCmd = String.format("exec ffmpeg -y -loglevel 0 -i %s -acodec pcm_s16le -f u16le pipe:1 > %s", inputName, outputName);
+        String ffmpegCmd = String.format("exec ffmpeg -y -loglevel 0 -i %s -acodec pcm_s16le -f u16le -y pipe:1 > %s", inputName, outputName);
+
+        logger.info("FFMPEG Command : [{}]", ffmpegCmd);
 
         return runShell(ffmpegCmd);
     }
@@ -77,7 +84,9 @@ public class ShellUtil {
             return null;
         }
 
-        String ffmpegCmd = String.format("exec ffmpeg -y -f alaw -ar 8000 -ac 1 -i %s -acodec pcm_s16le -f u16le -ar 16000 -ac 1 pipe:1 > %s", inputName, outputName);
+        String ffmpegCmd = String.format("exec ffmpeg -y -loglevel 0 -f alaw -ar 8000 -ac 1 -i %s -acodec pcm_s16le -f u16le -ar 16000 -ac 1 -y pipe:1 > %s", inputName, outputName);
+
+        logger.info("FFMPEG Command : [{}]", ffmpegCmd);
 
         return runShell(ffmpegCmd);
     }
@@ -95,6 +104,8 @@ public class ShellUtil {
                 inputName,
                 (config != null) ? config.getMentVolume() : DEFAULT_VOLUME,
                 outputName);
+
+        logger.info("FFMPEG Command : [{}]", ffmpegCmd);
 
         if (config != null) {
             config.close();
@@ -114,6 +125,8 @@ public class ShellUtil {
                 inputName,
                 (config != null) ? config.getBgmVolume() : DEFAULT_VOLUME,
                 outputName);
+
+        logger.info("FFMPEG Command : [{}]", ffmpegCmd);
 
         if (config != null) {
             config.close();
