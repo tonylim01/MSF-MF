@@ -269,7 +269,7 @@ public class AiifRelay {
         logger.debug("AMR frame: write silence size {}", dataSize);
 
         byte[] data = new byte[dataSize];
-        AMRSlience.copySilenceBuffer(lastFrameType, data, 0);
+        AMRSlience.copySilenceBuffer(lastAMRMode, data, 0);
 
         if (inputPipeFile != null) {
             for (int i = 0; i < count; i++) {
