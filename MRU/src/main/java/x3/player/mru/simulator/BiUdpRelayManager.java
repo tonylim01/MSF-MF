@@ -124,9 +124,15 @@ public class BiUdpRelayManager {
     }
 
     public void close(String sessionId) {
-        BiUdpRelay udpRelay = getUdpRelay(sessionId);
-        if (udpRelay != null) {
-            udpRelay.closeUdpSocket();
+        if (udpRelayMap.containsKey(sessionId)) {
+            logger.debug("[{}] close. session found", sessionId);
+            BiUdpRelay udpRelay = udpRelayMap.get(sessionId);
+            if (udpRelay != null) {
+                udpRelay.closeUdpSocket();
+            }
+        }
+        else {
+            logger.debug("[{}] close. session not found", sessionId);
         }
     }
 

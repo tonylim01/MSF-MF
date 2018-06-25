@@ -99,6 +99,8 @@ public class BiUdpRelay {
     }
 
     public void closeUdpSocket() {
+        logger.debug("[{} closeUdpSocket", sessionId);
+
         if (srcUdpSocket != null) {
             srcUdpSocket.stop();
         }

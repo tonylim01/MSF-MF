@@ -85,6 +85,8 @@ public class AiifRelay {
     }
 
     public void stop() {
+        logger.debug("stop ({})", inputPipeName);
+
         isQuit = true;
 
         if (pipeOpened) {
@@ -169,7 +171,13 @@ public class AiifRelay {
                 }
 
                 if (!alreadyWrite) {
-                    inputPipeFile.write(buf, RTP_HEADER_SIZE, size - RTP_HEADER_SIZE);
+                    if (!isAMR) {
+                        inputPipeFile.write(buf, RTP_HEADER_SIZE, size - RTP_HEADER_SIZE);
+                    }
+                    else {
+                        // In case of AMR, the 1st byte of the payload should be removed
+                        inputPipeFile.write(buf, RTP_HEADER_SIZE + 1, size - RTP_HEADER_SIZE - 1);
+                    }
                 }
                 result = true;
             } catch (Exception e) {
@@ -223,15 +231,23 @@ public class AiifRelay {
                 if (timestampGap > 0) {
 
                     result = true;
-                    logger.debug("AMR frame: write silence count {}", timestampGap);
+                    logger.debug("AMR frame: write silence count {} before sid", timestampGap);
                     writeAMRSilencePacket(timestampGap);
                 }
             }
         }
-        else {
-            lastFrameType = frameType;
+        else if (lastFrameType == FRAME_TYPE_SID) {
+            if (lastTimestamp > 0) {
+                int timestampGap = (int)(((timestamp - lastTimestamp) / 20) / 16 - 1);
+                if (timestampGap > 0) {
+
+                    logger.debug("AMR frame: write silence count {} before {}", timestampGap, frameType);
+                    writeAMRSilencePacket(timestampGap);
+                }
+            }
         }
 
+        lastFrameType = frameType;
         lastTimestamp = timestamp;
 
         return result;
@@ -360,6 +376,7 @@ public class AiifRelay {
                                 try {
                                     fileStream.write(pipeBuf, 0, size);
                                 } catch (Exception e) {
+                                    logger.warn("Exception [{}] [{}]", e.getClass(), e.getMessage());
                                     e.printStackTrace();
                                 }
                             }
@@ -373,6 +390,7 @@ public class AiifRelay {
                 }
 
             } catch (Exception e) {
+                logger.warn("Exception [{}] [{}]", e.getClass(), e.getMessage());
                 e.printStackTrace();
             }
 
