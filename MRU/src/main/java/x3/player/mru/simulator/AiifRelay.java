@@ -193,6 +193,7 @@ public class AiifRelay {
 
     private long lastTimestamp = 0;
     private int lastFrameType = 0;
+    private int lastAMRMode = 0;
 
     public static final long toUnsignedInt(byte[] b) {
         long l = 0;
@@ -248,6 +249,10 @@ public class AiifRelay {
         }
 
         lastFrameType = frameType;
+        if (frameType != FRAME_TYPE_SID) {
+            lastAMRMode = frameType;
+        }
+
         lastTimestamp = timestamp;
 
         return result;
@@ -256,7 +261,7 @@ public class AiifRelay {
     private void writeAMRSilencePacket(int count) {
 
         //int dataSize = AMRSlience.getPayloadSize(FRAME_TYPE_AMR);
-        int dataSize = AMRSlience.getPayloadSize(lastFrameType);
+        int dataSize = AMRSlience.getPayloadSize(lastAMRMode);
         if (dataSize == 0) {
             return;
         }
