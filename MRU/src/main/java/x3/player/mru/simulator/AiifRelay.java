@@ -172,9 +172,10 @@ public class AiifRelay {
 
                 if (!alreadyWrite) {
                     if (!isAMR) {
-                        inputPipeFile.write(buf, RTP_HEADER_SIZE, size - RTP_HEADER_SIZE);
+                        inputPipeFile.write(buf, RTP_HEADER_SIZE + 1, size - RTP_HEADER_SIZE - 1);
                     }
                     else {
+                        logger.debug("AMR frame: Voice Frame {} size : {} ",inputPipeFile.toString(),size - RTP_HEADER_SIZE - 1);
                         // In case of AMR, the 1st byte of the payload should be removed
                         inputPipeFile.write(buf, RTP_HEADER_SIZE + 1, size - RTP_HEADER_SIZE - 1);
                     }
@@ -229,7 +230,7 @@ public class AiifRelay {
         if (frameType == FRAME_TYPE_SID) {
             if (lastTimestamp > 0) {
                 int timestampGap = (int)(((timestamp - lastTimestamp) / 20) / 16 - 1);
-                if (timestampGap > 0) {
+                if (timestampGap >= 0) {
 
                     result = true;
                     logger.debug("AMR frame: write silence count {} before sid", timestampGap);
@@ -237,12 +238,12 @@ public class AiifRelay {
                 }
             }
         }
-        else if (lastFrameType == FRAME_TYPE_SID) {
+        else if (lastFrameType == FRAME_TYPE_SID && frameType != FRAME_TYPE_SID) {
             if (lastTimestamp > 0) {
                 int timestampGap = (int)(((timestamp - lastTimestamp) / 20) / 16 - 1);
-                if (timestampGap > 0) {
+                if (timestampGap >= 0) {
 
-                    logger.debug("AMR frame: write silence count {} before {}", timestampGap, frameType);
+                    logger.debug("AMR frame: Now Voice Frame write silence count {} before {}", timestampGap, frameType);
                     writeAMRSilencePacket(timestampGap);
                 }
             }
@@ -266,10 +267,10 @@ public class AiifRelay {
             return;
         }
 
-        logger.debug("AMR frame: write silence size {}", dataSize);
+        logger.debug("AMR frame: BF write silence file name {} count {} {} size : {} ",lastAMRMode,count,inputPipeFile.toString(),dataSize);
 
         byte[] data = new byte[dataSize];
-        AMRSlience.copySilenceBuffer(lastFrameType, data, 0);
+        AMRSlience.copySilenceBuffer(lastAMRMode, data, 0);
 
         if (inputPipeFile != null) {
             for (int i = 0; i < count; i++) {

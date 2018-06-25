@@ -22,7 +22,7 @@ public class StartStateFunction implements StateFunction {
         if (sessionInfo.getServiceState() != SessionState.START) {
             sessionInfo.setServiceState(SessionState.START);
         }
-
+        logger.info("[{}] openRmqRelayChannel [{}]");
         openRmqRelayChannel(sessionInfo);
     }
 
