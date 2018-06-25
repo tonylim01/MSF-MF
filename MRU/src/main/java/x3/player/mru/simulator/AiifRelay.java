@@ -28,7 +28,7 @@ public class AiifRelay {
 
     private static final int RTP_HEADER_SIZE = 12;
 
-    private static boolean isQuit;
+    private boolean isQuit;
 
     private RmqClient rmqClient = null;
     private FileOutputStream fileStream = null;
