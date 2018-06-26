@@ -111,8 +111,7 @@ public class AMRSlience {
             return 0;
         }
 
-//        System.arraycopy(buf, offset, silenceBuf, 0, size);
-        System.arraycopy( silenceBuf, offset, buf,  0, size);
+        System.arraycopy(silenceBuf, 0, buf, offset, size);
 
         return size;
     }
