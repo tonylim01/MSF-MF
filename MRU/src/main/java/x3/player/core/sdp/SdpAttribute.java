@@ -5,7 +5,9 @@ public class SdpAttribute {
     public static final int PAYLOADID_NONE = -1;
 
     public static final String NAME_RTPMAP = "rtpmap";
+    public static final String NAME_FMTP = "fmtp";
     public static final String DESC_TELEPHONY_EVENT = "telephone-event/8000";
+    public static final String NAME_SENDRECV = "sendrecv";
 
     private String name;
     private int payloadId;

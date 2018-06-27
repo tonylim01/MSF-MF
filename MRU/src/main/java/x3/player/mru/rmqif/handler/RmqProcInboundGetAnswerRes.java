@@ -96,10 +96,56 @@ public class RmqProcInboundGetAnswerRes extends RmqOutgoingMessage {
             SdpAttribute dtmfAttr = getTelephonyEvent(sessionInfo);
             if (dtmfAttr != null) {
                 builder.addRtpAttribute(dtmfAttr.getPayloadId(), dtmfAttr.getDescription());
+                if (sessionInfo.getSdpInfo() != null &&
+                        sessionInfo.getSdpInfo().getPayload2833() != dtmfAttr.getPayloadId()) {
+                    logger.info("[{}] Update 2833 payload {} -> {}", sessionInfo.getSessionId(),
+                            sessionInfo.getSdpInfo().getPayload2833(),  dtmfAttr.getPayloadId());
+
+                    sessionInfo.getSdpInfo().setPayload2833(dtmfAttr.getPayloadId());
+                }
             }
 
+            logger.debug("[{}] Select SDP: payload {} local port {}", sessionInfo.getSessionId(),
+                    attr.getPayloadId(), localPort);
+
             for (SdpAttribute sdpAttribute: sessionInfo.getSdpInfo().getAttributes()) {
-                if (sdpAttribute.getPayloadId() == SdpAttribute.PAYLOADID_NONE) {
+                if (sdpAttribute.getName() == null) {
+                    continue;
+                }
+
+                boolean isAppend = false;
+                if (sdpAttribute.getName().equals(SdpAttribute.NAME_RTPMAP)) {
+                    logger.debug("[{}] makeSDP: payload {} dtmf {} attr {}", sessionInfo.getSessionId(),
+                            attr.getPayloadId(),
+                            (dtmfAttr != null) ? dtmfAttr.getPayloadId() : "-",
+                            sdpAttribute.getPayloadId());
+
+                    if (dtmfAttr != null && sdpAttribute.getDescription() != null &&
+                            sdpAttribute.getDescription().contains(String.valueOf(dtmfAttr.getPayloadId()))) {
+                        isAppend = true;
+                    }
+//                    else if (sdpAttribute.getPayloadId() == attr.getPayloadId()) {
+//                        isAppend = true;
+//                    }
+                }
+                else if (sdpAttribute.getName().equals(SdpAttribute.NAME_SENDRECV)) {
+                    isAppend = true;
+                }
+                else if (sdpAttribute.getName().equals(SdpAttribute.NAME_FMTP)) {
+                    if (sdpAttribute.getDescription() != null) {
+                        if (dtmfAttr != null &&
+                                sdpAttribute.getDescription().contains(String.valueOf(dtmfAttr.getPayloadId()))) {
+                            isAppend = true;
+                        }
+                        else if (sdpAttribute.getDescription().contains(String.valueOf(attr.getPayloadId()))) {
+                            sdpAttribute.setDescription(String.format("%d mode-set=8; octet-align=1", attr.getPayloadId()));
+                            isAppend = true;
+                        }
+
+                    }
+                }
+
+                if (isAppend) {
                     builder.addGeneralAttribute(SdpUtil.getAttributeString(sdpAttribute));
                 }
             }

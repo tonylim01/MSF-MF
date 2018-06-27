@@ -41,12 +41,15 @@ public class SdpUtil {
         StringBuilder sb = new StringBuilder(48);
         if (attr.getName() != null) {
             sb.append(attr.getName());
-            sb.append(":");
         }
 
         if (attr.getPayloadId() != SdpAttribute.PAYLOADID_NONE) {
+            sb.append(":");
             sb.append(attr.getPayloadId());
             sb.append(" ");
+        }
+        else if (attr.getName().equals(SdpAttribute.NAME_FMTP) && attr.getDescription() != null) {
+            sb.append(":");
         }
 
         if (attr.getDescription() != null) {
