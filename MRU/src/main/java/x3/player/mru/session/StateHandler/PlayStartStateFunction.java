@@ -125,10 +125,11 @@ public class PlayStartStateFunction extends PlayStateFunction implements StateFu
         String filename;
 
         if (data.getMediaType() != null && data.getMediaType().equals(FileData.MEDIA_TYPE_STREAM)) {
-            String wavfile = String.format("/tmp/%s.wav", UUID.randomUUID().toString());
+//            String wavfile = String.format("/tmp/%s.wav", UUID.randomUUID().toString());
+            String wavfile = String.format("/tmp/%s.amr", UUID.randomUUID().toString());
             logger.debug("[{}] wav file [{}]", sessionInfo.getSessionId(), wavfile);
 
-            Process p = ShellUtil.convertHlsToWav(data.getPlayFile(), wavfile);
+            Process p = ShellUtil.convertHlsToAmr(data.getPlayFile(), wavfile);
             ShellUtil.waitShell(p);
             filename = wavfile;
         }
@@ -148,12 +149,12 @@ public class PlayStartStateFunction extends PlayStateFunction implements StateFu
                 String ext = filename.substring(comma + 1);
                 if (ext != null && ext.equals("pcm")) {
 
-                    String wavfile = String.format("%swav", filename.substring(0, comma + 1));
-                    logger.debug("[{}] wav file [{}]", sessionInfo.getSessionId(), wavfile);
+                    String amffile = String.format("%samr", filename.substring(0, comma + 1));
+                    logger.debug("[{}] wav file [{}]", sessionInfo.getSessionId(), amffile);
 
-                    Process p = ShellUtil.convertPcmToWav(filename, wavfile);
+                    Process p = ShellUtil.convertPcmToAmr(filename, amffile);
                     ShellUtil.waitShell(p);
-                    filename = wavfile;
+                    filename = amffile;
                 }
             }
         }

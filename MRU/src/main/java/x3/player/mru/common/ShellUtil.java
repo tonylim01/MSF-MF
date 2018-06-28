@@ -114,14 +114,41 @@ public class ShellUtil {
         return runShell(ffmpegCmd);
     }
 
-    public static Process convertHlsToWav(String inputName, String outputName) {
+    public static Process convertPcmToAmr(String inputName, String outputName) {
         if (inputName == null || outputName == null) {
             return null;
         }
 
         PromptConfig config = AppInstance.getInstance().getPromptConfig();
 
-        String ffmpegCmd = String.format("exec ffmpeg -i \"%s\" -acodec pcm_s16le -ar 8000 -ac 1 -filter volume=%f %s",
+        String ffmpegCmd = String.format("exec ffmpeg -y -f s16le -ar 22050 -ac 1 -i %s -acodec amr_wb -ar 16000 -b:a 23.85k -ac 1 -filter volume=%f %s",
+                                         inputName,
+                                         (config != null) ? config.getMentVolume() : DEFAULT_VOLUME,
+                                         outputName);
+
+        logger.info("FFMPEG Command : [{}]", ffmpegCmd);
+
+        if (config != null) {
+            config.close();
+        }
+
+        return runShell(ffmpegCmd);
+    }
+
+    public static Process convertHlsToAmr(String inputName, String outputName) {
+        if (inputName == null || outputName == null) {
+            return null;
+        }
+
+        PromptConfig config = AppInstance.getInstance().getPromptConfig();
+
+
+
+//        String ffmpegCmd = String.format("exec ffmpeg -i \"%s\" -acodec pcm_s16le -ar 8000 -ac 1 -filter volume=%f %s",
+//                inputName,
+//                (config != null) ? config.getBgmVolume() : DEFAULT_VOLUME,
+//                outputName);
+        String ffmpegCmd = String.format("exec ffmpeg -i \"%s\" -acodec amr_wb -ar 16000 -b:a 23.85k -ac 1 -filter volume=%f %s",
                 inputName,
                 (config != null) ? config.getBgmVolume() : DEFAULT_VOLUME,
                 outputName);

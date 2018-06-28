@@ -45,8 +45,6 @@ public class StartStateFunction implements StateFunction {
             return;
         }
 
-        logger.info("[{}] Remote session [{}]", otherSessionId);
-
         SessionInfo otherSession = SessionManager.findSession(otherSessionId);
         if (otherSession == null) {
             return;

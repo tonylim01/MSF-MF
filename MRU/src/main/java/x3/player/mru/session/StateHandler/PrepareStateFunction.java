@@ -251,7 +251,7 @@ public class PrepareStateFunction implements StateFunction {
                 config.getLocalIpAddress(), sessionInfo.getDstLocalPort());
         parBuilder.setCoder(sdpInfo.getCodecStr(), sdpInfo.getCodecStr(),
                 0, 0, true);
-        parBuilder.setAgc(-15, -10);
+//        parBuilder.setAgc(-15, -10);
         if (sdpInfo.getPayload2833() > 0) {
             parBuilder.setDtmf(sessionInfo.getSessionId(), sdpInfo.getPayload2833());
         }
@@ -306,7 +306,7 @@ public class PrepareStateFunction implements StateFunction {
                 config.getLocalIpAddress(), sessionInfo.getDstLocalPort());
         parBuilder.setCoder(sdpInfo.getCodecStr(), sdpInfo.getCodecStr(),
                 0, 0, true);
-        parBuilder.setAgc(-15, -10);
+//        parBuilder.setAgc(-15, -10);
         if (sdpInfo.getPayload2833() > 0) {
             parBuilder.setDtmf(sessionInfo.getSessionId(), sdpInfo.getPayload2833());
         }
