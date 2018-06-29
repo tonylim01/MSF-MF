@@ -148,7 +148,7 @@ public class ShellUtil {
 //                inputName,
 //                (config != null) ? config.getBgmVolume() : DEFAULT_VOLUME,
 //                outputName);
-        String ffmpegCmd = String.format("exec ffmpeg -i \"%s\" -acodec amr_wb -ar 16000 -b:a 23.85k -ac 1 -filter volume=%f %s",
+        String ffmpegCmd = String.format("exec ffmpeg -i \"%s\" -acodec amr_wb -ar 16000 -b:a 23.85k -ac 1 -af \"highpass=f=200, lowpass=f=5000\" -filter volume=%f %s",
                 inputName,
                 (config != null) ? config.getBgmVolume() : DEFAULT_VOLUME,
                 outputName);
