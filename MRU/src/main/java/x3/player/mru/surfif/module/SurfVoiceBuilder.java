@@ -1,6 +1,7 @@
 package x3.player.mru.surfif.module;
 
 import x3.player.mru.surfif.handler.SurfProcToolReq;
+import x3.player.mru.surfif.messages.SurfMsgEvent;
 import x3.player.mru.surfif.messages.SurfMsgParticipant;
 import x3.player.mru.surfif.messages.SurfMsgVocoder;
 import x3.player.mru.surfif.types.SurfConstant;
@@ -54,15 +55,14 @@ public class SurfVoiceBuilder {
             toolReq.setToolType(SurfConstant.TOOL_TYPE_VOICE_FE_IP);
             toolReq.setBackendToolId(mixerId);
         }
-//        if (!inputFromRtp) {
-//            toolReq.setInputFromRtp(inputFromRtp);
-//        }
-//        toolReq.setDecoder(inputFromRtp ? SurfMsgVocoder.VOCODER_ALAW : SurfMsgVocoder.VOCODER_LINEAR,
-//                null, null);
-//        toolReq.setEncoder(SurfMsgVocoder.VOCODER_ALAW, null, null,
-//                !inputFromRtp ? 20 : 0);    // TODO
         toolReq.setLocalRtpInfo(localPort, outPayloadId);
         toolReq.setRemoteRtpInfo(remoteIp, remotePort, inPayloadId);
+    }
+
+    public void setDtmf(String sessionId, int payload2833) {
+        toolReq.setPayload2833(payload2833);
+        toolReq.addEvent(SurfMsgEvent.EVENT_TYPE_ALL, true);
+        toolReq.setAppInfo(sessionId);
     }
 
     public void setCoder(String encoder, String decoder, int encSampleRate, int decSampleRate, boolean inputFromRtp) {
@@ -91,6 +91,10 @@ public class SurfVoiceBuilder {
 
     public void setAgc(int minLevel, int maxLevel) {
         toolReq.setAgc(minLevel, maxLevel);
+    }
+
+    public void disableAgc() {
+        toolReq.disableAgc();
     }
 
     public String build() {

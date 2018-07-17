@@ -40,6 +40,9 @@ public class AmfConfig extends DefaultConfig {
     private long audioEnergyLevel;
     private long silenceEnergyLevel;
     private long silenceDetectDuration;
+    private long energyDetectDuration;
+
+    private String promptConfPath;
 
     public AmfConfig(int instanceId, String configPath) {
 
@@ -69,10 +72,19 @@ public class AmfConfig extends DefaultConfig {
 
         String instanceSection = String.format("INSTANCE-%d", instanceId);
 
+        loadCommonConfig();
         loadSessionConfig();
         loadRmqConfig(instanceSection);
         loadSurfConfig(instanceSection);
         loadMediaConfig(instanceSection);
+    }
+
+    private void loadCommonConfig() {
+        try {
+            promptConfPath = getStrValue("COMMON", "PROMPT_CONF_PATH", null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void loadSessionConfig() {
@@ -92,18 +104,18 @@ public class AmfConfig extends DefaultConfig {
             rmqUser = getStrValue("RMQ", "RMQ_USER", null);
             rmqPass = getStrValue("RMQ", "RMQ_PASS", null);
 
-            String rawPasswd = getStrValue("RMQ", "RAW_PASS", null);
-            if (rawPasswd != null) {
-                String encoded = Base64.getEncoder().encodeToString(rawPasswd.getBytes());
-                logger.warn("Encoding password: input [{}] encoded [{}]", rawPasswd, encoded);
-
-            }
-
-            if (rmqPass != null) {
-                String decoded = new String(Base64.getDecoder().decode(rmqPass));
-                logger.info("Decoding password: input [{}] decoded [{}]", rmqPass, decoded);
-                rmqPass = decoded;
-            }
+//            String rawPasswd = getStrValue("RMQ", "RAW_PASS", null);
+//            if (rawPasswd != null) {
+//                String encoded = Base64.getEncoder().encodeToString(rawPasswd.getBytes());
+//                logger.warn("Encoding password: input [{}] encoded [{}]", rawPasswd, encoded);
+//
+//            }
+//
+//            if (rmqPass != null) {
+//                String decoded = new String(Base64.getDecoder().decode(rmqPass));
+//                logger.info("Decoding password: input [{}] decoded [{}]", rmqPass, decoded);
+//                rmqPass = decoded;
+//            }
 
             rmqLocal = getStrValue(instanceSection, "RMQ_LOCAL", "localhost");
 
@@ -199,7 +211,8 @@ public class AmfConfig extends DefaultConfig {
 
             audioEnergyLevel = (long)getIntValue("MEDIA", "AUDIO_ENERGY_LEVEL", 0);
             silenceEnergyLevel = (long)getIntValue("MEDIA", "SILENCE_ENERGY_LEVEL", 0);
-            silenceDetectDuration = (long)getIntValue("MEDIA", "silenceDetectDuration", 0);
+            silenceDetectDuration = (long)getIntValue("MEDIA", "SILENCE_DETECT_DURATION", 0);
+            energyDetectDuration = (long)getIntValue("MEDIA", "ENERGY_DETECT_DURATION", 0);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -325,5 +338,13 @@ public class AmfConfig extends DefaultConfig {
 
     public long getSilenceDetectDuration() {
         return silenceDetectDuration;
+    }
+
+    public long getEnergyDetectDuration() {
+        return energyDetectDuration;
+    }
+
+    public String getPromptConfPath() {
+        return promptConfPath;
     }
 }

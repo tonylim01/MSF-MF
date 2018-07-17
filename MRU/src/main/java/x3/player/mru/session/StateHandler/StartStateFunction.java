@@ -22,7 +22,7 @@ public class StartStateFunction implements StateFunction {
         if (sessionInfo.getServiceState() != SessionState.START) {
             sessionInfo.setServiceState(SessionState.START);
         }
-
+        logger.info("[{}] openRmqRelayChannel [{}]");
         openRmqRelayChannel(sessionInfo);
     }
 
@@ -44,8 +44,6 @@ public class StartStateFunction implements StateFunction {
         if (otherSessionId == null) {
             return;
         }
-
-        logger.info("[{}] Remote session [{}]", otherSessionId);
 
         SessionInfo otherSession = SessionManager.findSession(otherSessionId);
         if (otherSession == null) {

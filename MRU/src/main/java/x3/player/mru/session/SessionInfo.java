@@ -3,6 +3,9 @@ package x3.player.mru.session;
 import x3.player.core.sdp.SdpInfo;
 import x3.player.mru.rmqif.messages.FileData;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SessionInfo {
 
     private String sessionId;
@@ -32,6 +35,11 @@ public class SessionInfo {
 
     private FileData fileData;
     private String fromQueue;
+
+    private int volumeMin;
+    private int volumeMax;
+
+    private List<String> playIds;
 
     public String getSessionId() {
         return sessionId;
@@ -230,5 +238,43 @@ public class SessionInfo {
 
     public void setFromQueue(String fromQueue) {
         this.fromQueue = fromQueue;
+    }
+
+    public int getVolumeMin() {
+        return volumeMin;
+    }
+
+    public void setVolumeMin(int volumeMin) {
+        this.volumeMin = volumeMin;
+    }
+
+    public int getVolumeMax() {
+        return volumeMax;
+    }
+
+    public void setVolumeMax(int volumeMax) {
+        this.volumeMax = volumeMax;
+    }
+
+    public void putPlayId(String playId) {
+        if (playIds == null) {
+            playIds = new ArrayList<>();
+        }
+
+        playIds.add(playId);
+    }
+
+    public List<String> getPlayIds() {
+        return playIds;
+    }
+
+    public void removePlayId(String playId) {
+        if (playIds == null || playId == null) {
+            return;
+        }
+
+        if (playIds.contains(playId)) {
+            playIds.remove(playId);
+        }
     }
 }

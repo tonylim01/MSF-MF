@@ -78,4 +78,22 @@ public class DefaultConfig {
 
         return result;
     }
+
+    public float getFloatValue(String section, String key, float defaultValue) {
+
+        float result;
+        String configValue = getStrValue(section, key, null);
+        if (configValue == null) {
+            result = defaultValue;
+        }
+        else {
+            try {
+                result = Float.valueOf(configValue);
+            } catch (Exception e) {
+                result = defaultValue;
+            }
+        }
+
+        return result;
+    }
 }

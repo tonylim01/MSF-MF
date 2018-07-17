@@ -67,7 +67,9 @@ public class UdpSocket {
             thread = null;
         }
 
-        socket.close();
+        if (socket != null) {
+            socket.close();
+        }
     }
 
     public void setTag(int tag) {

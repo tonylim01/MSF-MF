@@ -67,6 +67,9 @@ public class RmqProcIncomingCommandReq extends RmqIncomingMessageHandler {
 
         if (req.getType().equals(CommandStartReq.CMD_TYPE_MEDIA_PLAY)) {
             SessionStateManager.getInstance().setState(msg.getSessionId(), SessionState.PLAY_START, file);
+
+            sessionInfo.setVolumeMin(req.getData().getMixVolume());
+            sessionInfo.setVolumeMax(req.getData().getDefVolume());
         }
         else if (req.getType().equals(CommandStartReq.CMD_TYPE_MEDIA_STOP)) {
             SessionStateManager.getInstance().setState(msg.getSessionId(), SessionState.PLAY_STOP, file);

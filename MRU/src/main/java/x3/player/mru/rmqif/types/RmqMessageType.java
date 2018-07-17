@@ -77,6 +77,9 @@ public class RmqMessageType {
     public static final String RMQ_MSG_STR_COMMAND_END_REQ          = "msmp_command_end_req";
     public static final String RMQ_MSG_STR_COMMAND_END_RES          = "msmp_command_end_res";
 
+    public static final String RMQ_MSG_STR_DTMF_DETECT_REQ          = "mfmp_dtmf_det_req";
+    public static final String RMQ_MSG_STR_DTMF_DETECT_RES          = "mfmp_dtmf_det_res";
+
     public static final int RMQ_MSG_TYPE_UNDEFINED = 0;
     public static final int RMQ_MSG_TYPE_INBOUND_SET_OFFER_REQ = 0x0001;
     public static final int RMQ_MSG_TYPE_INBOUND_SET_OFFER_RES = 0x1001;
@@ -150,6 +153,9 @@ public class RmqMessageType {
     public static final int RMQ_MSG_TYPE_COMMAND_DONE_RES = 0x1033;
     public static final int RMQ_MSG_TYPE_COMMAND_END_REQ = 0x0034;
     public static final int RMQ_MSG_TYPE_COMMAND_END_RES = 0x1034;
+
+    public static final int RMQ_MSG_TYPE_DTMF_DETECT_REQ = 0x0035;
+    public static final int RMQ_MSG_TYPE_DTMF_DETECT_RES = 0x1035;
 
 
     public static final int RMQ_MSG_COMMON_REASON_CODE_SUCCESS = 0;
@@ -225,6 +231,8 @@ public class RmqMessageType {
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_COMMAND_DONE_RES, RMQ_MSG_TYPE_COMMAND_DONE_RES),
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_COMMAND_END_REQ, RMQ_MSG_TYPE_COMMAND_END_REQ),
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_COMMAND_END_RES, RMQ_MSG_TYPE_COMMAND_END_RES),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_DTMF_DETECT_REQ, RMQ_MSG_TYPE_DTMF_DETECT_REQ),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_DTMF_DETECT_RES, RMQ_MSG_TYPE_DTMF_DETECT_RES),
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_STR_HEARTBEAT, RMQ_MSG_TYPE_HEARTBEAT)
                 ).collect(Collectors.toMap((e) -> e.getKey(), (e) ->e.getValue())));
     }
@@ -294,6 +302,8 @@ public class RmqMessageType {
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_COMMAND_STOP_RES, "CommandStopRes"),
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_COMMAND_END_REQ, "CommandEndReq"),
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_COMMAND_END_RES, "CommandEndRes"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_DTMF_DETECT_REQ, "DtmfDetReq"),
+                new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_DTMF_DETECT_RES, "DtmfDetRes"),
                 new AbstractMap.SimpleEntry<>(RMQ_MSG_TYPE_HEARTBEAT, "Heartbeat")
 
         ).collect(Collectors.toMap((e) -> e.getKey(), (e) ->e.getValue())));

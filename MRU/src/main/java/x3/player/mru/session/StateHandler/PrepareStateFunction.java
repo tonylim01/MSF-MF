@@ -251,7 +251,11 @@ public class PrepareStateFunction implements StateFunction {
                 config.getLocalIpAddress(), sessionInfo.getDstLocalPort());
         parBuilder.setCoder(sdpInfo.getCodecStr(), sdpInfo.getCodecStr(),
                 0, 0, true);
-//        parBuilder.setVad(true);
+//        parBuilder.setAgc(-15, -10);
+        if (sdpInfo.getPayload2833() > 0) {
+            parBuilder.setDtmf(sessionInfo.getSessionId(), sdpInfo.getPayload2833());
+        }
+
         json = parBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, parId, json);
@@ -302,7 +306,11 @@ public class PrepareStateFunction implements StateFunction {
                 config.getLocalIpAddress(), sessionInfo.getDstLocalPort());
         parBuilder.setCoder(sdpInfo.getCodecStr(), sdpInfo.getCodecStr(),
                 0, 0, true);
-//        parBuilder.setVad(true);
+//        parBuilder.setAgc(-15, -10);
+        if (sdpInfo.getPayload2833() > 0) {
+            parBuilder.setDtmf(sessionInfo.getSessionId(), sdpInfo.getPayload2833());
+        }
+
         json = parBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, parId, json);
@@ -313,43 +321,6 @@ public class PrepareStateFunction implements StateFunction {
         json = addBuilder.build();
 
         connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, mixerId, json);
-
-        /*
-        AmfConfig config = AppInstance.getInstance().getConfig();
-
-        SurfConnectionManager connectionManager = SurfConnectionManager.getInstance();
-
-        SdpInfo sdpInfo = sessionInfo.getSdpInfo();
-
-        // Creates one voice channel
-        int calleeId = SurfChannelManager.getReqToolId(groupId, SurfChannelManager.TOOL_ID_PAR_CD);
-        int calleePort = SurfChannelManager.getUdpPort(calleeId);
-
-        logger.debug("[{}] CD_par fe: remote ({}:{}) - local ({}) - mixer ({})", sessionInfo.getSessionId(),
-                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort(), calleePort, mixerId);
-
-        // Creates a callee as ip mode
-        SurfVoiceBuilder builder = new SurfVoiceBuilder(calleeId);
-        builder.setChannel(mixerId,
-                sdpInfo.getPayloadId(), // inPayloadId
-                sdpInfo.getPayloadId(), // outpayloadId
-                calleePort,
-                config.getLocalIpAddress(), sessionInfo.getDstLocalPort());
-//                sdpInfo.getRemoteIp(), sdpInfo.getRemotePort());
-        builder.setCoder(sdpInfo.getCodecStr(), sdpInfo.getCodecStr(),
-                0, 0, true);
-//        builder.setVad(true);
-        json = builder.build();
-
-        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, calleeId, json);
-
-        // Add participants
-        SurfVoiceBuilder addBuilder = new SurfVoiceBuilder(mixerId);
-        addBuilder.setParticipant(calleeId, calleeId);
-        json = addBuilder.build();
-
-        connectionManager.addSendQueue(sessionInfo.getSessionId(), groupId, mixerId, json);
-        */
 
         return true;
     }

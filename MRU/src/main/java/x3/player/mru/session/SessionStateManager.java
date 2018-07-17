@@ -86,6 +86,7 @@ public class SessionStateManager {
                     new AbstractMap.SimpleEntry<>(SessionState.READY, new ReadyStateFunction()),
                     new AbstractMap.SimpleEntry<>(SessionState.PLAY_START, new PlayStartStateFunction()),
                     new AbstractMap.SimpleEntry<>(SessionState.PLAY_STOP, new PlayStopStateFunction()),
+                    new AbstractMap.SimpleEntry<>(SessionState.UPDATE, new UpdateStateFunction()),
                     new AbstractMap.SimpleEntry<>(SessionState.RELEASE, new ReleaseStateFunction())
             ).collect(Collectors.toMap((e) -> e.getKey(), (e) ->e.getValue())));
         }
@@ -104,6 +105,8 @@ public class SessionStateManager {
                     handleMessage(msg);
                 } catch (Exception e) {
                     logger.warn("Exception [{}] [{}]", e.getClass(), e.getMessage());
+                    logger.error("Exception desc: {}", e);
+
                     if (e.getClass() == InterruptedException.class || e.getClass() == SocketException.class) {
                         isQuit = true;
                     }

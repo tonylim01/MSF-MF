@@ -1,8 +1,16 @@
 package x3.player.mru.common;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import x3.player.mru.AppInstance;
+import x3.player.mru.config.AmfConfig;
+import x3.player.mru.config.PromptConfig;
+
 import java.lang.reflect.Field;
 
 public class ShellUtil {
+
+    private static final Logger logger = LoggerFactory.getLogger( ShellUtil.class);
 
     public static Process runShell(String cmd) {
         Process p = null;
@@ -64,7 +72,9 @@ public class ShellUtil {
             return null;
         }
 
-        String ffmpegCmd = String.format("exec ffmpeg -loglevel 0 -i %s -acodec pcm_s16le -f u16le pipe:1 > %s", inputName, outputName);
+        String ffmpegCmd = String.format("exec ffmpeg -y -loglevel 0 -i %s -acodec pcm_s16le -f u16le -y pipe:1 > %s", inputName, outputName);
+
+        logger.info("FFMPEG Command : [{}]", ffmpegCmd);
 
         return runShell(ffmpegCmd);
     }
@@ -74,27 +84,80 @@ public class ShellUtil {
             return null;
         }
 
-        String ffmpegCmd = String.format("exec ffmpeg -f alaw -ar 8000 -ac 1 -i %s -acodec pcm_s16le -f u16le -ar 16000 -ac 1 pipe:1 > %s", inputName, outputName);
+        String ffmpegCmd = String.format("exec ffmpeg -y -loglevel 0 -f alaw -ar 8000 -ac 1 -i %s -acodec pcm_s16le -f u16le -ar 16000 -ac 1 -y pipe:1 > %s", inputName, outputName);
+
+        logger.info("FFMPEG Command : [{}]", ffmpegCmd);
 
         return runShell(ffmpegCmd);
     }
+
+    private static final float DEFAULT_VOLUME = 0.1f;
 
     public static Process convertPcmToWav(String inputName, String outputName) {
         if (inputName == null || outputName == null) {
             return null;
         }
 
-        String ffmpegCmd = String.format("exec ffmpeg -f s16le -ar 22050 -ac 1 -i %s -ar 8000 %s", inputName, outputName);
+        PromptConfig config = AppInstance.getInstance().getPromptConfig();
+
+        String ffmpegCmd = String.format("exec ffmpeg -y -f s16le -ar 22050 -ac 1 -i %s -ar 8000 -filter volume=%f %s",
+                inputName,
+                (config != null) ? config.getMentVolume() : DEFAULT_VOLUME,
+                outputName);
+
+        logger.info("FFMPEG Command : [{}]", ffmpegCmd);
+
+        if (config != null) {
+            config.close();
+        }
 
         return runShell(ffmpegCmd);
     }
 
-    public static Process convertHlsToWav(String inputName, String outputName) {
+    public static Process convertPcmToAmr(String inputName, String outputName) {
         if (inputName == null || outputName == null) {
             return null;
         }
 
-        String ffmpegCmd = String.format("exec ffmpeg -i \"%s\" -acodec pcm_s16le -ar 8000 -ac 1 %s", inputName, outputName);
+        PromptConfig config = AppInstance.getInstance().getPromptConfig();
+
+        String ffmpegCmd = String.format("exec ffmpeg -y -f s16le -ar 22050 -ac 1 -i %s -acodec amr_wb -ar 16000 -b:a 23.85k -ac 1 -filter volume=%f %s",
+                                         inputName,
+                                         (config != null) ? config.getMentVolume() : DEFAULT_VOLUME,
+                                         outputName);
+
+        logger.info("FFMPEG Command : [{}]", ffmpegCmd);
+
+        if (config != null) {
+            config.close();
+        }
+
+        return runShell(ffmpegCmd);
+    }
+
+    public static Process convertHlsToAmr(String inputName, String outputName) {
+        if (inputName == null || outputName == null) {
+            return null;
+        }
+
+        PromptConfig config = AppInstance.getInstance().getPromptConfig();
+
+
+
+//        String ffmpegCmd = String.format("exec ffmpeg -i \"%s\" -acodec pcm_s16le -ar 8000 -ac 1 -filter volume=%f %s",
+//                inputName,
+//                (config != null) ? config.getBgmVolume() : DEFAULT_VOLUME,
+//                outputName);
+        String ffmpegCmd = String.format("exec ffmpeg -i \"%s\" -acodec amr_wb -ar 16000 -b:a 23.85k -ac 1 -af \"highpass=f=200, lowpass=f=5000\" -filter volume=%f %s",
+                inputName,
+                (config != null) ? config.getBgmVolume() : DEFAULT_VOLUME,
+                outputName);
+
+        logger.info("FFMPEG Command : [{}]", ffmpegCmd);
+
+        if (config != null) {
+            config.close();
+        }
 
         return runShell(ffmpegCmd);
     }

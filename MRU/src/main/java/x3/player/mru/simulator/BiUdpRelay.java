@@ -27,6 +27,12 @@ public class BiUdpRelay {
     private AiifRelay aiifRelay = null;
     private String dstQueueName = null;
 
+    private String sessionId;
+
+    public BiUdpRelay(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
     public void setSrcLocalPort(int localPort) {
         srcLocalPort = localPort;
     }
@@ -74,6 +80,7 @@ public class BiUdpRelay {
         if (srcUdpSocket != null) {
             aiifRelay = new AiifRelay();
 
+            aiifRelay.setSessionId(sessionId);
             aiifRelay.setInputCodec(inputCodec);
             if (dstQueueName != null) {
                 aiifRelay.setRelayQueue(dstQueueName);
@@ -92,6 +99,8 @@ public class BiUdpRelay {
     }
 
     public void closeUdpSocket() {
+        logger.debug("[{} closeUdpSocket", sessionId);
+
         if (srcUdpSocket != null) {
             srcUdpSocket.stop();
         }

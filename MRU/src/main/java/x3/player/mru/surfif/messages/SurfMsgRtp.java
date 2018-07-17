@@ -15,6 +15,8 @@ public class SurfMsgRtp {
     private int inPayloadType;
     @SerializedName("out_payload_type")
     private int outPayloadType;
+    @SerializedName("dtmf_in_payload_type")
+    private Integer dtmfInPayloadType;
 
     public int getLocalUdpPort() {
         return localUdpPort;
@@ -58,5 +60,13 @@ public class SurfMsgRtp {
 
     public void setOutPayloadType(int outPayloadType) {
         this.outPayloadType = outPayloadType;
+    }
+
+    public Integer getDtmfInPayloadType() {
+        return dtmfInPayloadType;
+    }
+
+    public void setDtmfInPayloadType(Integer dtmfInPayloadType) {
+        this.dtmfInPayloadType = dtmfInPayloadType;
     }
 }

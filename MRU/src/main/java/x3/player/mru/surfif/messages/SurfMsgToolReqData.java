@@ -23,6 +23,9 @@ public class SurfMsgToolReqData {
     @SerializedName("app_info")
     private String appInfo;
 
+    @SerializedName("EVG")
+    private SurfMsgEvg evg;
+
     /**
      * Events
      */
@@ -120,6 +123,18 @@ public class SurfMsgToolReqData {
 
     public void newRtp() {
         this.rtp = new SurfMsgRtp();
+    }
+
+    public SurfMsgEvg getEvg() {
+        return evg;
+    }
+
+    public void setEvg(SurfMsgEvg evg) {
+        this.evg = evg;
+    }
+
+    public void newEvg() {
+        this.evg = new SurfMsgEvg();
     }
 
     public Boolean getInputFromRtp() {

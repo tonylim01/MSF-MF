@@ -9,6 +9,7 @@ public class SurfMsgToolInfData {
     private String filename;
     @SerializedName("app_info")
     private String appInfo;
+    private String event;
 
     public String getType() {
         return type;
@@ -20,5 +21,9 @@ public class SurfMsgToolInfData {
 
     public String getAppInfo() {
         return appInfo;
+    }
+
+    public String getEvent() {
+        return event;
     }
 }

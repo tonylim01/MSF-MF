@@ -2,16 +2,25 @@ package x3.player.mru.simulator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import x3.player.core.codec.AMRSlience;
 import x3.player.mru.App;
 import x3.player.mru.AppInstance;
 import x3.player.mru.common.ShellUtil;
 import x3.player.mru.config.AmfConfig;
 import x3.player.mru.rmqif.module.RmqClient;
+import x3.player.mru.room.RoomInfo;
+import x3.player.mru.room.RoomManager;
+import x3.player.mru.session.SessionInfo;
+import x3.player.mru.session.SessionManager;
+import x3.player.mru.session.SessionState;
+import x3.player.mru.session.SessionStateManager;
 import x3.player.mru.surfif.messages.SurfMsgVocoder;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 
 public class AiifRelay {
 
@@ -19,7 +28,7 @@ public class AiifRelay {
 
     private static final int RTP_HEADER_SIZE = 12;
 
-    private static boolean isQuit;
+    private boolean isQuit;
 
     private RmqClient rmqClient = null;
     private FileOutputStream fileStream = null;
@@ -34,9 +43,14 @@ public class AiifRelay {
     private long audioDetectLevel = 0;
     private long silenceDetectLevel = 0;
     private long silenceDetectDuration = 0;
+    private long energyDetectDuration = 0;
 
     private boolean isEnergyDetected = false;
 
+    private String sessionId;
+    private RoomInfo roomInfo;
+
+    private boolean isAMR = false;
 
     public void start() {
         isQuit = false;
@@ -46,14 +60,17 @@ public class AiifRelay {
         audioDetectLevel = config.getAudioEnergyLevel();
         silenceDetectLevel = config.getSilenceEnergyLevel();
         silenceDetectDuration = config.getSilenceDetectDuration();
+        energyDetectDuration = config.getEnergyDetectDuration();
 
         ffmpegThread = new Thread(new FfmpegRunnable());
         ffmpegThread.start();
 
         try {
+            logger.debug("AiifRelay start {} codec {}", inputPipeName, inputCodec);
             inputPipeFile = new RandomAccessFile(inputPipeName, "rw");
             if (inputCodec != null && inputCodec.equals(SurfMsgVocoder.VOCODER_AMR_WB)) {
                 inputPipeFile.write(AMR_HEADER);
+                isAMR = true;
             }
 
             outputPipeFile = new RandomAccessFile(outputPipeName, "r");
@@ -68,6 +85,8 @@ public class AiifRelay {
     }
 
     public void stop() {
+        logger.debug("stop ({})", inputPipeName);
+
         isQuit = true;
 
         if (pipeOpened) {
@@ -121,6 +140,17 @@ public class AiifRelay {
         }
     }
 
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+
+        if (sessionId != null) {
+            SessionInfo sessionInfo = SessionManager.getInstance().getSession(sessionId);
+            if (sessionInfo != null && sessionInfo.getConferenceId() != null) {
+                roomInfo = RoomManager.getInstance().getRoomInfo(sessionInfo.getConferenceId());
+            }
+        }
+    }
+
     public boolean send(byte[] buf, int size) {
         if (buf == null || (buf != null && buf.length == 0)) {
             return false;
@@ -134,7 +164,22 @@ public class AiifRelay {
 
         if (inputPipeFile != null) {
             try {
-                inputPipeFile.write(buf, RTP_HEADER_SIZE, size - RTP_HEADER_SIZE);
+                boolean alreadyWrite = false;
+
+                if (isAMR) {
+                    alreadyWrite = checkSID(buf, size);
+                }
+
+                if (!alreadyWrite) {
+                    if (!isAMR) {
+                        inputPipeFile.write(buf, RTP_HEADER_SIZE + 1, size - RTP_HEADER_SIZE - 1);
+                    }
+                    else {
+//                        logger.debug("AMR frame: Voice Frame {} size : {} ",inputPipeFile.toString(),size - RTP_HEADER_SIZE - 1);
+                        // In case of AMR, the 1st byte of the payload should be removed
+                        inputPipeFile.write(buf, RTP_HEADER_SIZE + 1, size - RTP_HEADER_SIZE - 1);
+                    }
+                }
                 result = true;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -144,6 +189,99 @@ public class AiifRelay {
         return result;
     }
 
+    private static final int FRAME_TYPE_AMR = 8;
+    private static final int FRAME_TYPE_SID = 9;
+
+    private long lastTimestamp = 0;
+    private int lastFrameType = 0;
+    private int lastAMRMode = 0;
+
+    public static final long toUnsignedInt(byte[] b) {
+        long l = 0;
+
+        l |= b[0] & 0xFF;
+        l <<= 8;
+        l |= b[1] & 0xFF;
+        l <<= 8;
+        l |= b[2] & 0xFF;
+        l <<= 8;
+        l |= b[3] & 0xFF;
+
+        return l;
+    }
+
+    private boolean checkSID(byte[] buf, int size) {
+        if (buf == null) {
+            return false;
+        }
+
+
+        boolean result = false;
+
+        byte[] timestampBuf = new byte[4];
+        System.arraycopy(buf, 4, timestampBuf, 0, timestampBuf.length);
+
+        long timestamp = toUnsignedInt(timestampBuf);
+
+        int frameType= ((buf[RTP_HEADER_SIZE + 1] & 0xff) >> 3) & 0x0f;
+
+//        logger.debug("AMR frame: timestamp {} frametype {}", timestamp, frameType);
+
+        if (frameType == FRAME_TYPE_SID) {
+            if (lastTimestamp > 0) {
+                int timestampGap = (int)(((timestamp - lastTimestamp) / 20) / 16 - 1);
+                if (timestampGap >= 0) {
+
+                    result = true;
+//                    logger.debug("AMR frame: write silence count {} before sid", timestampGap);
+                    writeAMRSilencePacket(timestampGap);
+                }
+            }
+        }
+        else if (lastFrameType == FRAME_TYPE_SID && frameType != FRAME_TYPE_SID) {
+            if (lastTimestamp > 0) {
+                int timestampGap = (int)(((timestamp - lastTimestamp) / 20) / 16 - 1);
+                if (timestampGap >= 0) {
+
+//                    logger.debug("AMR frame: Now Voice Frame write silence count {} before {}", timestampGap, frameType);
+                    writeAMRSilencePacket(timestampGap);
+                }
+            }
+        }
+
+        lastFrameType = frameType;
+        if (frameType != FRAME_TYPE_SID) {
+            lastAMRMode = frameType;
+        }
+
+        lastTimestamp = timestamp;
+
+        return result;
+    }
+
+    private void writeAMRSilencePacket(int count) {
+
+        //int dataSize = AMRSlience.getPayloadSize(FRAME_TYPE_AMR);
+        int dataSize = AMRSlience.getPayloadSize(lastAMRMode);
+        if (dataSize == 0) {
+            return;
+        }
+
+//        logger.debug("AMR frame: BF write silence file name {} count {} {} size : {} ",lastAMRMode,count,inputPipeFile.toString(),dataSize);
+
+        byte[] data = new byte[dataSize];
+        AMRSlience.copySilenceBuffer(lastAMRMode, data, 0);
+
+        if (inputPipeFile != null) {
+            for (int i = 0; i < count; i++) {
+                try {
+                    inputPipeFile.write(data);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
     public void setRelayQueue(String queueName) {
         createPipe(queueName);
@@ -199,6 +337,7 @@ public class AiifRelay {
     private int linearSumCount = 0;
     private short prevValue = 0;
     private long silenceStart;
+    private long energyStart;
 
     class FfmpegRunnable implements Runnable {
         @Override
@@ -243,6 +382,7 @@ public class AiifRelay {
                                 try {
                                     fileStream.write(pipeBuf, 0, size);
                                 } catch (Exception e) {
+                                    logger.warn("Exception [{}] [{}]", e.getClass(), e.getMessage());
                                     e.printStackTrace();
                                 }
                             }
@@ -256,6 +396,7 @@ public class AiifRelay {
                 }
 
             } catch (Exception e) {
+                logger.warn("Exception [{}] [{}]", e.getClass(), e.getMessage());
                 e.printStackTrace();
             }
 
@@ -280,14 +421,32 @@ public class AiifRelay {
                     if (linearSumCount >= 5) {
 //                        logger.info("energy = {}", linearSum);
                         if (!isEnergyDetected && linearSum >= audioDetectLevel) {
+                            if (silenceStart > 0) {
+                                silenceStart = 0;
+                            }
                             //
                             // TODO: Voice detected
                             //
-                            logger.info("Energy Detected [{}]", isCaller ? "caller" : "callee");
+                            long timestamp = System.currentTimeMillis();
+                            if (energyStart == 0) {
+                                energyStart = timestamp;
+                            }
+                            else if (timestamp - energyStart > energyDetectDuration) {
+                                logger.info("Energy Detected [{}]", isCaller ? "caller" : "callee");
 
-                            isEnergyDetected = true;
+                                isEnergyDetected = true;
+                                SessionStateManager.getInstance().setState(sessionId, SessionState.UPDATE, (Boolean)true);
+
+                                if (roomInfo != null) {
+                                    roomInfo.setVoice(true);
+                                }
+                            }
                         }
                         else if (isEnergyDetected) {
+                            if (energyStart > 0) {
+                                energyStart = 0;
+                            }
+
                             if (linearSum < silenceDetectLevel) {
                                 //
                                 // TODO: Silence detected
@@ -297,13 +456,21 @@ public class AiifRelay {
                                     silenceStart = timestamp;
                                 }
                                 else if (timestamp - silenceStart > silenceDetectDuration) {
-                                    logger.info("Silence Detected [{}]", isCaller ? "caller" : "callee");
+                                    logger.info("Silence Detected [{}] interval [{}]", isCaller ? "caller" : "callee", timestamp - silenceStart);
                                     isEnergyDetected = false;
+                                    SessionStateManager.getInstance().setState(sessionId, SessionState.UPDATE, (Boolean)false);
+
+                                    if (roomInfo != null) {
+                                        roomInfo.setVoice(false);
+                                    }
                                 }
                             }
                             else if (silenceStart > 0) {
                                 silenceStart = 0;
                             }
+                        }
+                        else if (energyStart > 0) {
+                            energyStart = 0;
                         }
 
                         linearSumCount = 0;

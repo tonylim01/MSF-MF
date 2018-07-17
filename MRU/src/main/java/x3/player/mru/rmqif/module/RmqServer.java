@@ -32,7 +32,8 @@ public class RmqServer {
 
         rmqConsumerThread.start();
 
-        receiver = new RmqReceiver(config.getRmqHost(), config.getRmqUser(), config.getRmqPass(), config.getLocalName());
+//        receiver = new RmqReceiver(config.getRmqHost(), config.getRmqUser(), config.getRmqPass(), config.getLocalName());
+        receiver = new RmqReceiver(config.getRmqHost(), config.getRmqUser(), config.getRmqPass(), "amf_amfd");
         receiver.setCallback(new MessageCallback());
 
         boolean result = receiver.connectServer();
