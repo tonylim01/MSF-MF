@@ -18,20 +18,15 @@ import java.util.concurrent.TimeoutException;
 /**
  * Created by hwaseob on 2018-03-06.
  */
-public class Client {//implements HeartbeatListener {
+public class Client {
     final static Logger log = LoggerFactory.getLogger(Client.class);
-    //offer
-    //answer
-    //negoDone
-    //hangup
-    //command
+
     private ConnectionFactory factory;
     Connection connection;
     Channel channel;
     final String EXCHANGE_NAME = "";//default exchange
     final String q ="a2s_a2sd";
     Map<String, FutureResult> futureResultMap = Collections.synchronizedMap(new TimedHashMap<String, FutureResult>(60000/*1 min*/*10));
-//    private HeartbeatListener heartbeatListener;
     int expir=5000;//5 seconds
 
     public Client() {
@@ -44,9 +39,6 @@ public class Client {//implements HeartbeatListener {
     public void setConnectionFactory(ConnectionFactory factory) {
         this.factory = factory;
     }
-
-//    public void listen(HeartbeatListener listener) {
-//    }
 
     public void connect() throws IOException, TimeoutException {
         connection = factory.newConnection();
@@ -68,8 +60,6 @@ public class Client {//implements HeartbeatListener {
                                                             byte[] rawBody) throws IOException {
                                      try
                                      {
-//                                     String message = new String(body, "UTF-8");
-//                                     System.out.println(" [x] Received '" + envelope.getRoutingKey() + "':'" + message + "'");
                                          Map<String, Object> js = (Map<String, Object>) r.read(new String(rawBody));
                                          Map<String, Object> header = (Map<String, Object>) js.get("header");//properties.getHeaders();
                                          String msgFrom = String.valueOf(header.get("msgFrom"));
@@ -92,13 +82,9 @@ public class Client {//implements HeartbeatListener {
                                          FutureResult f = futureResultMap.remove(tid);
                                          if (f != null)
                                          {
-                                             //h.put("body", body);
                                              Map<String, Object> res = new HashMap<String, Object>();
                                              res.put("reasonCode", rc);
-//                                         if (m.get("body") != null)
-//                                         {
                                              res.put("body", js.get("body"));
-//                                         }
                                              if (Integer.valueOf(0).equals(rc))
                                              {
                                                  f.set(res);
@@ -106,8 +92,6 @@ public class Client {//implements HeartbeatListener {
                                              {
                                                  f.setException(new ClientException(rc));
                                              }
-//                                         f.set(new Object[]{properties,
-//                                                 body});
                                          }
 
                                          if ("mfmp_service_start_res".equalsIgnoreCase(type) && body != null)
@@ -127,28 +111,6 @@ public class Client {//implements HeartbeatListener {
                                  }
                              });
 
-//        channel.queueDeclare("mcu_mcud",
-//                             true,//durable
-//                             false,//exclusive
-//                             true,//autoDelete
-//                             null);
-//        setHeartbeatListener(this);
-//        channel.basicConsume("mcu_mcud",
-//                             true,
-//                             new DefaultConsumer(channel) {
-//                                 JSONReader r= new JSONReader();
-//                                 @Override
-//                                 public void handleDelivery(String consumerTag,
-//                                                            Envelope envelope,
-//                                                            AMQP.BasicProperties properties,
-//                                                            byte[] body) throws IOException {
-//                                     if (heartbeatListener != null)
-//                                     {
-//                                         Map<String, Object> h=(Map<String, Object>)r.read(new String(body));
-//                                         heartbeatListener.beat(h);
-//                                     }
-//                                 }
-//                             });
     }
 
     public void close() {
@@ -167,9 +129,7 @@ public class Client {//implements HeartbeatListener {
 
     protected FutureResult request(//String exchange,
                                    String routingKey,
-                                   //AMQP.BasicProperties props,
                                    Map<String, Object> header,
-//                                    ImmutableMap.Builder<String, Object> header,
                                    Map<String, Object> body) throws IOException {
         FutureResult f = new FutureResult();
         String tid = UUID.randomUUID().toString();
@@ -182,46 +142,23 @@ public class Client {//implements HeartbeatListener {
         {
             m.put("body", body);
         }
-//        System.out.println(new JSONWriter().write(m));
-        //*
+
         try
         {
             channel.basicPublish(EXCHANGE_NAME,//exchange
                                  routingKey,//"amf_amfd",//"mru1_mrud",//routingKey
                                  new AMQP.BasicProperties
                                          .Builder()
-//                                         .headers(header)
                                          .expiration(""+expir)
                                          .build(),
                                  new JSONWriter().write(m).getBytes());
-//        } catch (IOException e)
-//        {
-//            log.error("MCU-->MRU "+dir + "\n"+ header);
-//            throw e;
         } catch (NullPointerException e)
         {
             throw e;
-        }//*/
-        /*
-        Map<String,Object> res = new HashMap<>();
-        res.put("reasonCode", 0);
-        f.set(res);
-        //*/
+        }
+
         return f;
     }
-
-//    public FutureResult offer(String dir,
-//                              String conference_id,
-//                              String callId,
-//                              String caller,
-//                              String callee) throws IOException {
-//        return offer(dir,
-//                     conference_id,
-//                     callId,
-//                     caller,
-//                     callee,
-//                     null);
-//    }
 
     public FutureResult offer(String dir,
                               String conference_id,
@@ -229,40 +166,11 @@ public class Client {//implements HeartbeatListener {
                               String caller,
                               String callee,
                               String sdp) throws IOException {
-//        log.info("MCU-->MRU offer callId = "+callId);
-//        FutureResult f = new FutureResult();
-//        f.set(null);
-//        return f;
 
-//        String tid=UUID.randomUUID().toString();
-//        FutureResult f = new FutureResult();
-//        futureResultMap.put(tid, f);
-//        h.getHeaders().put("type", "A");
-//        Map<String, Object> header=
-//        ImmutableMap.Builder<String, Object> header =
-//                ImmutableMap.<String, Object>builder().
-//                        put("type", "msfmp_inbound_set_offer_req").
-//                        put("callId", callId).
-////                put("transactionId", tid).
-//        put("msgFrom", "mcu1_mcud");
-        //build();
         Map<String,Object> header=new HashMap<>();
         header.put("type", "mfmp_set_offer_req");
         header.put("callId", callId);
-//                put("transactionId", tid).
         header.put("msgFrom", q);
-
-//        String body = (sdp != null) ? new JSONWriter().write(ImmutableMap.<String, String>builder().
-//                put("from_no", caller).
-//                put("to_no", callee).
-//                put("conference_id", conference_id).
-//                put("sdp", sdp).
-//                build())
-//                : new JSONWriter().write(ImmutableMap.<String, String>builder().
-//                put("from_no", caller).
-//                put("to_no", callee).
-////                        put("sdp", sdp).
-//        build());
         Map<String,Object> body=new HashMap<>();
         if (sdp != null)
         {
@@ -288,26 +196,10 @@ public class Client {//implements HeartbeatListener {
 
     public FutureResult answer(String dir,
                                String callId) throws IOException {
-//        log.info("MCU-->MRU answer callId = "+callId);
-//        FutureResult f = new FutureResult();
-//        f.set(null);
-//        return f;
-
-//        String tid=UUID.randomUUID().toString();
-//        FutureResult f = new FutureResult();
-//        futureResultMap.put(tid, f);
-//        ImmutableMap.Builder<String, Object> header = ImmutableMap.<String, Object>builder().
-//                put("type", "msfmp_inbound_get_answer_req").
-//                put("callId", callId).
-////                put("transactionId", tid).
-//        put("msgFrom", "mcu1_mcud");
-//                build();
         Map<String,Object> header=new HashMap<>();
         header.put("type", "mfmp_get_answer_req");
         header.put("callId", callId);
-//                put("transactionId", tid).
         header.put("msgFrom", q);
-//        String body="";
         FutureResult f = request(//EXCHANGE_NAME,//exchange
                                  "amf_amfd",//"mru1_mrud",//routingKey
                                  header,
@@ -316,40 +208,14 @@ public class Client {//implements HeartbeatListener {
         return f;
     }
 
-//    public FutureResult negoDone(String dir,
-//                                 String callId) throws IOException {
-//        return negoDone(dir,
-//                        callId,
-//                        null);
-//    }
 
     public FutureResult negoDone(String dir,
                                  String callId,
                                  String sdp) throws IOException {
-//        log.info("MCU-->MRU negoDone callId = "+callId);
-//        FutureResult f = new FutureResult();
-//        f.set(null);
-//        return f;
-
-//        String tid=UUID.randomUUID().toString();
-//        FutureResult f = new FutureResult();
-//        futureResultMap.put(tid, f);
-//        ImmutableMap.Builder<String, Object> header = ImmutableMap.<String, Object>builder().
-//                put("type", "msfmp_nego_done_req").
-//                put("callId", callId).
-////                put("transactionId", tid).
-//        put("msgFrom", "mcu1_mcud");
-//                build();
         Map<String,Object> header=new HashMap<>();
         header.put("type", "mfmp_nego_done_req");
         header.put("callId", callId);
-//                put("transactionId", tid).
         header.put("msgFrom", q);
-//        String body = (sdp != null) ? new JSONWriter().write(ImmutableMap.<String, String>builder().
-//                put("sdp", sdp).
-//                build())
-//                : "{}"/*new JSONWriter().write(ImmutableMap.<String, String>builder().
-//                build())*/;
         Map<String,Object> body=new HashMap<>();
         if (sdp != null)
         {
@@ -365,24 +231,9 @@ public class Client {//implements HeartbeatListener {
     }
 
     public FutureResult hangup(String dir, String callId) throws IOException {
-//        log.info("MCU-->MRU hangup callId = "+callId);
-//        FutureResult f = new FutureResult();
-//        f.set(null);
-//        return f;
-
-//        String tid=UUID.randomUUID().toString();
-//        FutureResult f = new FutureResult();
-//        futureResultMap.put(tid, f);
-//        ImmutableMap.Builder<String, Object> header = ImmutableMap.<String, Object>builder().
-//                put("type", "msfmp_hangup_req").
-//                put("callId", callId).
-////                put("transactionId", tid).
-//        put("msgFrom", "mcu1_mcud");
-//                build();
         Map<String,Object> header=new HashMap<>();
         header.put("type", "mfmp_hangup_req");
         header.put("callId", callId);
-//                put("transactionId", tid).
         header.put("msgFrom", q);
         FutureResult f = request(//EXCHANGE_NAME,//exchange
                                  "amf_amfd",//"mru1_mrud",//routingKey
@@ -400,7 +251,6 @@ public class Client {//implements HeartbeatListener {
         header.put("msgFrom", q);
         Map<String,Object> body=new HashMap<>();
         body.put("MDN", mdn);
-//        body.put("AIIF ID", aiif_id);
         FutureResult f = request(//EXCHANGE_NAME,//exchange
                                  "awf_awfd",//"mru1_mrud",//routingKey
                                  header,
@@ -417,7 +267,6 @@ public class Client {//implements HeartbeatListener {
         header.put("msgFrom", q);
         Map<String,Object> body=new HashMap<>();
         body.put("MDN", mdn);
-//        body.put("AIIF ID", aiif_id);
         FutureResult f = request(//EXCHANGE_NAME,//exchange
                                  "awf_awfd",//"mru1_mrud",//routingKey
                                  header,
@@ -427,7 +276,6 @@ public class Client {//implements HeartbeatListener {
     }
 
     protected void onServiceStarted(String callId, int aiif_id) {
-//        aiif_allocated()
     }
 
     public FutureResult aiif_allocated(/*String dir,*/ String callId,
@@ -448,17 +296,7 @@ public class Client {//implements HeartbeatListener {
         return f;
     }
 
-//    public HeartbeatListener getHeartbeatListener() {
-//        return heartbeatListener;
-//    }
-//
-//    public void setHeartbeatListener(HeartbeatListener heartbeatListener) {
-//        this.heartbeatListener = heartbeatListener;
-//    }
-
-//    @Override
     public void beat(Map<String, Object> hb) {
-//        log.info("MCU<--MRU heartbeat\n"+h);
     }
 
 

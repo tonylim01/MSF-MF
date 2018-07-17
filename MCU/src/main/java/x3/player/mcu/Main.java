@@ -29,14 +29,14 @@ public class Main {
         }
         int port=Integer.parseInt(config.getProperty("port", "5070"));
         log.info("port = "+port);
-        String redis_host = config.getProperty("redis.host", "localhost");
-        int redis_port=Integer.parseInt(config.getProperty("redis.port", "6379"));
-        log.info("redis = "+redis_host+":"+redis_port);
-        JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
-        JedisPool pool = new JedisPool(jedisPoolConfig,
-                                       redis_host,
-                                       redis_port,
-                                       1000/*timeout*/);
+//        String redis_host = config.getProperty("redis.host", "localhost");
+//        int redis_port=Integer.parseInt(config.getProperty("redis.port", "6379"));
+//        log.info("redis = "+redis_host+":"+redis_port);
+//        JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
+//        JedisPool pool = new JedisPool(jedisPoolConfig,
+//                                       redis_host,
+//                                       redis_port,
+//                                       1000/*timeout*/);
 
         SipSignal sip = new SipSignal();
 
@@ -85,14 +85,45 @@ public class Main {
         client.connect();
 
 
-        String localIP = LocalIP.getLocalAddress().toString().substring(1);
+//        String localIP = "113.217.242.196";//LocalIP.getLocalAddress().toString().substring(1);
+        String localIP = config.getProperty("LOCAL_IP", LocalIP.getLocalAddress().toString().substring(1));
         log.info("Local IP = "+localIP);
         sip.setHost(localIP);
         sip.setPort(port);
-        sip.setPool(pool);
+//        sip.setPool(pool);
         sip.setClient(client);
+        if (config.getProperty("CSCF_IP") != null && config.getProperty("CSCF_PORT") != null)
+        {
+            //sip.properties().setProperty("javax.sip.OUTBOUND_PROXY", config.getProperty("CSCF_IP") + ":" + config.getProperty("CSCF_PORT") + "/UDP");
+        }
         sip.init();
-        log.info("MCU start,.");
+        sip.getSessionFactory().setConfig(config);
+        log.info("MCU start.");
+
+        OptionsProcessing opt=new OptionsProcessing(sip.getSipProvider());
+        opt.setSequence(1);
+//        Thread t=new Thread(() -> {
+//                for (; ; )
+//                {
+//                    opt.setToName("CSCF_AAA");
+//                    opt.setFromName("ACS");
+//                    opt.setToIp("172.27.68.9:5060"/*config.getProperty("CSCF_HOST")*//*"192.168.7.81"*/);
+//                    opt.setFromIp("113.217.242.196:5060"/*config.getProperty("CSCF_HOST")*//*"sktims.net"*/);
+//                    //opt.setToPort(5070);
+//                    opt.setPeerHostPort("172.27.68.9:5060"/*config.getProperty("CSCF_HOST")*/);
+//                    opt.options();
+//
+//                    try
+//                    {
+//                        Thread.sleep(10 * 1000);
+//                    } catch (InterruptedException e)
+//                    {
+//                        break;
+//                    }
+//                }
+//            }
+//        );
+//        t.start();
 
         //https://stackoverflow.com/questions/16251273/can-i-watch-for-single-file-change-with-watchservice-not-the-whole-directory
         FileWatchdog wd=new FileWatchdog("lib/MCU-1.0.jar") {
@@ -103,7 +134,7 @@ public class Main {
                 Runtime runtime = Runtime.getRuntime();
                 try
                 {
-                    Thread.sleep(1000);
+                    Thread.sleep(5000);
                     String cmd="java -jar lib/MCU-1.0.jar";
                     log.info(cmd);
                     Process proc = runtime.exec(cmd);

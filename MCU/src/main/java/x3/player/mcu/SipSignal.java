@@ -1,6 +1,7 @@
 package x3.player.mcu;
 
 import com.uangel.svc.util.TimedHashMap;
+import gov.nist.javax.sip.stack.SIPTransactionStack;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import javax.sip.address.URI;
 import javax.sip.header.*;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
+import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -22,24 +24,12 @@ import java.util.concurrent.TimeUnit;
 public class SipSignal implements SipListener, SessionLifeCycleListener {
     final static Logger log = LoggerFactory.getLogger(SipSignal.class);
 
-    //    MessageFactory mf;
-//    MessageFactory messageFactory;
-//
-//    HeaderFactory headerFactory;
-//
-//    AddressFactory addressFactory;
-
     SipProvider sipProvider;
     ListeningPoint udpListeningPoint;
-    //    String transport = "tcp";
     private String host;
     private int port=5070;
     String transport = "udp";
-//    Dialog outBoundDialog;//outBoundDialog
-//    ClientTransaction outBoundTr;
-//    ServerTransaction inviteTid;//inBound inbound
-//    private Request inviteRequest;
-//    Response ok;
+    Properties properties = new Properties();
 
     SessionFactory fact;
     private Client client;
@@ -48,8 +38,8 @@ public class SipSignal implements SipListener, SessionLifeCycleListener {
 //    JedisPool pool = new JedisPool(jedisPoolConfig, "localhost", 6379, 1000/*timeout*/);
     JedisPool pool;
     ThreadPoolExecutor executor;
-//    Map<String, Session> sessionMap = new ConcurrentHashMap<>();
     Map<String, Session> sessionMap = Collections.synchronizedMap(new TimedHashMap<>(60000*60*24));
+
 
     public SipSignal() {
     }
@@ -79,35 +69,16 @@ public class SipSignal implements SipListener, SessionLifeCycleListener {
 
         SipFactory sipFactory = null;
         SipStack sipStack;
-//        sipStack = null;
         sipFactory = SipFactory.getInstance();
         sipFactory.setPathName("gov.nist");
-        Properties properties = new Properties();
         properties.setProperty("javax.sip.STACK_NAME", "mcu");
         properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "LOG4J");
         properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "mcu_debug.txt");
         properties.setProperty("gov.nist.javax.sip.SERVER_LOG", "mcu_log.txt");
 //        properties.setProperty("gov.nist.javax.sip.AUTOMATIC_DIALOG_SUPPORT", "OFF");
+//        properties.setProperty("javax.sip.OUTBOUND_PROXY", "")
 
-//        try {
         sipStack = sipFactory.createSipStack(properties);
-//            System.out.println("sipStack = " + sipStack);
-//        } catch (PeerUnavailableException e) {
-//            e.printStackTrace();
-//            System.err.println(e.getMessage());
-//            if (e.getCause() != null)
-//                e.getCause().printStackTrace();
-//            System.exit(0);
-//        }
-
-//        try {
-//        headerFactory = sipFactory.createHeaderFactory();
-//        addressFactory = sipFactory.createAddressFactory();
-//        messageFactory = sipFactory.createMessageFactory();
-//            headerFactory = sipFactory.createHeaderFactory();
-//            addressFactory = sipFactory.createAddressFactory();
-//            mf = sipFactory.createMessageFactory();
-        /*ListeningPoint*/
 
         try
         {
@@ -122,31 +93,32 @@ public class SipSignal implements SipListener, SessionLifeCycleListener {
                 Thread.sleep(1000);
             } catch (InterruptedException e1)
             {
-//                e1.printStackTrace();
             }
             System.exit(1);
         }
 
-//            MrfcSipSignal listener = this;
 
-        /*SipProvider*/
         sipProvider = sipStack.createSipProvider(udpListeningPoint);
-//        System.out.println("udp provider " + sipProvider);
         sipProvider.addSipListener(this);
 
-//        } catch (Exception ex) {
-//            System.out.println(ex.getMessage());
-//            ex.printStackTrace();
-////            usage();
-//        }
         fact = new SessionFactory();
         fact.setSipFactory(sipFactory);
         fact.setSipProvider(sipProvider);
         fact.setSessionLifeCycleListener(this);
         fact.setClient(client);
-//        mru=new MruClient();
-//        mru.setConnectionFactory();
         log.info(SipSignal.class.getName()+" is initialized");
+    }
+
+    public Properties properties() {
+        return properties;
+    }
+
+    public SipProvider getSipProvider() {
+        return sipProvider;
+    }
+
+    public SessionFactory getSessionFactory() {
+        return fact;
     }
 
     public void processRequest(RequestEvent e) {
@@ -160,7 +132,6 @@ public class SipSignal implements SipListener, SessionLifeCycleListener {
         {
             String key = String.valueOf(i.next());
             Header h = req.getHeader(key);
-//            System.out.println();
             headers.append(h.toString());
         }
         String body = null;
@@ -169,15 +140,26 @@ public class SipSignal implements SipListener, SessionLifeCycleListener {
         {
             body = new String(content);
         }
-        log.debug("processRequest\n" + method + " " + requestURI + " " + ver + "\n" + headers + "\n" + body);
-        log.info(Utils.toString(e.getRequest()));
-//        log.info("processRequest "+method);
-//        e.getServerTransaction();//null
-//        e.getSource();//SipProvider
-//        log.info("method = " + method);//INVITE
-//        req.getHeader("Via");//Via: SIP/2.0/UDP 127.0.0.1:5070;branch=z9hG4bK.oQ4cK~KsL;rport=59689;received=127.0.0.1
-//        req.getContentEncoding();//null
 
+        String dir="";
+        if (e.getDialog() != null)
+        {
+
+            String callId=e.getDialog().getCallId().getCallId();
+            Session s=sessionMap.get(callId);
+            dir="INBOUND";
+            if (s != null)
+            {
+                dir=s.dir(callId);
+            }
+        }
+        if (Request.OPTIONS.equals(method))
+        {
+            log.debug(Utils.toString(e.getRequest()) + "\n" + body);
+        } else
+        {
+            log.info(dir+" "+method+" "+Utils.toString(e.getRequest()) + "\n" + body);
+        }
         if (Request.INVITE.equals(method))
         {
             processInvite(e);
@@ -190,16 +172,16 @@ public class SipSignal implements SipListener, SessionLifeCycleListener {
         } else if (Request.BYE.equals(method))
         {
             processBye(e);
+        } else if (Request.PRACK.equals(method))
+        {
+            processPrAck(e);
+        } else if (Request.OPTIONS.equals(method))
+        {
+            returnOk(e);
+        } else if (Request.UPDATE.equals(method))
+        {
+            returnOk(e);
         }
-//        System.out.println();
-//        req.getMethod()
-//        new String(req.getRawContent());
-//        try {
-//            Response res = mf.createResponse(Response.RINGING,
-//                                                              req);
-//        } catch (ParseException e) {
-//            e.printStackTrace();
-//        }
         /*
 v=0
 o=toto 542 479 IN IP4 192.168.2.97
@@ -222,16 +204,50 @@ a=fmtp:99 profile-level-id=3
          */
     }
 
+    public void returnOk(final RequestEvent e) {
+        Request req=e.getRequest();
+        try
+        {
+            Response ok = fact.getMessageFactory().createResponse(Response.OK, req);
+            ServerTransaction tr = e.getServerTransaction();
+            if (tr == null)
+            {
+                tr = fact.getSipProvider().getNewServerTransaction(req);
+            }
+            tr.sendResponse(ok);
+            String method = req.getMethod();
+            if (!Request.OPTIONS.equals(method))
+            {
+                log.info(Utils.toString(ok));
+            }
+
+        } catch (ParseException e1)
+        {
+            log.error(e1.toString(), e1);
+        } catch (TransactionAlreadyExistsException e1)
+        {
+            log.error(e1.toString(), e1);
+        } catch (TransactionUnavailableException e1)
+        {
+            log.error(e1.toString(), e1);
+        } catch (InvalidArgumentException e1)
+        {
+            log.error(e1.toString(), e1);
+        } catch (SipException e1)
+        {
+            log.error(e1.toString(), e1);
+        }
+
+    }
+
     public void processInvite(final RequestEvent e) {
         log.debug("processInvite");
-//        Request req = e.getRequest();
-//        String method = req.getMethod();
-//        FromHeader fr= (FromHeader) req.getHeader(FromHeader.NAME);
-//        ToHeader to= (ToHeader) req.getHeader(ToHeader.NAME);
-//        log.info(fr.getAddress() + "-->" + method + "-->"+to.getAddress());
-//        log.info(Utils.toString(e.getRequest()));
 //        executor.execute(()->{
-                fact.create(e);
+                Session s=fact.create(e);
+        sessionMap.put(s.inbound.getCallId(),
+                       s);
+        sessionMap.put(s.outbound.getCallId(),
+                       s);
 //        });
 
     }
@@ -243,12 +259,6 @@ a=fmtp:99 profile-level-id=3
     void processCancel(RequestEvent e) {
         log.debug("processCancel");
 
-//        Request req = e.getRequest();
-//        String method = req.getMethod();
-//        FromHeader fr= (FromHeader) req.getHeader(FromHeader.NAME);
-//        ToHeader to= (ToHeader) req.getHeader(ToHeader.NAME);
-//        log.info(fr.getAddress() + "-->" + method + "-->"+to.getAddress());
-//        log.info(Utils.toString(e.getRequest()));
         ((Session) e.getServerTransaction().getDialog().getApplicationData()).cancel(e);
 
     }
@@ -257,11 +267,13 @@ a=fmtp:99 profile-level-id=3
         log.debug("processBye");
         try
         {
+            String callId=event.getServerTransaction().getDialog().getCallId().getCallId();
+            Session s=sessionMap.get(callId);
 //            executor.execute(()->{
-                ((Session) event.getServerTransaction().getDialog().getApplicationData()).close(event);
+//                Session s=(Session) event.getServerTransaction().getDialog().getApplicationData();
+                if (s != null)
+                        s.close(event);
 //            });
-            //todo:
-            //failover applicationData == null
             /*
  BYE sip:alice@10.1.3.33 SIP/2.0
  Via: SIP/2.0/TCP 192.168.10.20;branch=z9hG4bKnashds8
@@ -280,19 +292,31 @@ a=fmtp:99 profile-level-id=3
 
     }
 
+
+    void processPrAck(final RequestEvent event) {
+        log.debug("processPrAck");
+        try
+        {
+//            executor.execute(()->{
+            ((Session) event.getServerTransaction().getDialog().getApplicationData()).processPrAck(event);
+        } catch (NullPointerException e)
+        {
+            log.error("processPrAck", e);
+            throw e;
+        }
+
+    }
+
     public void processResponse(ResponseEvent event) {
-        log.debug("processResponse");
         Response res = event.getResponse();
         String ver = res.getSIPVersion();//SIP/2.0
         int status = res.getStatusCode();
         String reason = res.getReasonPhrase();
-//        res.getRawContent();
         StringBuffer headers = new StringBuffer();
         for (ListIterator i = res.getHeaderNames(); i.hasNext(); )
         {
             String key = String.valueOf(i.next());
             Header h = res.getHeader(key);
-//            System.out.println();
             headers.append(h.toString());
         }
         String body = null;
@@ -302,47 +326,65 @@ a=fmtp:99 profile-level-id=3
             body = new String(content);
         }
 
-//        log.info("processResponse");
-        log.debug("processResponse\n" + ver + " " + status + " " + reason + "\n" + headers + "\n" + body);
-
-        log.info(Utils.toString(res));
-//        log.info("************ state = " + event.getDialog().getState());
+        String callId=event.getDialog().getCallId().getCallId();
+        Session s=sessionMap.get(callId);
+        String dir="";
+        if (s != null)
+        {
+            dir=s.dir(callId);
+        }
+        log.info("processResponse "+dir+" "+res.getReasonPhrase()+" "+res.getStatusCode()+"\n" + ver + " " + status + " " + reason + "\n" + headers + "\n" + body);
         //100 Trying    state = null
         //180 Ringing   state = Early Dialog
         //200 Ok        state = Confirmed Dialog
 
+        if (s == null)
+        {
+            log.error("SESSION NOT FOUND");
+            return;
+        }
+
         CSeqHeader cseq = (CSeqHeader) res.getHeader(CSeqHeader.NAME);
 
-//        ClientTransaction tid = event.getClientTransaction();
-//        System.out.println("tid ====== "+tid);
-
-//        try
-//        {
         if (Request.INVITE.equals(cseq.getMethod()))
         {
-//            int decline=Response.DECLINE;//603
-            //REQUEST_TERMINATED = 487
-            //if (Response.DECLINE/*603*/ == res.getStatusCode())
-//            if (Response.REQUEST_TERMINATED == res.getStatusCode())
-//            {
-//                //noop
-//                return;
-//            }
+
+
             if (300 <= res.getStatusCode() && res.getStatusCode() <= 699)
             {
-                try
-                {
-                    ((Session) event.getClientTransaction().getDialog().getApplicationData()).inviteDeclined(event);
-                } catch (NullPointerException e)
-                {
-                    //throw e;
-                    log.error(e.toString(), e);
-//                    return;
-                }
+//                log.info("RECEIVE OUTBOUND INVITE DECLINED "+res.getStatusCode());
+//                try
+//                {
+//                    Session s= (Session) event.getClientTransaction().getDialog().getApplicationData();
+//                    if (s != null)
+//                    {
+                        s.inviteDeclined(event);
+//                    }
+//                } catch (NullPointerException e)
+//                {
+//                    log.error(e.toString(), e);
+//                }
 
             } else if (Response.OK == res.getStatusCode())
             {
-                ((Session) event.getClientTransaction().getDialog().getApplicationData()).inviteAccepted(event);
+//                String callId=event.getDialog().getCallId().getCallId();
+//                Session s=sessionMap.get(callId);
+//                if (s != null)
+//                {
+//                log.info("RECEIVE OUTBOUND INVITE 200 OK");
+                s.inviteAccepted(event);
+//                }
+
+            } else if (res.getStatusCode() == Response.RINGING/*180*/ || res.getStatusCode() == Response.SESSION_PROGRESS/*183*/)
+            {
+//                log.info("RECEIVE OUTBOUND RINGING 180");
+//                String callId=event.getDialog().getCallId().getCallId();
+//                Session s=sessionMap.get(callId);
+//                if (s != null)
+//                {
+                s.ringing(event);
+//                }
+
             }
         }
 
@@ -358,18 +400,9 @@ a=fmtp:99 profile-level-id=3
     }
 
     public void processTransactionTerminated(TransactionTerminatedEvent event) {
-//        log.info("processTransactionTerminated");
-//        Transaction tr = (event.isServerTransaction()) ? event.getServerTransaction() : event.getClientTransaction();
-//        String branchId = tr.getBranchId();
-//        log.info("processTransactionTerminated branchId=" + branchId);
     }
 
     public void processDialogTerminated(DialogTerminatedEvent event) {
-//        log.info("processDialogTerminated");
-//        Dialog dialog = event.getDialog();
-//        String dialogId = dialog.getDialogId();
-//        String callId = dialog.getCallId().getCallId();
-//        log.info("processDialogTerminated callId=" + callId);
     }
 
 
@@ -381,8 +414,7 @@ a=fmtp:99 profile-level-id=3
         log.debug("sessionCancelled");
     }
 
-    public void sessionCreated(Session s) {
-//        log.debug("sessionCreated");
+    public void sessionCreated(final Session s) {
         log.info("sessionCreated inbound callId="+s.getInboundTr().getDialog().getCallId().getCallId()+"----outbound callId="+s.getOutboundTr().getDialog().getCallId().getCallId());
         sessionMap.put(s.inbound.getCallId(),
                        s);
@@ -401,6 +433,57 @@ a=fmtp:99 profile-level-id=3
 //        {
 //            jedis.close();
 //        }
+        Thread t=new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for(;;)
+                {
+                    //log.info("SLEEP 15s");
+                    try
+                    {
+                        Thread.sleep(15*1000);
+                    } catch (InterruptedException e)
+                    {
+                        log.error("SEND OUTBOUND UPDATE fail", e);
+                    }
+
+                    if (sessionMap.containsKey(s.outbound.getCallId())) {
+                        Dialog d = /*outBoundTr*//*outbound*/s.clientTransaction.getDialog();
+
+                        try
+                        {
+                            Request u = d.createRequest(Request.UPDATE);
+                            Header h;
+                            h = fact.getHeaderFactory().createHeader("Session-Expires", "180;refresher=uac");
+                            u.addHeader(h);
+                            h = fact.getHeaderFactory().createHeader("Supported", "timer");
+                            u.addHeader(h);
+                            h = fact.getHeaderFactory().createHeader("Supported", "100rel");
+                            u.addHeader(h);
+
+                            Header h1 = fact.getHeaderFactory().createHeader("To", " <tel:"+s.getCallee()+";phone-context=sktims.net>;tag="+s.getToTag());
+                            u.removeHeader("To");
+                            u.addHeader(h1);
+
+                            ClientTransaction ct = fact.getSipProvider().getNewClientTransaction(u);
+                            d.sendRequest(ct);
+                            log.info("SEND OUTBOUND UPDATE caller="+s.getCaller()+", callee="+s.getCallee()+" "+Utils.toString(u));
+                        } catch (SipException e)
+                        {
+                            log.error("SEND OUTBOUND UPDATE fail", e);
+                        } catch (ParseException e)
+                        {
+                            log.error("SEND OUTBOUND UPDATE fail", e);
+                        }
+                    } else
+                    {
+                        log.info("OUTBOUND UPDATE stop. caller="+s.getCaller()+", callee="+s.getCallee());
+                        break;
+                    }
+                }
+            }
+        });
+        t.start();
     }
 
     @Override
@@ -409,9 +492,9 @@ a=fmtp:99 profile-level-id=3
     }
 
     public void sessionClosed(Session s) {
-//        log.debug("sessionClosed");
         log.info("sessionClosed inbound="+s.getInboundTr().getDialog().getCallId().getCallId()+"--|-- outbound"+s.getOutboundTr().getDialog().getCallId().getCallId());
         sessionMap.remove(s.inbound.getCallId());
+        sessionMap.remove(s.outbound.getCallId());
 //        Jedis jedis = pool.getResource();
 //        try
 //        {

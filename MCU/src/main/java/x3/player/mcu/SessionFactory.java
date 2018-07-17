@@ -8,11 +8,13 @@ import javax.sip.*;
 import javax.sip.address.AddressFactory;
 import javax.sip.header.HeaderFactory;
 import javax.sip.message.MessageFactory;
+import java.io.Serializable;
+import java.util.Properties;
 
 /**
  * Created by hwaseob on 2018-02-26.
  */
-public class SessionFactory {
+public class SessionFactory implements Serializable {
     final static Logger log = LoggerFactory.getLogger(SessionFactory.class);
 
     private SipFactory sipFactory;
@@ -24,18 +26,17 @@ public class SessionFactory {
     private HeaderFactory headerFactory;
 
     private AddressFactory addressFactory;
-    //    static ListeningPoint udpListeningPoint = 5070;
-//    String transport = "udp";
+
     private Client client;
 
-//    private ListeningPoint udpListeningPoint;
     private SessionLifeCycleListener sessionLifeCycleListener = new NullSessionLifeCycleListener();
+
+    private Properties config;
 
     public SessionFactory() {
     }
 
     public Session create(RequestEvent e) {
-//        return MrfcSession.create(this, e);
         Session s = new Session(this);
         s.processInvite(e);
         return s;
@@ -56,14 +57,6 @@ public class SessionFactory {
     public void setSipProvider(SipProvider sipProvider) {
         this.sipProvider = sipProvider;
     }
-
-//    public ListeningPoint getUdpListeningPoint() {
-//        return udpListeningPoint;
-//    }
-//
-//    public void setUdpListeningPoint(ListeningPoint udpListeningPoint) {
-//        this.udpListeningPoint = udpListeningPoint;
-//    }
 
     public HeaderFactory getHeaderFactory() {
         if (headerFactory == null)
@@ -123,5 +116,13 @@ public class SessionFactory {
 
     public void setClient(Client client) {
         this.client = client;
+    }
+
+    public Properties getConfig() {
+        return config;
+    }
+
+    public void setConfig(Properties config) {
+        this.config = config;
     }
 }
